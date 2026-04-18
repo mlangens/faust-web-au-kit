@@ -86,7 +86,7 @@ After `npm run build:native`, the default project produces:
 
 After `npm run package:installer`, the installer artifact is:
 
-- `dist/LimiterLab-0.1.0.pkg`
+- `dist/LimiterLab-0.1.1.pkg`
 
 ## Latest local benchmark snapshot
 

@@ -53,6 +53,7 @@ typedef struct {
     float* upsampledOutputs[FWAK_PLUGIN_NUM_OUTPUTS];
     float* upsampledInputStorage[FWAK_PLUGIN_NUM_INPUTS];
     float* upsampledOutputStorage[FWAK_PLUGIN_NUM_OUTPUTS];
+    float* monoOutputScratch;
 } FwakPlugin;
 
 extern const FwakParameterInfo gFwakParameters[FWAK_PARAMETER_COUNT];

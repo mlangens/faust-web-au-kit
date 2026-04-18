@@ -12,14 +12,19 @@ mkdir -p "$HOME/Library/Audio/Plug-Ins/VST3"
 mkdir -p "$HOME/Library/Audio/Plug-Ins/CLAP"
 mkdir -p "$HOME/Applications"
 
-rm -rf "$HOME/Library/Audio/Plug-Ins/Components/${ARTIFACT_STEM}.component"
-rm -rf "$HOME/Library/Audio/Plug-Ins/VST3/${ARTIFACT_STEM}.vst3"
-rm -rf "$HOME/Library/Audio/Plug-Ins/CLAP/${ARTIFACT_STEM}.clap"
-rm -rf "$HOME/Applications/${ARTIFACT_STEM}.app"
+install_bundle() {
+  local source_path="$1"
+  local destination_path="$2"
 
-cp -R "$ROOT_DIR/build/${ARTIFACT_STEM}.component" "$HOME/Library/Audio/Plug-Ins/Components/${ARTIFACT_STEM}.component"
-cp -R "$ROOT_DIR/build/${ARTIFACT_STEM}.vst3" "$HOME/Library/Audio/Plug-Ins/VST3/${ARTIFACT_STEM}.vst3"
-cp -R "$ROOT_DIR/build/${ARTIFACT_STEM}.clap" "$HOME/Library/Audio/Plug-Ins/CLAP/${ARTIFACT_STEM}.clap"
-cp -R "$ROOT_DIR/build/${ARTIFACT_STEM}.app" "$HOME/Applications/${ARTIFACT_STEM}.app"
+  rm -rf "$destination_path" 2>/dev/null || true
+  if ! cp -R "$source_path" "$destination_path" 2>/dev/null; then
+    echo "Warning: could not install $(basename "$destination_path") to $destination_path" >&2
+  fi
+}
+
+install_bundle "$ROOT_DIR/build/${ARTIFACT_STEM}.component" "$HOME/Library/Audio/Plug-Ins/Components/${ARTIFACT_STEM}.component"
+install_bundle "$ROOT_DIR/build/${ARTIFACT_STEM}.vst3" "$HOME/Library/Audio/Plug-Ins/VST3/${ARTIFACT_STEM}.vst3"
+install_bundle "$ROOT_DIR/build/${ARTIFACT_STEM}.clap" "$HOME/Library/Audio/Plug-Ins/CLAP/${ARTIFACT_STEM}.clap"
+install_bundle "$ROOT_DIR/build/${ARTIFACT_STEM}.app" "$HOME/Applications/${ARTIFACT_STEM}.app"
 
 echo "Installed ${ARTIFACT_STEM} bundles into ~/Library/Audio/Plug-Ins and ~/Applications."

@@ -246,6 +246,9 @@ static void fwak_allocate_audio_buffers(FwakPlugin* plugin, uint32_t maxBlockSiz
         plugin->upsampledOutputStorage[channel] = (float*)calloc(oversampledFrames, sizeof(float));
         plugin->upsampledOutputs[channel] = plugin->upsampledOutputStorage[channel];
     }
+
+    free(plugin->monoOutputScratch);
+    plugin->monoOutputScratch = (float*)calloc(maxBlockSize, sizeof(float));
 }
 
 static void fwak_apply_cached_parameters(FwakPlugin* plugin)
@@ -258,7 +261,14 @@ static void fwak_apply_cached_parameters(FwakPlugin* plugin)
     }
 }
 
-static void fwak_process_audio_slice(FwakPlugin* plugin, float** inputs, float** outputs, uint32_t startFrame, uint32_t endFrame)
+static void fwak_process_audio_slice(
+    FwakPlugin* plugin,
+    float** inputs,
+    float** outputs,
+    uint32_t startFrame,
+    uint32_t endFrame,
+    uint32_t inputChannelCount,
+    uint32_t outputChannelCount)
 {
     const uint32_t factor = FWAK_OVERSAMPLING_FACTOR;
     const uint32_t frames = endFrame - startFrame;
@@ -268,9 +278,11 @@ static void fwak_process_audio_slice(FwakPlugin* plugin, float** inputs, float**
     uint32_t frame = 0;
 
     for (; frame < frames; ++frame) {
+        const float monoSample = inputs[0] ? inputs[0][startFrame + frame] : 0.0f;
         int channel = 0;
         for (; channel < FWAK_PLUGIN_NUM_INPUTS; ++channel) {
-            const float currentSample = inputs[channel] ? inputs[channel][startFrame + frame] : 0.0f;
+            const float currentSample =
+                (channel == 0 || inputChannelCount < 2 || !inputs[1]) ? monoSample : inputs[1][startFrame + frame];
             const float previousSample = plugin->prevInput[channel];
             uint32_t substep = 0;
             for (; substep < factor; ++substep) {
@@ -286,6 +298,7 @@ static void fwak_process_audio_slice(FwakPlugin* plugin, float** inputs, float**
     computeLimiterLabDSP((LimiterLabDSP*)plugin->dsp, (int)oversampledFrames, plugin->upsampledInputs, plugin->upsampledOutputs);
 
     for (frame = 0; frame < frames; ++frame) {
+        float renderedFrame[FWAK_PLUGIN_NUM_OUTPUTS] = {0.0f};
         int channel = 0;
         for (; channel < FWAK_PLUGIN_NUM_OUTPUTS; ++channel) {
             uint32_t substep = 0;
@@ -298,8 +311,18 @@ static void fwak_process_audio_slice(FwakPlugin* plugin, float** inputs, float**
                     plugin->decimateCoeff * (plugin->decimateState[channel][0] - plugin->decimateState[channel][1]);
                 filteredSample = plugin->decimateState[channel][1];
             }
-            outputs[channel][startFrame + frame] = filteredSample;
-            outputPeak = fmaxf(outputPeak, fabsf(filteredSample));
+            renderedFrame[channel] = filteredSample;
+        }
+
+        if (outputChannelCount < 2 || !outputs[1]) {
+            const float monoOut = 0.5f * (renderedFrame[0] + renderedFrame[1]);
+            outputs[0][startFrame + frame] = monoOut;
+            outputPeak = fmaxf(outputPeak, fabsf(monoOut));
+        } else {
+            for (channel = 0; channel < FWAK_PLUGIN_NUM_OUTPUTS; ++channel) {
+                outputs[channel][startFrame + frame] = renderedFrame[channel];
+                outputPeak = fmaxf(outputPeak, fabsf(renderedFrame[channel]));
+            }
         }
     }
 
@@ -358,6 +381,7 @@ void cplug_destroyPlugin(void* userPlugin)
     for (channel = 0; channel < FWAK_PLUGIN_NUM_OUTPUTS; ++channel) {
         free(plugin->upsampledOutputStorage[channel]);
     }
+    free(plugin->monoOutputScratch);
 
     if (plugin->dsp) {
         deleteLimiterLabDSP((LimiterLabDSP*)plugin->dsp);
@@ -572,15 +596,21 @@ void cplug_process(void* userPlugin, CplugProcessContext* ctx)
     FwakPlugin* plugin = (FwakPlugin*)userPlugin;
     CplugEvent event;
     uint32_t frame = 0;
-    float** inputs = ctx->getAudioInput ? ctx->getAudioInput(ctx, 0) : NULL;
-    float** outputs = ctx->getAudioOutput ? ctx->getAudioOutput(ctx, 0) : NULL;
+    float** hostInputs = ctx->getAudioInput ? ctx->getAudioInput(ctx, 0) : NULL;
+    float** hostOutputs = ctx->getAudioOutput ? ctx->getAudioOutput(ctx, 0) : NULL;
+    float* resolvedInputs[FWAK_PLUGIN_NUM_INPUTS] = {0};
+    float* resolvedOutputs[FWAK_PLUGIN_NUM_OUTPUTS] = {0};
 
-    if (!outputs || !outputs[0] || !outputs[1]) {
+    if (!hostOutputs || !hostOutputs[0]) {
         return;
     }
-    if (!inputs || !inputs[0] || !inputs[1]) {
-        inputs = outputs;
-    }
+
+    resolvedOutputs[0] = hostOutputs[0];
+    resolvedOutputs[1] = (ctx->numOutputs > 1 && hostOutputs[1]) ? hostOutputs[1] : plugin->monoOutputScratch;
+
+    resolvedInputs[0] = (hostInputs && hostInputs[0]) ? hostInputs[0] : resolvedOutputs[0];
+    resolvedInputs[1] =
+        (ctx->numInputs > 1 && hostInputs && hostInputs[1]) ? hostInputs[1] : resolvedInputs[0];
 
     while (ctx->dequeueEvent(ctx, &event, frame)) {
         switch (event.type) {
@@ -588,7 +618,14 @@ void cplug_process(void* userPlugin, CplugProcessContext* ctx)
             cplug_setParameterValue(plugin, event.parameter.id, event.parameter.value);
             break;
         case CPLUG_EVENT_PROCESS_AUDIO:
-            fwak_process_audio_slice(plugin, inputs, outputs, frame, event.processAudio.endFrame);
+            fwak_process_audio_slice(
+                plugin,
+                resolvedInputs,
+                resolvedOutputs,
+                frame,
+                event.processAudio.endFrame,
+                ctx->numInputs,
+                ctx->numOutputs);
             frame = event.processAudio.endFrame;
             break;
         default:

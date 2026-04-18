@@ -200,11 +200,26 @@ typedef struct AUv2Plugin
     void*                         maxFramesListenerData;
     // auval doesn't ask for this property, but pluginval does, so we have to set it.
     double sampleRate;
+    UInt32 inputChannels;
+    UInt32 outputChannels;
 
     // Store events here because AUv2 won't simply pass us all events in a single process callback
     UInt32     numEvents;
     CplugEvent events[CPLUG_EVENT_QUEUE_SIZE];
 } AUv2Plugin;
+
+static UInt32 AUv2GetSupportedChannelConfigCount(AUv2Plugin* auv2)
+{
+    const UInt32 numInputBusses  = cplug_getNumInputBusses(auv2->userPlugin);
+    const UInt32 numOutputBusses = cplug_getNumOutputBusses(auv2->userPlugin);
+    const UInt32 maxInChannels   = numInputBusses ? cplug_getInputBusChannelCount(auv2->userPlugin, 0) : 0;
+    const UInt32 maxOutChannels  = numOutputBusses ? cplug_getOutputBusChannelCount(auv2->userPlugin, 0) : 0;
+
+    if (!CPLUG_IS_INSTRUMENT && maxInChannels == 2 && maxOutChannels == 2)
+        return 2;
+
+    return (numInputBusses || numOutputBusses) ? 1u : 0u;
+}
 
 // This is a disgusting mess but what are you going to do about it?
 // I really want users to be able to control their own NSView, since detials surrounding its inheritance matter, and
@@ -359,14 +374,7 @@ OSStatus AUMethodGetPropertyInfo(
     case kAudioUnitProperty_SupportedNumChannels:
     {
         CPLUG_LOG_ASSERT_RETURN(inScope == kAudioUnitScope_Global, kAudioUnitErr_InvalidScope);
-        UInt32 num = 0;
-        if (inScope == kAudioUnitScope_Global)
-            num = 1;
-        else if (inScope == kAudioUnitScope_Input)
-            num = cplug_getInputBusChannelCount(auv2->userPlugin, inElement);
-        else if (inScope == kAudioUnitScope_Output)
-            num = cplug_getOutputBusChannelCount(auv2->userPlugin, inElement);
-
+        const UInt32 num = AUv2GetSupportedChannelConfigCount(auv2);
         CPLUG_LOG_ASSERT_RETURN(num != 0u, kAudioUnitErr_InvalidProperty);
         CPLUG_SAFE_SET_PTR(outDataSize, sizeof(AUChannelInfo) * num);
         break;
@@ -673,9 +681,10 @@ static OSStatus AUMethodGetProperty(
 
         int nChannels = 2;
         if (inScope == kAudioUnitScope_Input)
-            nChannels = cplug_getInputBusChannelCount(auv2->userPlugin, inElement);
+            nChannels = auv2->inputChannels ? (int)auv2->inputChannels : cplug_getInputBusChannelCount(auv2->userPlugin, inElement);
         if (inScope == kAudioUnitScope_Output)
-            nChannels = cplug_getOutputBusChannelCount(auv2->userPlugin, inElement);
+            nChannels =
+                auv2->outputChannels ? (int)auv2->outputChannels : cplug_getOutputBusChannelCount(auv2->userPlugin, inElement);
 
         desc->mSampleRate       = auv2->sampleRate;
         desc->mFormatID         = kAudioFormatLinearPCM;
@@ -721,13 +730,35 @@ static OSStatus AUMethodGetProperty(
     case kAudioUnitProperty_SupportedNumChannels:
     {
         AUChannelInfo* infoArr = (AUChannelInfo*)outData;
-        for (int i = 0; i < *ioDataSize / sizeof(*infoArr); i++)
+        const UInt32 supportedConfigCount = AUv2GetSupportedChannelConfigCount(auv2);
+        const UInt32 maxEntries           = *ioDataSize / sizeof(*infoArr);
+
+        if (!CPLUG_IS_INSTRUMENT &&
+            cplug_getNumInputBusses(auv2->userPlugin) &&
+            cplug_getNumOutputBusses(auv2->userPlugin) &&
+            cplug_getInputBusChannelCount(auv2->userPlugin, 0) == 2 &&
+            cplug_getOutputBusChannelCount(auv2->userPlugin, 0) == 2)
         {
-            int inChannels         = cplug_getInputBusChannelCount(auv2->userPlugin, i);
-            int outChannels        = cplug_getOutputBusChannelCount(auv2->userPlugin, i);
-            infoArr[i].inChannels  = inChannels;
-            infoArr[i].outChannels = outChannels;
+            if (maxEntries > 0)
+            {
+                infoArr[0].inChannels  = 1;
+                infoArr[0].outChannels = 1;
+            }
+            if (maxEntries > 1)
+            {
+                infoArr[1].inChannels  = 2;
+                infoArr[1].outChannels = 2;
+            }
         }
+        else if (maxEntries > 0)
+        {
+            infoArr[0].inChannels =
+                cplug_getNumInputBusses(auv2->userPlugin) ? cplug_getInputBusChannelCount(auv2->userPlugin, 0) : 0;
+            infoArr[0].outChannels =
+                cplug_getNumOutputBusses(auv2->userPlugin) ? cplug_getOutputBusChannelCount(auv2->userPlugin, 0) : 0;
+        }
+
+        *ioDataSize = sizeof(*infoArr) * supportedConfigCount;
         break;
     }
 
@@ -925,9 +956,11 @@ static OSStatus AUMethodSetProperty(
             break;
         case kAudioUnitScope_Input:
             nChannels = cplug_getInputBusChannelCount(auv2->userPlugin, inElement);
+            auv2->inputChannels = desc->mChannelsPerFrame;
             break;
         case kAudioUnitScope_Output:
             nChannels = cplug_getOutputBusChannelCount(auv2->userPlugin, inElement);
+            auv2->outputChannels = desc->mChannelsPerFrame;
             break;
         default:
             break;
@@ -1315,7 +1348,7 @@ static OSStatus AUMethodProcessAudio(
 
         translator.auv2 = auv2;
 
-        CPLUG_LOG_ASSERT(ioData->mNumberBuffers == 2);
+        CPLUG_LOG_ASSERT(ioData->mNumberBuffers <= 2);
         for (int i = 0; i < ioData->mNumberBuffers; i++)
         {
             UInt32 numChannels = ioData->mBuffers[i].mNumberChannels;
@@ -1609,5 +1642,7 @@ __attribute__((visibility("default"))) void* GetAUv2PluginFactory(const AudioCom
     auv2->supportsInPlaceProcessing = 1;
     auv2->mMaxFramesPerSlice        = kAUDefaultMaxFramesPerSlice;
     auv2->sampleRate                = kAUDefaultSampleRate;
+    auv2->inputChannels             = cplug_getNumInputBusses(auv2->userPlugin) ? cplug_getInputBusChannelCount(auv2->userPlugin, 0) : 0;
+    auv2->outputChannels            = cplug_getNumOutputBusses(auv2->userPlugin) ? cplug_getOutputBusChannelCount(auv2->userPlugin, 0) : 0;
     return auv2;
 }
