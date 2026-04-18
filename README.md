@@ -48,6 +48,7 @@ npm run export:synth
 npm run benchmark
 npm run build:au
 npm run build:native
+npm run doctor:au
 npm run install:local
 npm run package:installer
 npm run validate:au
@@ -66,6 +67,8 @@ What they do:
   Builds the AUv2 bundle only.
 - `npm run build:native`
   Builds AUv2, CLAP, VST3, and the standalone app.
+- `npm run doctor:au`
+  Reports user vs system AU installs, version mismatches, and a compact `auval` summary.
 - `npm run install:local`
   Installs the built bundles into `~/Library/Audio/Plug-Ins` and `~/Applications`.
 - `npm run package:installer`
@@ -87,6 +90,8 @@ After `npm run build:native`, the default project produces:
 After `npm run package:installer`, the installer artifact is:
 
 - `dist/LimiterLab-0.1.1.pkg`
+
+If Logic sees the plugin but hangs while instantiating it, run `npm run doctor:au` first. A stale `/Library` AU bundle plus a newer `~/Library` AU bundle can make Logic validate one copy and try to open another.
 
 ## Latest local benchmark snapshot
 
