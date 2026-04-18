@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleDevelopmentRegion</key>
+  <string>English</string>
+  <key>CFBundleExecutable</key>
+  <string>@FWAK_BUNDLE_NAME@</string>
+  <key>CFBundleIdentifier</key>
+  <string>@bundle_identifier@</string>
+  <key>CFBundleName</key>
+  <string>@FWAK_BUNDLE_NAME@</string>
+  <key>CFBundleDisplayName</key>
+  <string>@FWAK_PRODUCT_NAME@</string>
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>6.0</string>
+  <key>CFBundlePackageType</key>
+  <string>@bundle_type@</string>
+  <key>CFBundleSignature</key>
+  <string>????</string>
+  <key>CFBundleShortVersionString</key>
+  <string>@FWAK_PROJECT_VERSION@</string>
+  <key>CFBundleVersion</key>
+  <string>@FWAK_PROJECT_VERSION@</string>
+  <key>NSHumanReadableCopyright</key>
+  <string>@FWAK_PRODUCT_COPYRIGHT@</string>
+  <key>NSHighResolutionCapable</key>
+  <true/>
+  <key>AudioComponents</key>
+  <array>
+    <dict>
+      <key>name</key>
+      <string>@FWAK_COMPANY_NAME@: @FWAK_PRODUCT_NAME@</string>
+      <key>description</key>
+      <string>@FWAK_PROJECT_DESCRIPTION@</string>
+      <key>factoryFunction</key>
+      <string>GetAUv2PluginFactory</string>
+      <key>manufacturer</key>
+      <string>@FWAK_AU_MANUFACTURER@</string>
+      <key>sandboxSafe</key>
+      <true/>
+      <key>subtype</key>
+      <string>@FWAK_AU_SUBTYPE@</string>
+      <key>tags</key>
+      <array>
+        @FWAK_AU_TAGS@
+      </array>
+      <key>type</key>
+      <string>@FWAK_AU_TYPE@</string>
+      <key>version</key>
+      <integer>@FWAK_VERSION_INT@</integer>
+    </dict>
+  </array>
+</dict>
+</plist>

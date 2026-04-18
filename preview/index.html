@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Limiter Lab UI Preview</title>
+    <link rel="stylesheet" href="/preview/styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <p class="eyebrow">Web Preview Only</p>
+        <h1>Limiter Lab</h1>
+        <p class="lede">
+          Browser-based visual iteration for a native AppKit Audio Unit. The control schema comes from Faust,
+          while the shipped plugin UI stays browser-free.
+        </p>
+      </section>
+
+      <section class="dashboard">
+        <div class="panel controls-panel">
+          <div class="panel-heading">
+            <h2>Control Surface</h2>
+            <p>Generated from Faust metadata so layout experiments stay tied to the real DSP surface.</p>
+          </div>
+          <div id="controls" class="controls-grid"></div>
+        </div>
+
+        <div class="panel meters-panel">
+          <div class="panel-heading">
+            <h2>Native Meter Preview</h2>
+            <p>Mock motion for visual tuning only. Runtime metering is computed natively in the AU wrapper.</p>
+          </div>
+          <div class="meter-stack">
+            <div class="meter-card">
+              <div class="meter-label-row">
+                <span>Input Peak</span>
+                <strong id="inputPeakValue">-72.0 dB</strong>
+              </div>
+              <div class="meter-track"><div id="inputPeakFill" class="meter-fill meter-input"></div></div>
+            </div>
+            <div class="meter-card">
+              <div class="meter-label-row">
+                <span>Output Peak</span>
+                <strong id="outputPeakValue">-72.0 dB</strong>
+              </div>
+              <div class="meter-track"><div id="outputPeakFill" class="meter-fill meter-output"></div></div>
+            </div>
+            <div class="meter-card">
+              <div class="meter-label-row">
+                <span>Gain Reduction</span>
+                <strong id="gainReductionValue">0.0 dB</strong>
+              </div>
+              <div class="meter-track"><div id="gainReductionFill" class="meter-fill meter-gr"></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel benchmark-panel">
+        <div class="panel-heading">
+          <h2>Compile Target Snapshot</h2>
+          <p>Latest local benchmark data from the generated limiter test harness.</p>
+        </div>
+        <div id="benchmarks" class="benchmark-grid"></div>
+      </section>
+    </main>
+
+    <script type="module" src="/preview/app.js"></script>
+  </body>
+</html>

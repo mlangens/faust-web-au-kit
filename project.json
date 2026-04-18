@@ -1,0 +1,64 @@
+{
+  "name": "faust-web-au-kit",
+  "version": "0.1.0",
+  "owner": "mlangens",
+  "companyName": "Max Langensiepen",
+  "companyTag": "Mlng",
+  "productName": "Limiter Lab",
+  "bundleId": "io.github.mlangens.faust-web-au-kit.limiter-lab",
+  "description": "Native-target Faust framework proof of concept with an oversampled limiter.",
+  "license": "MIT",
+  "plugin": {
+    "kind": "effect",
+    "inputs": 2,
+    "outputs": 2,
+    "midiInput": false,
+    "latencySeconds": 0.0015,
+    "gui": {
+      "native": true,
+      "webPreview": true,
+      "resizable": true
+    }
+  },
+  "targets": {
+    "native": [
+      "auv2",
+      "clap",
+      "vst3",
+      "standalone"
+    ],
+    "active": [
+      "auv2"
+    ]
+  },
+  "oversampling": {
+    "factor": 4
+  },
+  "faust": {
+    "source": "faust/limiter_lab.dsp",
+    "className": "LimiterLabDSP"
+  },
+  "au": {
+    "type": "aufx",
+    "subtype": "Lmlt",
+    "manufacturer": "Mlng",
+    "tags": [
+      "Dynamics",
+      "Effects"
+    ]
+  },
+  "benchmark": {
+    "sampleRate": 48000,
+    "blockSize": 256,
+    "seconds": 6,
+    "nativeTargets": [
+      "c",
+      "cpp",
+      "wasm"
+    ],
+    "exportOnlyTargets": [
+      "cmajor",
+      "rust"
+    ]
+  }
+}

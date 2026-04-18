@@ -1,0 +1,5 @@
+build/
+dist/
+generated/
+faust/*.json
+.DS_Store
