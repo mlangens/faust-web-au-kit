@@ -2,15 +2,31 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
-const project = JSON.parse(fs.readFileSync(path.join(root, "project.json"), "utf8"));
-const generatedDir = path.join(root, "generated");
-const targetDir = path.join(generatedDir, "targets");
+import {
+  clapFeatureMacro,
+  encodeVst3Tuid,
+  escapeCString,
+  findMetaValue,
+  formatFloatLiteral,
+  gatherControls,
+  loadProjectRuntime,
+  normalizeRelativePath
+} from "./lib/project-tools.mjs";
+
+const runtime = loadProjectRuntime();
+const { root, project, sourceFile, sourceBase, outputDir, targetDir, isDefaultProject } = runtime;
 
 fs.mkdirSync(targetDir, { recursive: true });
 
-const dspSource = path.join(root, project.faust.source);
 const className = project.faust.className;
+const controlOrder = project.ui?.controlOrder ?? [];
+const meters = project.ui?.meters ?? [];
+const statusText = project.ui?.statusText ?? "";
+const outputBaseName = sourceBase;
+
+function generatedTargetPath(extension) {
+  return path.join(targetDir, `${outputBaseName}.${extension}`);
+}
 
 function runFaust(args, options = {}) {
   execFileSync("faust", args, {
@@ -30,19 +46,27 @@ function writeProjectConfig() {
   const guiResizable = project.plugin.gui.resizable ? 1 : 0;
   const activeTargets = (project.targets?.active ?? []).join(";");
   const declaredTargets = (project.targets?.native ?? []).join(";");
+  const clapFeatures = (project.clap?.features ?? []).map(clapFeatureMacro).join(", ");
+  const vst3Categories = (project.vst3?.categories ?? []).join("|");
+  const projectDescription = project.description ?? "";
+  const standaloneBundleId = project.standalone?.bundleId ?? `${project.bundleId}.app`;
+  const generatedTargetRelPath = normalizeRelativePath(path.relative(outputDir, generatedTargetPath("c")));
 
   const header = `#ifndef FWAK_PROJECT_CONFIG_H
 #define FWAK_PROJECT_CONFIG_H
 
-#define FWAK_PROJECT_NAME "${project.name}"
-#define FWAK_PROJECT_VERSION "${project.version}"
-#define FWAK_PRODUCT_NAME "${project.productName}"
-#define FWAK_COMPANY_NAME "${project.companyName}"
-#define FWAK_BUNDLE_ID "${project.bundleId}"
-#define FWAK_AU_TYPE "${project.au.type}"
-#define FWAK_AU_SUBTYPE "${project.au.subtype}"
-#define FWAK_AU_MANUFACTURER "${project.au.manufacturer}"
-#define FWAK_PLUGIN_KIND "${project.plugin.kind}"
+#define FWAK_PROJECT_NAME "${escapeCString(project.name)}"
+#define FWAK_PROJECT_VERSION "${escapeCString(project.version)}"
+#define FWAK_PROJECT_DESCRIPTION "${escapeCString(projectDescription)}"
+#define FWAK_PRODUCT_NAME "${escapeCString(project.productName)}"
+#define FWAK_ARTIFACT_STEM "${escapeCString(project.artifactStem ?? project.productName.replaceAll(" ", ""))}"
+#define FWAK_COMPANY_NAME "${escapeCString(project.companyName)}"
+#define FWAK_BUNDLE_ID "${escapeCString(project.bundleId)}"
+#define FWAK_STANDALONE_BUNDLE_ID "${escapeCString(standaloneBundleId)}"
+#define FWAK_AU_TYPE "${escapeCString(project.au.type)}"
+#define FWAK_AU_SUBTYPE "${escapeCString(project.au.subtype)}"
+#define FWAK_AU_MANUFACTURER "${escapeCString(project.au.manufacturer)}"
+#define FWAK_PLUGIN_KIND "${escapeCString(project.plugin.kind)}"
 #define FWAK_PLUGIN_IS_INSTRUMENT ${isInstrument}
 #define FWAK_PLUGIN_NUM_INPUTS ${project.plugin.inputs}
 #define FWAK_PLUGIN_NUM_OUTPUTS ${project.plugin.outputs}
@@ -52,24 +76,33 @@ function writeProjectConfig() {
 #define FWAK_GUI_WEB_PREVIEW ${wantsWebPreview}
 #define FWAK_GUI_RESIZABLE ${guiResizable}
 #define FWAK_OVERSAMPLING_FACTOR ${project.oversampling.factor}
-#define FWAK_FAUST_CLASS "${project.faust.className}"
-#define FWAK_ACTIVE_NATIVE_TARGETS "${activeTargets}"
-#define FWAK_DECLARED_NATIVE_TARGETS "${declaredTargets}"
+#define FWAK_FAUST_CLASS "${escapeCString(project.faust.className)}"
+#define FWAK_GENERATED_C_TARGET_PATH "${generatedTargetRelPath}"
+#define FWAK_ACTIVE_NATIVE_TARGETS "${escapeCString(activeTargets)}"
+#define FWAK_DECLARED_NATIVE_TARGETS "${escapeCString(declaredTargets)}"
+#define FWAK_CLAP_ID "${escapeCString(project.clap?.id ?? project.bundleId)}"
+#define FWAK_CLAP_DESCRIPTION "${escapeCString(project.clap?.description ?? projectDescription)}"
+#define FWAK_CLAP_FEATURES ${clapFeatures || "CLAP_PLUGIN_FEATURE_STEREO"}
+#define FWAK_VST3_CATEGORIES "${escapeCString(vst3Categories || "Fx|Stereo")}"
+#define FWAK_VST3_TUID_COMPONENT ${encodeVst3Tuid(project.vst3?.componentTuid ?? ["Mlng", "Comp", "Demo", 0])}
+#define FWAK_VST3_TUID_CONTROLLER ${encodeVst3Tuid(project.vst3?.controllerTuid ?? ["Mlng", "Edit", "Demo", 0])}
 
 #endif
 `;
 
-  const cmake = `set(FWAK_PROJECT_NAME "${project.name}")
-set(FWAK_PROJECT_VERSION "${project.version}")
-set(FWAK_PRODUCT_NAME "${project.productName}")
-set(FWAK_PROJECT_DESCRIPTION "${project.description}")
-set(FWAK_COMPANY_NAME "${project.companyName}")
-set(FWAK_BUNDLE_ID "${project.bundleId}")
-set(FWAK_AU_TYPE "${project.au.type}")
-set(FWAK_AU_SUBTYPE "${project.au.subtype}")
-set(FWAK_AU_MANUFACTURER "${project.au.manufacturer}")
+  const cmake = `set(FWAK_PROJECT_NAME "${escapeCString(project.name)}")
+set(FWAK_PROJECT_VERSION "${escapeCString(project.version)}")
+set(FWAK_PRODUCT_NAME "${escapeCString(project.productName)}")
+set(FWAK_ARTIFACT_STEM "${escapeCString(project.artifactStem ?? project.productName.replaceAll(" ", ""))}")
+set(FWAK_PROJECT_DESCRIPTION "${escapeCString(project.description)}")
+set(FWAK_COMPANY_NAME "${escapeCString(project.companyName)}")
+set(FWAK_BUNDLE_ID "${escapeCString(project.bundleId)}")
+set(FWAK_STANDALONE_BUNDLE_ID "${escapeCString(standaloneBundleId)}")
+set(FWAK_AU_TYPE "${escapeCString(project.au.type)}")
+set(FWAK_AU_SUBTYPE "${escapeCString(project.au.subtype)}")
+set(FWAK_AU_MANUFACTURER "${escapeCString(project.au.manufacturer)}")
 set(FWAK_AU_TAGS "${cmakeTags}")
-set(FWAK_PLUGIN_KIND "${project.plugin.kind}")
+set(FWAK_PLUGIN_KIND "${escapeCString(project.plugin.kind)}")
 set(FWAK_PLUGIN_IS_INSTRUMENT ${isInstrument})
 set(FWAK_PLUGIN_NUM_INPUTS ${project.plugin.inputs})
 set(FWAK_PLUGIN_NUM_OUTPUTS ${project.plugin.outputs})
@@ -80,79 +113,64 @@ set(FWAK_GUI_WEB_PREVIEW ${wantsWebPreview})
 set(FWAK_GUI_RESIZABLE ${guiResizable})
 set(FWAK_VERSION_INT ${versionInt})
 set(FWAK_OVERSAMPLING_FACTOR ${project.oversampling.factor})
-set(FWAK_ACTIVE_NATIVE_TARGETS "${activeTargets}")
-set(FWAK_DECLARED_NATIVE_TARGETS "${declaredTargets}")
+set(FWAK_ACTIVE_NATIVE_TARGETS "${escapeCString(activeTargets)}")
+set(FWAK_DECLARED_NATIVE_TARGETS "${escapeCString(declaredTargets)}")
 `;
 
-  fs.writeFileSync(path.join(generatedDir, "project_config.h"), header);
-  fs.writeFileSync(path.join(generatedDir, "project_config.cmake"), cmake);
+  fs.writeFileSync(path.join(outputDir, "project_config.h"), header);
+  fs.writeFileSync(path.join(outputDir, "project_config.cmake"), cmake);
+
+  if (isDefaultProject) {
+    fs.writeFileSync(path.join(root, "generated", "project_config.h"), header);
+    fs.writeFileSync(path.join(root, "generated", "project_config.cmake"), cmake);
+  }
 }
 
 function exportTarget(target, extraArgs = []) {
-  const outputByTarget = {
-    c: path.join(targetDir, "limiter_lab.c"),
-    cpp: path.join(targetDir, "limiter_lab.hpp"),
-    wast: path.join(targetDir, "limiter_lab.wast"),
-    wasm: path.join(targetDir, "limiter_lab.wasm"),
-    cmajor: path.join(targetDir, "limiter_lab.cmajor"),
-    rust: path.join(targetDir, "limiter_lab.rs")
+  const extensionByTarget = {
+    c: "c",
+    cpp: "hpp",
+    wast: "wast",
+    wasm: "wasm",
+    cmajor: "cmajor",
+    rust: "rs"
   };
 
-  const output = outputByTarget[target];
-  if (!output) {
+  const extension = extensionByTarget[target];
+  if (!extension) {
     throw new Error(`Unsupported target: ${target}`);
   }
 
-  runFaust(["-lang", target, "-cn", className, "-o", output, ...extraArgs, dspSource], { stdio: "inherit" });
+  const output = generatedTargetPath(extension);
+  runFaust(["-lang", target, "-cn", className, "-o", output, ...extraArgs, sourceFile], { stdio: "inherit" });
 }
 
 function exportJsonMetadata() {
-  const cwd = targetDir;
-  execFileSync("faust", ["-json", "-cn", className, dspSource], {
-    cwd,
+  execFileSync("faust", ["-json", "-cn", className, sourceFile], {
+    cwd: targetDir,
     stdio: ["ignore", "ignore", "inherit"]
   });
 
-  const sourceBase = path.parse(dspSource).name;
-  const emittedJson = path.join(cwd, `${sourceBase}.json`);
-  const finalJson = path.join(targetDir, "limiter_lab.ui.json");
+  const emittedJson = path.join(targetDir, `${sourceBase}.json`);
+  const finalJson = path.join(targetDir, `${outputBaseName}.ui.json`);
   if (fs.existsSync(finalJson)) {
     fs.unlinkSync(finalJson);
   }
   fs.renameSync(emittedJson, finalJson);
+  return finalJson;
 }
 
-function gatherControls(items, acc = []) {
-  for (const item of items ?? []) {
-    if (item.items) {
-      gatherControls(item.items, acc);
-      continue;
-    }
-    if (item.type === "hslider" || item.type === "vslider" || item.type === "nentry" || item.type === "checkbox" || item.type === "button") {
-      acc.push(item);
-    }
-  }
-  return acc;
-}
-
-function escapeCString(value) {
-  return String(value ?? "").replaceAll("\\", "\\\\").replaceAll("\"", "\\\"");
-}
-
-function formatFloatLiteral(value) {
-  const numeric = Number(value ?? 0);
-  if (!Number.isFinite(numeric)) {
-    return "0.0f";
-  }
-  if (Number.isInteger(numeric)) {
-    return `${numeric}.0f`;
-  }
-  return `${numeric}f`;
-}
-
-function writeUiManifest() {
-  const uiJson = JSON.parse(fs.readFileSync(path.join(targetDir, "limiter_lab.ui.json"), "utf8"));
+function writeUiManifest(uiJsonPath) {
+  const uiJson = JSON.parse(fs.readFileSync(uiJsonPath, "utf8"));
   const controls = gatherControls(uiJson.ui);
+  const controlByLabel = new Map(controls.map((control) => [control.label, control]));
+  const orderedControls = [
+    ...controlOrder
+      .map((label) => controlByLabel.get(label))
+      .filter(Boolean),
+    ...controls.filter((control) => !controlOrder.includes(control.label))
+  ];
+
   const manifestLines = controls.map((control) => {
     const initValue = formatFloatLiteral(control.init ?? 0);
     const minValue = formatFloatLiteral(control.min ?? 0);
@@ -160,6 +178,14 @@ function writeUiManifest() {
     const stepValue = formatFloatLiteral(control.step ?? 0);
     const isToggle = control.type === "checkbox" || control.type === "button" ? 1 : 0;
     return `    { ${Number(control.index ?? 0)}, "${escapeCString(control.label)}", "${escapeCString(control.shortname)}", "${escapeCString(control.address)}", ${initValue}, ${minValue}, ${maxValue}, ${stepValue}, ${isToggle} }`;
+  });
+
+  const orderedIndices = orderedControls.map((control) => controls.findIndex((candidate) => candidate.label === control.label));
+  const orderedIndexLines = orderedIndices.map((index) => `    ${index}`).join(",\n");
+
+  const meterLines = meters.map((meter) => {
+    const mode = meter.mode === "gr" ? 1 : 0;
+    return `    { "${escapeCString(meter.id)}", "${escapeCString(meter.label)}", ${formatFloatLiteral(meter.max ?? 24)}, ${mode} }`;
   });
 
   const header = `#ifndef FWAK_UI_MANIFEST_H
@@ -177,16 +203,69 @@ typedef struct {
     int isToggle;
 } FwakControlManifestItem;
 
+typedef struct {
+    const char* id;
+    const char* label;
+    float maxValue;
+    int isGainReduction;
+} FwakMeterManifestItem;
+
 #define FWAK_CONTROL_COUNT ${controls.length}
+#define FWAK_CONTROL_ORDER_COUNT ${orderedIndices.length}
+#define FWAK_METER_COUNT ${meters.length}
+#define FWAK_STATUS_TEXT "${escapeCString(statusText)}"
 
 static const FwakControlManifestItem FWAK_CONTROL_MANIFEST[FWAK_CONTROL_COUNT] = {
 ${manifestLines.join(",\n")}
 };
 
+static const int FWAK_CONTROL_ORDER[FWAK_CONTROL_ORDER_COUNT] = {
+${orderedIndexLines}
+};
+
+static const FwakMeterManifestItem FWAK_METER_MANIFEST[FWAK_METER_COUNT] = {
+${meterLines.join(",\n")}
+};
+
 #endif
 `;
 
-  fs.writeFileSync(path.join(generatedDir, "ui_manifest.h"), header);
+  const schema = {
+    project: {
+      key: runtime.projectKey,
+      name: project.productName,
+      description: project.description,
+      statusText,
+      kind: project.plugin.kind,
+      inputs: project.plugin.inputs,
+      outputs: project.plugin.outputs,
+      previewOnly: true
+    },
+    controls: orderedControls.map((control) => ({
+      id: control.label,
+      label: control.label,
+      shortname: control.shortname,
+      address: control.address,
+      type: control.type,
+      init: control.init ?? 0,
+      min: control.min ?? 0,
+      max: control.max ?? 1,
+      step: control.step ?? 0,
+      unit: findMetaValue(control, "unit"),
+      scale: findMetaValue(control, "scale"),
+      isToggle: control.type === "checkbox" || control.type === "button"
+    })),
+    meters,
+    benchmarkPath: "/generated/benchmark-results.json"
+  };
+
+  fs.writeFileSync(path.join(outputDir, "ui_manifest.h"), header);
+  fs.writeFileSync(path.join(outputDir, "ui_schema.json"), `${JSON.stringify(schema, null, 2)}\n`);
+
+  if (isDefaultProject) {
+    fs.writeFileSync(path.join(root, "generated", "ui_manifest.h"), header);
+    fs.writeFileSync(path.join(root, "generated", "ui_schema.json"), `${JSON.stringify(schema, null, 2)}\n`);
+  }
 }
 
 writeProjectConfig();
@@ -196,7 +275,6 @@ exportTarget("wast");
 exportTarget("wasm");
 exportTarget("cmajor");
 exportTarget("rust");
-exportJsonMetadata();
-writeUiManifest();
+writeUiManifest(exportJsonMetadata());
 
 console.log(`Exported Faust targets into ${path.relative(root, targetDir)}`);

@@ -26,30 +26,6 @@
   <string>@FWAK_PRODUCT_COPYRIGHT@</string>
   <key>NSHighResolutionCapable</key>
   <true/>
-  <key>AudioComponents</key>
-  <array>
-    <dict>
-      <key>name</key>
-      <string>@FWAK_COMPANY_NAME@: @FWAK_PRODUCT_NAME@</string>
-      <key>description</key>
-      <string>@FWAK_PROJECT_DESCRIPTION@</string>
-      <key>factoryFunction</key>
-      <string>GetAUv2PluginFactory</string>
-      <key>manufacturer</key>
-      <string>@FWAK_AU_MANUFACTURER@</string>
-      <key>sandboxSafe</key>
-      <true/>
-      <key>subtype</key>
-      <string>@FWAK_AU_SUBTYPE@</string>
-      <key>tags</key>
-      <array>
-        @FWAK_AU_TAGS@
-      </array>
-      <key>type</key>
-      <string>@FWAK_AU_TYPE@</string>
-      <key>version</key>
-      <integer>@FWAK_VERSION_INT@</integer>
-    </dict>
-  </array>
+  @FWAK_INFO_PLIST_EXTRA_XML@
 </dict>
 </plist>

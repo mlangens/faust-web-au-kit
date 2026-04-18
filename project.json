@@ -5,6 +5,7 @@
   "companyName": "Max Langensiepen",
   "companyTag": "Mlng",
   "productName": "Limiter Lab",
+  "artifactStem": "LimiterLab",
   "bundleId": "io.github.mlangens.faust-web-au-kit.limiter-lab",
   "description": "Native-target Faust framework proof of concept with an oversampled limiter.",
   "license": "MIT",
@@ -38,6 +39,39 @@
     "source": "faust/limiter_lab.dsp",
     "className": "LimiterLabDSP"
   },
+  "ui": {
+    "statusText": "4x oversampled native runtime with shared schema for AppKit and web preview.",
+    "controlOrder": [
+      "Input Gain",
+      "Ceiling",
+      "Attack",
+      "Hold",
+      "Release",
+      "Output Trim",
+      "Vintage Character",
+      "Bypass"
+    ],
+    "meters": [
+      {
+        "id": "inputPeak",
+        "label": "Input Peak",
+        "max": 78,
+        "mode": "peak"
+      },
+      {
+        "id": "outputPeak",
+        "label": "Output Peak",
+        "max": 78,
+        "mode": "peak"
+      },
+      {
+        "id": "gainReduction",
+        "label": "Gain Reduction",
+        "max": 24,
+        "mode": "gr"
+      }
+    ]
+  },
   "au": {
     "type": "aufx",
     "subtype": "Lmlt",
@@ -47,10 +81,48 @@
       "Effects"
     ]
   },
+  "clap": {
+    "id": "io.github.mlangens.faust-web-au-kit.limiter-lab",
+    "description": "Oversampled limiter with switchable vintage and modern characters.",
+    "features": [
+      "audio-effect",
+      "limiter",
+      "mastering",
+      "stereo"
+    ]
+  },
+  "vst3": {
+    "categories": [
+      "Fx",
+      "Dynamics",
+      "Stereo"
+    ],
+    "componentTuid": [
+      "Mlng",
+      "Comp",
+      "Lmlt",
+      0
+    ],
+    "controllerTuid": [
+      "Mlng",
+      "Edit",
+      "Lmlt",
+      0
+    ]
+  },
+  "standalone": {
+    "bundleId": "io.github.mlangens.faust-web-au-kit.limiter-lab.app"
+  },
   "benchmark": {
     "sampleRate": 48000,
     "blockSize": 256,
     "seconds": 6,
+    "initialControls": [
+      {
+        "label": "Vintage Character",
+        "value": 1
+      }
+    ],
     "nativeTargets": [
       "c",
       "cpp",

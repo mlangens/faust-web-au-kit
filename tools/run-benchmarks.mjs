@@ -3,12 +3,13 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
-const project = JSON.parse(fs.readFileSync(path.join(root, "project.json"), "utf8"));
-const generatedDir = path.join(root, "generated");
-const targetsDir = path.join(generatedDir, "targets");
+import { loadProjectRuntime } from "./lib/project-tools.mjs";
+
+const runtime = loadProjectRuntime();
+const { root, project, outputDir: generatedDir, targetDir: targetsDir, sourceBase } = runtime;
 const benchDir = path.join(generatedDir, "bench");
 const includeDir = execFileSync("brew", ["--prefix", "faust"], { encoding: "utf8" }).trim();
+const initialControl = project.benchmark?.initialControls?.[0] ?? null;
 
 fs.mkdirSync(benchDir, { recursive: true });
 
@@ -18,21 +19,41 @@ execFileSync("node", [path.join(root, "tools", "export-targets.mjs")], {
 });
 
 const nativeRunner = path.join(root, "src", "bench_native.cpp");
-const cOutput = path.join(targetsDir, "limiter_lab.c");
-const cppOutput = path.join(targetsDir, "limiter_lab.hpp");
-const uiJson = JSON.parse(fs.readFileSync(path.join(targetsDir, "limiter_lab.ui.json"), "utf8"));
+const cOutput = path.join(targetsDir, `${sourceBase}.c`);
+const cppOutput = path.join(targetsDir, `${sourceBase}.hpp`);
+const uiJson = JSON.parse(fs.readFileSync(path.join(targetsDir, `${sourceBase}.ui.json`), "utf8"));
 
 function compileNative(targetName, generatedSource, generatedHeaderLang) {
   const out = path.join(benchDir, `bench-${targetName}`);
+  const compileDefinitions = [
+    `-DGENERATED_TARGET_KIND=${generatedHeaderLang}`,
+    `-DGENERATED_SOURCE_PATH="${generatedSource}"`,
+    `-DFAUST_INCLUDE_ROOT="${path.join(includeDir, "include")}"`
+  ];
+
+  if (initialControl?.label) {
+    compileDefinitions.push(`-DGENERATED_BENCH_CONTROL_LABEL="${initialControl.label}"`);
+    compileDefinitions.push(`-DGENERATED_BENCH_CONTROL_VALUE=${Number(initialControl.value ?? 0)}`);
+  }
+
+  if (generatedHeaderLang === 1) {
+    compileDefinitions.push(`-DGENERATED_C_DSP_TYPE=${project.faust.className}`);
+    compileDefinitions.push(`-DGENERATED_C_NEW_FN=new${project.faust.className}`);
+    compileDefinitions.push(`-DGENERATED_C_INIT_FN=init${project.faust.className}`);
+    compileDefinitions.push(`-DGENERATED_C_BUILD_UI_FN=buildUserInterface${project.faust.className}`);
+    compileDefinitions.push(`-DGENERATED_C_COMPUTE_FN=compute${project.faust.className}`);
+    compileDefinitions.push(`-DGENERATED_C_DELETE_FN=delete${project.faust.className}`);
+  } else {
+    compileDefinitions.push(`-DGENERATED_CPP_CLASS=${project.faust.className}`);
+  }
+
   execFileSync(
     "clang++",
     [
       "-std=c++20",
       "-O3",
       "-DNDEBUG",
-      `-DGENERATED_TARGET_KIND=${generatedHeaderLang}`,
-      `-DGENERATED_SOURCE_PATH="${generatedSource}"`,
-      `-DFAUST_INCLUDE_ROOT="${path.join(includeDir, "include")}"`,
+      ...compileDefinitions,
       nativeRunner,
       "-I",
       path.join(includeDir, "include"),
@@ -71,7 +92,6 @@ function gatherControls(items, acc = []) {
 }
 
 const controls = gatherControls(uiJson.ui);
-const vintageControl = controls.find((item) => item.label === "Vintage Character");
 
 function alignTo(value, alignment) {
   return Math.ceil(value / alignment) * alignment;
@@ -121,7 +141,7 @@ function createWasmEnv(requiredImports) {
 }
 
 async function benchmarkWasm() {
-  const wasmBytes = fs.readFileSync(path.join(targetsDir, "limiter_lab.wasm"));
+  const wasmBytes = fs.readFileSync(path.join(targetsDir, `${sourceBase}.wasm`));
   const module = new WebAssembly.Module(wasmBytes);
   const imports = createWasmEnv(WebAssembly.Module.imports(module));
   const sampleRate = project.benchmark.sampleRate;
@@ -145,8 +165,11 @@ async function benchmarkWasm() {
 
     init(dspOffset, sampleRate * factor);
 
-    if (vintageControl) {
-      setParamValue(dspOffset, vintageControl.index, 1.0);
+    if (initialControl?.label) {
+      const control = controls.find((item) => item.label === initialControl.label);
+      if (control) {
+        setParamValue(dspOffset, control.index, Number(initialControl.value ?? 0));
+      }
     }
 
     for (let ch = 0; ch < channels; ch += 1) {

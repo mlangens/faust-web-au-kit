@@ -1,0 +1,133 @@
+{
+  "name": "pulse-pad",
+  "version": "0.1.0",
+  "owner": "mlangens",
+  "companyName": "Max Langensiepen",
+  "companyTag": "Mlng",
+  "productName": "Pulse Pad",
+  "artifactStem": "PulsePad",
+  "bundleId": "io.github.mlangens.faust-web-au-kit.pulse-pad",
+  "description": "Synth example manifest for the Faust Web AU Kit framework.",
+  "license": "MIT",
+  "plugin": {
+    "kind": "instrument",
+    "inputs": 0,
+    "outputs": 2,
+    "midiInput": true,
+    "latencySeconds": 0.0,
+    "gui": {
+      "native": true,
+      "webPreview": true,
+      "resizable": true
+    }
+  },
+  "targets": {
+    "native": [
+      "clap",
+      "vst3",
+      "auv2",
+      "standalone"
+    ],
+    "active": []
+  },
+  "oversampling": {
+    "factor": 1
+  },
+  "faust": {
+    "source": "faust/pulse_pad.dsp",
+    "className": "PulsePadDSP"
+  },
+  "ui": {
+    "statusText": "Polyphonic synth example driven by the same generated schema path as the limiter.",
+    "controlOrder": [
+      "Tone",
+      "Motion",
+      "Drive",
+      "Stereo Width",
+      "Attack",
+      "Release"
+    ],
+    "meters": [
+      {
+        "id": "voiceDensity",
+        "label": "Voice Density",
+        "max": 24,
+        "mode": "gr"
+      },
+      {
+        "id": "stereoDrift",
+        "label": "Stereo Drift",
+        "max": 24,
+        "mode": "gr"
+      },
+      {
+        "id": "outputPeak",
+        "label": "Output Peak",
+        "max": 78,
+        "mode": "peak"
+      }
+    ]
+  },
+  "au": {
+    "type": "aumu",
+    "subtype": "Ppad",
+    "manufacturer": "Mlng",
+    "tags": [
+      "Synthesizer"
+    ]
+  },
+  "clap": {
+    "id": "io.github.mlangens.faust-web-au-kit.pulse-pad",
+    "description": "Pulse Pad synth example for the Faust Web AU Kit framework.",
+    "features": [
+      "instrument",
+      "synthesizer",
+      "stereo"
+    ]
+  },
+  "vst3": {
+    "categories": [
+      "Instrument",
+      "Synth"
+    ],
+    "componentTuid": [
+      "Mlng",
+      "Comp",
+      "Ppad",
+      0
+    ],
+    "controllerTuid": [
+      "Mlng",
+      "Edit",
+      "Ppad",
+      0
+    ]
+  },
+  "standalone": {
+    "bundleId": "io.github.mlangens.faust-web-au-kit.pulse-pad.app"
+  },
+  "benchmark": {
+    "sampleRate": 48000,
+    "blockSize": 256,
+    "seconds": 6,
+    "initialControls": [
+      {
+        "label": "Tone",
+        "value": 0.7
+      },
+      {
+        "label": "Motion",
+        "value": 0.45
+      }
+    ],
+    "nativeTargets": [
+      "c",
+      "cpp",
+      "wasm"
+    ],
+    "exportOnlyTargets": [
+      "cmajor",
+      "rust"
+    ]
+  }
+}

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 project(faust_web_au_kit VERSION 0.1.0 DESCRIPTION "Native-target Faust framework proof of concept")
 
 if(NOT APPLE)
-  message(FATAL_ERROR "The AU proof of concept currently builds on macOS only.")
+  message(FATAL_ERROR "The current native adapter layer builds on macOS only.")
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -15,11 +15,69 @@ enable_language(OBJC)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/generated/project_config.cmake)
 
-set(FWAK_TARGET_NAME LimiterLabAU)
-set(FWAK_BUNDLE_NAME LimiterLab)
-set(FWAK_PRODUCT_COPYRIGHT "${FWAK_COMPANY_NAME}")
+option(FWAK_BUILD_AUV2 "Build the AUv2 bundle" ON)
+option(FWAK_BUILD_CLAP "Build the CLAP bundle" ON)
+option(FWAK_BUILD_VST3 "Build the VST3 bundle" ON)
+option(FWAK_BUILD_STANDALONE "Build the standalone app" ON)
 
-function(configure_info_plist target_name bundle_identifier bundle_type bundle_extension)
+set(FWAK_BUNDLE_NAME ${FWAK_ARTIFACT_STEM})
+set(FWAK_PRODUCT_COPYRIGHT "${FWAK_COMPANY_NAME}")
+set(FWAK_SHARED_PLUGIN_SOURCES
+  src/plugin_core.c
+  src/plugin_gui.m
+)
+
+set(FWAK_COMMON_INCLUDE_DIRS
+  ${CMAKE_CURRENT_SOURCE_DIR}/vendor/cplug
+  ${CMAKE_CURRENT_SOURCE_DIR}/vendor/cplug/clap
+  ${CMAKE_CURRENT_SOURCE_DIR}/src
+  ${CMAKE_CURRENT_SOURCE_DIR}/generated
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  /opt/homebrew/opt/faust/include
+)
+
+set(FWAK_COMMON_COMPILE_OPTIONS
+  -include${CMAKE_CURRENT_SOURCE_DIR}/src/cplug_config.h
+  -Werror=return-type
+  -Wno-deprecated-declarations
+  -Wno-nullability-completeness
+)
+
+set(FWAK_PLUGIN_LINK_LIBS
+  "-framework AudioToolbox"
+  "-framework CoreMIDI"
+  "-framework Cocoa"
+)
+
+set(FWAK_AUDIO_COMPONENTS_XML "
+  <key>AudioComponents</key>
+  <array>
+    <dict>
+      <key>name</key>
+      <string>${FWAK_COMPANY_NAME}: ${FWAK_PRODUCT_NAME}</string>
+      <key>description</key>
+      <string>${FWAK_PROJECT_DESCRIPTION}</string>
+      <key>factoryFunction</key>
+      <string>GetAUv2PluginFactory</string>
+      <key>manufacturer</key>
+      <string>${FWAK_AU_MANUFACTURER}</string>
+      <key>sandboxSafe</key>
+      <true/>
+      <key>subtype</key>
+      <string>${FWAK_AU_SUBTYPE}</string>
+      <key>tags</key>
+      <array>
+        ${FWAK_AU_TAGS}
+      </array>
+      <key>type</key>
+      <string>${FWAK_AU_TYPE}</string>
+      <key>version</key>
+      <integer>${FWAK_VERSION_INT}</integer>
+    </dict>
+  </array>")
+
+function(configure_info_plist target_name bundle_identifier bundle_type bundle_extension extra_xml)
+  set(FWAK_INFO_PLIST_EXTRA_XML "${extra_xml}")
   configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/Info.plist.in
     ${CMAKE_BINARY_DIR}/${target_name}.plist
@@ -33,46 +91,92 @@ function(configure_info_plist target_name bundle_identifier bundle_type bundle_e
     OUTPUT_NAME ${FWAK_BUNDLE_NAME}
     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_BINARY_DIR}/${target_name}.plist
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
   )
 endfunction()
 
-add_library(${FWAK_TARGET_NAME} MODULE
-  src/plugin_core.c
-  src/plugin_gui.m
-  vendor/cplug/cplug_auv2.c
-)
+function(add_cplug_bundle target_name bundle_extension bundle_identifier bundle_type wrapper_source extra_compile_defs extra_xml pkginfo_file)
+  add_library(${target_name} MODULE
+    ${FWAK_SHARED_PLUGIN_SOURCES}
+    ${wrapper_source}
+  )
 
-target_include_directories(${FWAK_TARGET_NAME} PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/vendor/cplug
-  ${CMAKE_CURRENT_SOURCE_DIR}/src
-  ${CMAKE_CURRENT_SOURCE_DIR}/generated
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  /opt/homebrew/opt/faust/include
-)
+  target_include_directories(${target_name} PRIVATE ${FWAK_COMMON_INCLUDE_DIRS})
+  target_compile_options(${target_name} PRIVATE ${FWAK_COMMON_COMPILE_OPTIONS})
+  target_compile_definitions(${target_name} PRIVATE ${extra_compile_defs})
+  target_link_libraries(${target_name} PRIVATE ${FWAK_PLUGIN_LINK_LIBS})
 
-target_compile_options(${FWAK_TARGET_NAME} PRIVATE
-  -include${CMAKE_CURRENT_SOURCE_DIR}/src/cplug_config.h
-  -Werror=return-type
-  -Wno-deprecated-declarations
-  -Wno-nullability-completeness
-)
+  configure_info_plist(${target_name} ${bundle_identifier} ${bundle_type} ${bundle_extension} "${extra_xml}")
 
-target_compile_definitions(${FWAK_TARGET_NAME} PRIVATE
-  CPLUG_BUILD_AUV2=1
-  CPLUG_AUV2_VERSION_INT=${FWAK_VERSION_INT}
-  CPLUG_AUV2_BUNDLE_ID="${FWAK_BUNDLE_ID}"
-)
+  if(NOT "${pkginfo_file}" STREQUAL "")
+    add_custom_command(TARGET ${target_name} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${pkginfo_file}
+        ${CMAKE_BINARY_DIR}/${FWAK_BUNDLE_NAME}.${bundle_extension}/Contents/PkgInfo
+    )
+  endif()
+endfunction()
 
-target_link_libraries(${FWAK_TARGET_NAME} PRIVATE
-  "-framework AudioToolbox"
-  "-framework CoreMIDI"
-  "-framework Cocoa"
-)
-
-configure_info_plist(${FWAK_TARGET_NAME} ${FWAK_BUNDLE_ID} "BNDL" "component")
-
-add_custom_command(TARGET ${FWAK_TARGET_NAME} POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+if(FWAK_BUILD_AUV2)
+  add_cplug_bundle(
+    ${FWAK_BUNDLE_NAME}AU
+    component
+    ${FWAK_BUNDLE_ID}
+    BNDL
+    ${CMAKE_CURRENT_SOURCE_DIR}/vendor/cplug/cplug_auv2.c
+    "CPLUG_BUILD_AUV2=1;CPLUG_AUV2_VERSION_INT=${FWAK_VERSION_INT};CPLUG_AUV2_BUNDLE_ID=\"${FWAK_BUNDLE_ID}\""
+    "${FWAK_AUDIO_COMPONENTS_XML}"
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/PkgInfo
-    ${CMAKE_BINARY_DIR}/${FWAK_BUNDLE_NAME}.component/Contents/PkgInfo
-)
+  )
+endif()
+
+if(FWAK_BUILD_CLAP)
+  add_cplug_bundle(
+    ${FWAK_BUNDLE_NAME}CLAP
+    clap
+    ${FWAK_BUNDLE_ID}.clap
+    BNDL
+    ${CMAKE_CURRENT_SOURCE_DIR}/vendor/cplug/cplug_clap.c
+    ""
+    ""
+    ${CMAKE_CURRENT_SOURCE_DIR}/resources/PkgInfo
+  )
+endif()
+
+if(FWAK_BUILD_VST3)
+  add_cplug_bundle(
+    ${FWAK_BUNDLE_NAME}VST3
+    vst3
+    ${FWAK_BUNDLE_ID}.vst3
+    BNDL
+    ${CMAKE_CURRENT_SOURCE_DIR}/vendor/cplug/cplug_vst3.c
+    ""
+    ""
+    ${CMAKE_CURRENT_SOURCE_DIR}/resources/PkgInfo
+  )
+endif()
+
+if(FWAK_BUILD_STANDALONE)
+  add_executable(${FWAK_BUNDLE_NAME}App MACOSX_BUNDLE
+    ${FWAK_SHARED_PLUGIN_SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/vendor/cplug/cplug_standalone_osx.m
+  )
+
+  target_include_directories(${FWAK_BUNDLE_NAME}App PRIVATE ${FWAK_COMMON_INCLUDE_DIRS})
+  target_compile_options(${FWAK_BUNDLE_NAME}App PRIVATE ${FWAK_COMMON_COMPILE_OPTIONS})
+  target_link_libraries(${FWAK_BUNDLE_NAME}App PRIVATE
+    "-framework Cocoa"
+    "-framework CoreMIDI"
+    "-framework CoreAudio"
+    "-framework CoreServices"
+    "-framework AudioToolbox"
+  )
+
+  configure_info_plist(${FWAK_BUNDLE_NAME}App ${FWAK_STANDALONE_BUNDLE_ID} APPL app "")
+
+  add_custom_command(TARGET ${FWAK_BUNDLE_NAME}App POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      ${CMAKE_CURRENT_SOURCE_DIR}/resources/PkgInfo.app
+      ${CMAKE_BINARY_DIR}/${FWAK_BUNDLE_NAME}.app/Contents/PkgInfo
+  )
+endif()

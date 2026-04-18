@@ -42,7 +42,7 @@ The strongest reason is Faust's separation between DSP and architecture: one DSP
 ## Current repo stance
 
 - Implemented now:
-  Faust export pipeline, generated manifests, benchmark harness, native AUv2 adapter, native AppKit UI, web preview surface.
+  Faust export pipeline, shared generated UI/schema manifests, benchmark harness, native AppKit UI, AUv2/CLAP/VST3/standalone macOS adapters, local installer packaging, and a synth example manifest.
 
 - Deliberately left open:
-  VST3/CLAP packaging, synth/instrument target adapters, AUv3, Linux-native plugin bundles, and richer preview/runtime synchronization.
+  AUv3, Linux-native and Windows-native runtime adapters, richer synth-target MIDI handling in the native wrapper layer, and deeper preview/runtime behavior synchronization beyond shared schema/layout data.

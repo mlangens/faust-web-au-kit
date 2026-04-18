@@ -17,7 +17,9 @@
 #include GENERATED_SOURCE_PATH
 
 struct BenchUIState {
-    FAUSTFLOAT* vintage_zone = nullptr;
+    const char* target_label = nullptr;
+    float target_value = 0.0f;
+    FAUSTFLOAT* target_zone = nullptr;
 };
 
 static void ui_open_box(void*, const char*) {}
@@ -39,16 +41,16 @@ static void ui_declare(void* ui, FAUSTFLOAT* zone, const char* key, const char* 
 static void ui_add_checkbox(void* ui, const char* label, FAUSTFLOAT* zone)
 {
     auto* state = static_cast<BenchUIState*>(ui);
-    if (std::strcmp(label, "Vintage Character") == 0) {
-        state->vintage_zone = zone;
+    if (state->target_label && std::strcmp(label, state->target_label) == 0) {
+        state->target_zone = zone;
     }
 }
 
 static void ui_add_hslider(void* ui, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT)
 {
     auto* state = static_cast<BenchUIState*>(ui);
-    if (std::strcmp(label, "Vintage Character") == 0) {
-        state->vintage_zone = zone;
+    if (state->target_label && std::strcmp(label, state->target_label) == 0) {
+        state->target_zone = zone;
     }
     *zone = init;
 }
@@ -86,6 +88,42 @@ static UIGlue makeBenchGlue(BenchUIState* state)
 #error Unsupported GENERATED_TARGET_KIND
 #endif
 
+#ifndef GENERATED_C_DSP_TYPE
+#define GENERATED_C_DSP_TYPE LimiterLabDSP
+#endif
+
+#ifndef GENERATED_C_NEW_FN
+#define GENERATED_C_NEW_FN newLimiterLabDSP
+#endif
+
+#ifndef GENERATED_C_INIT_FN
+#define GENERATED_C_INIT_FN initLimiterLabDSP
+#endif
+
+#ifndef GENERATED_C_BUILD_UI_FN
+#define GENERATED_C_BUILD_UI_FN buildUserInterfaceLimiterLabDSP
+#endif
+
+#ifndef GENERATED_C_COMPUTE_FN
+#define GENERATED_C_COMPUTE_FN computeLimiterLabDSP
+#endif
+
+#ifndef GENERATED_C_DELETE_FN
+#define GENERATED_C_DELETE_FN deleteLimiterLabDSP
+#endif
+
+#ifndef GENERATED_CPP_CLASS
+#define GENERATED_CPP_CLASS LimiterLabDSP
+#endif
+
+#ifndef GENERATED_BENCH_CONTROL_LABEL
+#define GENERATED_BENCH_CONTROL_LABEL ""
+#endif
+
+#ifndef GENERATED_BENCH_CONTROL_VALUE
+#define GENERATED_BENCH_CONTROL_VALUE 0.0
+#endif
+
 int main(int argc, char** argv)
 {
     const int sample_rate = argc > 1 ? std::atoi(argv[1]) : 48000;
@@ -95,20 +133,24 @@ int main(int argc, char** argv)
     const int block_count = total_frames / block_size;
 
 #if GENERATED_TARGET_KIND == 1
-    auto* dsp = newLimiterLabDSP();
-    initLimiterLabDSP(dsp, sample_rate * FWAK_OVERSAMPLING_FACTOR);
+    auto* dsp = GENERATED_C_NEW_FN();
+    GENERATED_C_INIT_FN(dsp, sample_rate * FWAK_OVERSAMPLING_FACTOR);
     BenchUIState ui_state {};
+    ui_state.target_label = GENERATED_BENCH_CONTROL_LABEL[0] ? GENERATED_BENCH_CONTROL_LABEL : nullptr;
+    ui_state.target_value = float(GENERATED_BENCH_CONTROL_VALUE);
     auto glue = makeBenchGlue(&ui_state);
-    buildUserInterfaceLimiterLabDSP(dsp, &glue);
-    if (ui_state.vintage_zone) {
-        *ui_state.vintage_zone = 1.0f;
+    GENERATED_C_BUILD_UI_FN(dsp, &glue);
+    if (ui_state.target_zone) {
+        *ui_state.target_zone = ui_state.target_value;
     }
 #else
-    LimiterLabDSP dsp;
+    GENERATED_CPP_CLASS dsp;
     dsp.init(sample_rate * FWAK_OVERSAMPLING_FACTOR);
     MapUI ui;
     dsp.buildUserInterface(&ui);
-    ui.setParamValue("Vintage Character", 1.0f);
+    if (GENERATED_BENCH_CONTROL_LABEL[0]) {
+        ui.setParamValue(GENERATED_BENCH_CONTROL_LABEL, GENERATED_BENCH_CONTROL_VALUE);
+    }
 #endif
 
     float* input_l = static_cast<float*>(std::calloc(block_size, sizeof(float)));
@@ -135,7 +177,7 @@ int main(int argc, char** argv)
             }
         }
 #if GENERATED_TARGET_KIND == 1
-        computeLimiterLabDSP(dsp, block_size, inputs, outputs);
+        GENERATED_C_COMPUTE_FN(dsp, block_size, inputs, outputs);
 #else
         dsp.compute(block_size, inputs, outputs);
 #endif
@@ -158,7 +200,7 @@ int main(int argc, char** argv)
     );
 
 #if GENERATED_TARGET_KIND == 1
-    deleteLimiterLabDSP(dsp);
+    GENERATED_C_DELETE_FN(dsp);
 #endif
     std::free(input_l);
     std::free(input_r);

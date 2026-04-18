@@ -7,7 +7,7 @@
 
 #include "faust/gui/CInterface.h"
 #include "ui_manifest.h"
-#include "targets/limiter_lab.c"
+#include FWAK_GENERATED_C_TARGET_PATH
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846

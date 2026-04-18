@@ -2,22 +2,26 @@
 #import <AudioToolbox/AUCocoaUIView.h>
 #import <AudioToolbox/AudioUnit.h>
 
+#include <math.h>
+#include <string.h>
+
 #include "plugin_core.h"
+#include "ui_manifest.h"
 
 @interface FwakPluginView : NSView
 {
 @private
     FwakPlugin* _plugin;
+    NSTextField* _titleLabel;
+    NSTextField* _statusLabel;
+    NSTextField* _nameLabels[FWAK_PARAMETER_COUNT];
     NSControl* _controls[FWAK_PARAMETER_COUNT];
     NSTextField* _valueLabels[FWAK_PARAMETER_COUNT];
-    NSLevelIndicator* _inputPeakMeter;
-    NSLevelIndicator* _outputPeakMeter;
-    NSLevelIndicator* _gainReductionMeter;
-    NSTextField* _inputPeakValue;
-    NSTextField* _outputPeakValue;
-    NSTextField* _gainReductionValue;
-    NSTextField* _statusLabel;
+    NSTextField* _meterLabels[FWAK_METER_COUNT];
+    NSLevelIndicator* _meterViews[FWAK_METER_COUNT];
+    NSTextField* _meterValues[FWAK_METER_COUNT];
     NSTimer* _meterTimer;
+    CGFloat _scaleFactor;
 }
 
 - (instancetype)initWithPlugin:(FwakPlugin*)plugin;
@@ -40,8 +44,7 @@ static NSTextField* FwakMakeLabel(NSString* text, CGFloat fontSize, NSFontWeight
 
 static NSLevelIndicator* FwakMakeMeter(double maxValue)
 {
-    NSLevelIndicator* meter =
-        [[NSLevelIndicator alloc] initWithFrame:NSZeroRect];
+    NSLevelIndicator* meter = [[NSLevelIndicator alloc] initWithFrame:NSZeroRect];
     [meter setLevelIndicatorStyle:NSContinuousCapacityLevelIndicatorStyle];
     [meter setMinValue:0.0];
     [meter setMaxValue:maxValue];
@@ -49,6 +52,31 @@ static NSLevelIndicator* FwakMakeMeter(double maxValue)
     [meter setCriticalValue:maxValue * 0.92];
     [meter setEditable:NO];
     return meter;
+}
+
+static int FwakParameterIndexForLabel(const char* label)
+{
+    int index = 0;
+    for (; index < FWAK_PARAMETER_COUNT; ++index) {
+        if (strcmp(gFwakParameters[index].label, label) == 0) {
+            return index;
+        }
+    }
+    return -1;
+}
+
+static double FwakMeterValueForId(const FwakPlugin* plugin, const char* meterId)
+{
+    if (strcmp(meterId, "inputPeak") == 0) {
+        return plugin->meterInputPeakDb;
+    }
+    if (strcmp(meterId, "outputPeak") == 0) {
+        return plugin->meterOutputPeakDb;
+    }
+    if (strcmp(meterId, "gainReduction") == 0) {
+        return plugin->meterGainReductionDb;
+    }
+    return 0.0;
 }
 
 @implementation FwakPluginView
@@ -66,13 +94,13 @@ static NSLevelIndicator* FwakMakeMeter(double maxValue)
     }
 
     _plugin = plugin;
+    _scaleFactor = 1.0;
     [self setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
 
-    NSTextField* titleLabel = FwakMakeLabel(@FWAK_PRODUCT_NAME, 24.0, NSFontWeightSemibold);
-    [self addSubview:titleLabel];
-    [titleLabel release];
+    _titleLabel = FwakMakeLabel(@FWAK_PRODUCT_NAME, 24.0, NSFontWeightSemibold);
+    [self addSubview:_titleLabel];
 
-    _statusLabel = FwakMakeLabel(@"4x oversampled native AU runtime, schema-ready for web preview tooling.", 11.0, NSFontWeightRegular);
+    _statusLabel = FwakMakeLabel(@FWAK_STATUS_TEXT, 11.0, NSFontWeightRegular);
     [_statusLabel setTextColor:[NSColor colorWithCalibratedWhite:0.35 alpha:1.0]];
     [self addSubview:_statusLabel];
 
@@ -80,9 +108,8 @@ static NSLevelIndicator* FwakMakeMeter(double maxValue)
         int index = 0;
         for (; index < FWAK_PARAMETER_COUNT; ++index) {
             const FwakParameterInfo* info = &gFwakParameters[index];
-            NSTextField* nameLabel = FwakMakeLabel([NSString stringWithUTF8String:info->label], 12.0, NSFontWeightMedium);
-            [self addSubview:nameLabel];
-            [nameLabel release];
+            _nameLabels[index] = FwakMakeLabel([NSString stringWithUTF8String:info->label], 12.0, NSFontWeightMedium);
+            [self addSubview:_nameLabels[index]];
 
             if (info->flags & CPLUG_FLAG_PARAMETER_IS_BOOL) {
                 NSButton* checkbox = [[NSButton alloc] initWithFrame:NSZeroRect];
@@ -93,7 +120,6 @@ static NSLevelIndicator* FwakMakeMeter(double maxValue)
                 [checkbox setAction:@selector(parameterChanged:)];
                 _controls[index] = checkbox;
                 [self addSubview:checkbox];
-                [checkbox release];
             } else {
                 NSSlider* slider = [[NSSlider alloc] initWithFrame:NSZeroRect];
                 [slider setMinValue:info->minValue];
@@ -104,7 +130,6 @@ static NSLevelIndicator* FwakMakeMeter(double maxValue)
                 [slider setAction:@selector(parameterChanged:)];
                 _controls[index] = slider;
                 [self addSubview:slider];
-                [slider release];
             }
 
             _valueLabels[index] = FwakMakeLabel(@"", 11.0, NSFontWeightRegular);
@@ -114,30 +139,21 @@ static NSLevelIndicator* FwakMakeMeter(double maxValue)
         }
     }
 
-    _inputPeakMeter = FwakMakeMeter(78.0);
-    _outputPeakMeter = FwakMakeMeter(78.0);
-    _gainReductionMeter = FwakMakeMeter(24.0);
-    _inputPeakValue = FwakMakeLabel(@"", 11.0, NSFontWeightRegular);
-    _outputPeakValue = FwakMakeLabel(@"", 11.0, NSFontWeightRegular);
-    _gainReductionValue = FwakMakeLabel(@"", 11.0, NSFontWeightRegular);
-    [_inputPeakValue setAlignment:NSTextAlignmentRight];
-    [_outputPeakValue setAlignment:NSTextAlignmentRight];
-    [_gainReductionValue setAlignment:NSTextAlignmentRight];
-
-    [self addSubview:FwakMakeLabel(@"Input Peak", 12.0, NSFontWeightMedium)];
-    [[[self subviews] lastObject] release];
-    [self addSubview:FwakMakeLabel(@"Output Peak", 12.0, NSFontWeightMedium)];
-    [[[self subviews] lastObject] release];
-    [self addSubview:FwakMakeLabel(@"Gain Reduction", 12.0, NSFontWeightMedium)];
-    [[[self subviews] lastObject] release];
-    [self addSubview:_inputPeakMeter];
-    [self addSubview:_outputPeakMeter];
-    [self addSubview:_gainReductionMeter];
-    [self addSubview:_inputPeakValue];
-    [self addSubview:_outputPeakValue];
-    [self addSubview:_gainReductionValue];
+    {
+        int index = 0;
+        for (; index < FWAK_METER_COUNT; ++index) {
+            _meterLabels[index] = FwakMakeLabel([NSString stringWithUTF8String:FWAK_METER_MANIFEST[index].label], 12.0, NSFontWeightMedium);
+            _meterViews[index] = FwakMakeMeter(FWAK_METER_MANIFEST[index].maxValue);
+            _meterValues[index] = FwakMakeLabel(@"", 11.0, NSFontWeightRegular);
+            [_meterValues[index] setAlignment:NSTextAlignmentRight];
+            [self addSubview:_meterLabels[index]];
+            [self addSubview:_meterViews[index]];
+            [self addSubview:_meterValues[index]];
+        }
+    }
 
     [self syncControlValues];
+    [self updateMeters:nil];
     _meterTimer = [[NSTimer scheduledTimerWithTimeInterval:(1.0 / 30.0)
                                                     target:self
                                                   selector:@selector(updateMeters:)
@@ -150,91 +166,28 @@ static NSLevelIndicator* FwakMakeMeter(double maxValue)
 {
     [_meterTimer invalidate];
     [_meterTimer release];
+    [_titleLabel release];
     [_statusLabel release];
-    [_inputPeakMeter release];
-    [_outputPeakMeter release];
-    [_gainReductionMeter release];
-    [_inputPeakValue release];
-    [_outputPeakValue release];
-    [_gainReductionValue release];
 
     {
         int index = 0;
         for (; index < FWAK_PARAMETER_COUNT; ++index) {
+            [_nameLabels[index] release];
+            [_controls[index] release];
             [_valueLabels[index] release];
         }
     }
 
-    [super dealloc];
-}
-
-- (void)layout
-{
-    [super layout];
-
-    const CGFloat inset = 24.0;
-    const CGFloat boundsWidth = self.bounds.size.width;
-    const CGFloat controlColumnWidth = boundsWidth * 0.62;
-    const CGFloat meterColumnX = inset + controlColumnWidth + 28.0;
-    const CGFloat meterWidth = boundsWidth - meterColumnX - inset;
-
-    NSArray* subviews = [self subviews];
-    NSTextField* titleLabel = [subviews objectAtIndex:0];
-
-    [titleLabel setFrame:NSMakeRect(inset, 18.0, controlColumnWidth, 28.0)];
-    [_statusLabel setFrame:NSMakeRect(inset, 48.0, boundsWidth - (inset * 2.0), 18.0)];
-
     {
-        const CGFloat rowTop = 94.0;
-        const CGFloat rowHeight = 44.0;
         int index = 0;
-        int sliderRow = 0;
-
-        for (; index < FWAK_PARAMETER_COUNT; ++index) {
-            const FwakParameterInfo* info = &gFwakParameters[index];
-            if (info->flags & CPLUG_FLAG_PARAMETER_IS_BOOL) {
-                continue;
-            }
-
-            NSTextField* label = [subviews objectAtIndex:2 + (index * 2)];
-            const CGFloat y = rowTop + sliderRow * rowHeight;
-            [label setFrame:NSMakeRect(inset, y, 140.0, 18.0)];
-            [_controls[index] setFrame:NSMakeRect(inset + 150.0, y - 2.0, controlColumnWidth - 230.0, 24.0)];
-            [_valueLabels[index] setFrame:NSMakeRect(inset + controlColumnWidth - 70.0, y, 70.0, 18.0)];
-            sliderRow += 1;
+        for (; index < FWAK_METER_COUNT; ++index) {
+            [_meterLabels[index] release];
+            [_meterViews[index] release];
+            [_meterValues[index] release];
         }
-
-        const CGFloat toggleTop = rowTop + sliderRow * rowHeight + 18.0;
-        NSTextField* vintageLabel = [subviews objectAtIndex:2 + (FWAK_PARAM_VINTAGE_CHARACTER * 2)];
-        NSTextField* bypassLabel = [subviews objectAtIndex:2 + (FWAK_PARAM_BYPASS * 2)];
-        [vintageLabel setHidden:YES];
-        [bypassLabel setHidden:YES];
-        [_valueLabels[FWAK_PARAM_VINTAGE_CHARACTER] setHidden:YES];
-        [_valueLabels[FWAK_PARAM_BYPASS] setHidden:YES];
-        [_controls[FWAK_PARAM_VINTAGE_CHARACTER] setFrame:NSMakeRect(inset, toggleTop, 210.0, 24.0)];
-        [_controls[FWAK_PARAM_BYPASS] setFrame:NSMakeRect(inset + 220.0, toggleTop, 160.0, 24.0)];
     }
 
-    {
-        NSArray* meterLabels = [subviews subarrayWithRange:NSMakeRange(subviews.count - 9, 3)];
-        const CGFloat meterTop = 110.0;
-        const CGFloat meterRow = 82.0;
-        NSTextField* label0 = [meterLabels objectAtIndex:0];
-        NSTextField* label1 = [meterLabels objectAtIndex:1];
-        NSTextField* label2 = [meterLabels objectAtIndex:2];
-
-        [label0 setFrame:NSMakeRect(meterColumnX, meterTop, meterWidth, 18.0)];
-        [_inputPeakMeter setFrame:NSMakeRect(meterColumnX, meterTop + 24.0, meterWidth - 70.0, 18.0)];
-        [_inputPeakValue setFrame:NSMakeRect(meterColumnX + meterWidth - 66.0, meterTop + 24.0, 66.0, 18.0)];
-
-        [label1 setFrame:NSMakeRect(meterColumnX, meterTop + meterRow, meterWidth, 18.0)];
-        [_outputPeakMeter setFrame:NSMakeRect(meterColumnX, meterTop + meterRow + 24.0, meterWidth - 70.0, 18.0)];
-        [_outputPeakValue setFrame:NSMakeRect(meterColumnX + meterWidth - 66.0, meterTop + meterRow + 24.0, 66.0, 18.0)];
-
-        [label2 setFrame:NSMakeRect(meterColumnX, meterTop + (meterRow * 2.0), meterWidth, 18.0)];
-        [_gainReductionMeter setFrame:NSMakeRect(meterColumnX, meterTop + (meterRow * 2.0) + 24.0, meterWidth - 70.0, 18.0)];
-        [_gainReductionValue setFrame:NSMakeRect(meterColumnX + meterWidth - 66.0, meterTop + (meterRow * 2.0) + 24.0, 66.0, 18.0)];
-    }
+    [super dealloc];
 }
 
 - (NSString*)formattedValueForParameter:(int)parameterIndex
@@ -254,9 +207,72 @@ static NSLevelIndicator* FwakMakeMeter(double maxValue)
         const double value = cplug_getParameterValue(_plugin, info->id);
         if (info->flags & CPLUG_FLAG_PARAMETER_IS_BOOL) {
             [(NSButton*)_controls[index] setState:(value >= 0.5 ? NSControlStateValueOn : NSControlStateValueOff)];
+            [_valueLabels[index] setHidden:YES];
+            [_nameLabels[index] setHidden:YES];
         } else {
             [(NSSlider*)_controls[index] setDoubleValue:value];
             [_valueLabels[index] setStringValue:[self formattedValueForParameter:index]];
+            [_valueLabels[index] setHidden:NO];
+            [_nameLabels[index] setHidden:NO];
+        }
+    }
+}
+
+- (void)layout
+{
+    [super layout];
+
+    const CGFloat inset = 24.0;
+    const CGFloat boundsWidth = self.bounds.size.width;
+    const CGFloat controlColumnWidth = FWAK_METER_COUNT > 0 ? boundsWidth * 0.62 : boundsWidth - inset * 2.0;
+    const CGFloat meterColumnX = inset + controlColumnWidth + 28.0;
+    const CGFloat meterWidth = boundsWidth - meterColumnX - inset;
+    const CGFloat titleWidth = boundsWidth - inset * 2.0;
+
+    [_titleLabel setFrame:NSMakeRect(inset, 18.0, titleWidth, 28.0)];
+    [_statusLabel setFrame:NSMakeRect(inset, 48.0, titleWidth, 18.0)];
+
+    {
+        const CGFloat rowTop = 94.0;
+        const CGFloat rowHeight = 44.0;
+        const CGFloat toggleGap = 220.0;
+        const CGFloat toggleTopPadding = 18.0;
+        int sliderRow = 0;
+        int toggleRow = 0;
+        int orderIndex = 0;
+
+        for (; orderIndex < FWAK_CONTROL_ORDER_COUNT; ++orderIndex) {
+            const FwakControlManifestItem* manifest = &FWAK_CONTROL_MANIFEST[FWAK_CONTROL_ORDER[orderIndex]];
+            const int parameterIndex = FwakParameterIndexForLabel(manifest->label);
+            if (parameterIndex < 0) {
+                continue;
+            }
+
+            const FwakParameterInfo* info = &gFwakParameters[parameterIndex];
+            if (info->flags & CPLUG_FLAG_PARAMETER_IS_BOOL) {
+                const CGFloat toggleTop = rowTop + sliderRow * rowHeight + toggleTopPadding + toggleRow * 28.0;
+                [_controls[parameterIndex] setFrame:NSMakeRect(inset + toggleRow * toggleGap, toggleTop, 210.0, 24.0)];
+                toggleRow += 1;
+                continue;
+            }
+
+            const CGFloat y = rowTop + sliderRow * rowHeight;
+            [_nameLabels[parameterIndex] setFrame:NSMakeRect(inset, y, 140.0, 18.0)];
+            [_controls[parameterIndex] setFrame:NSMakeRect(inset + 150.0, y - 2.0, controlColumnWidth - 230.0, 24.0)];
+            [_valueLabels[parameterIndex] setFrame:NSMakeRect(inset + controlColumnWidth - 70.0, y, 70.0, 18.0)];
+            sliderRow += 1;
+        }
+    }
+
+    {
+        const CGFloat meterTop = 110.0;
+        const CGFloat meterRow = 82.0;
+        int meterIndex = 0;
+        for (; meterIndex < FWAK_METER_COUNT; ++meterIndex) {
+            const CGFloat y = meterTop + meterRow * meterIndex;
+            [_meterLabels[meterIndex] setFrame:NSMakeRect(meterColumnX, y, meterWidth, 18.0)];
+            [_meterViews[meterIndex] setFrame:NSMakeRect(meterColumnX, y + 24.0, meterWidth - 70.0, 18.0)];
+            [_meterValues[meterIndex] setFrame:NSMakeRect(meterColumnX + meterWidth - 66.0, y + 24.0, 66.0, 18.0)];
         }
     }
 }
@@ -282,13 +298,17 @@ static NSLevelIndicator* FwakMakeMeter(double maxValue)
 - (void)updateMeters:(NSTimer*)timer
 {
     (void)timer;
-    [_inputPeakMeter setDoubleValue:fmax(0.0, _plugin->meterInputPeakDb + 72.0)];
-    [_outputPeakMeter setDoubleValue:fmax(0.0, _plugin->meterOutputPeakDb + 72.0)];
-    [_gainReductionMeter setDoubleValue:_plugin->meterGainReductionDb];
 
-    [_inputPeakValue setStringValue:[NSString stringWithFormat:@"%.1f dB", _plugin->meterInputPeakDb]];
-    [_outputPeakValue setStringValue:[NSString stringWithFormat:@"%.1f dB", _plugin->meterOutputPeakDb]];
-    [_gainReductionValue setStringValue:[NSString stringWithFormat:@"%.1f dB", _plugin->meterGainReductionDb]];
+    int meterIndex = 0;
+    for (; meterIndex < FWAK_METER_COUNT; ++meterIndex) {
+        const FwakMeterManifestItem* manifest = &FWAK_METER_MANIFEST[meterIndex];
+        const double rawValue = FwakMeterValueForId(_plugin, manifest->id);
+        const double meterValue = manifest->isGainReduction ? fmax(0.0, rawValue) : fmax(0.0, rawValue + 72.0);
+
+        [_meterViews[meterIndex] setMaxValue:manifest->maxValue];
+        [_meterViews[meterIndex] setDoubleValue:fmin(manifest->maxValue, meterValue)];
+        [_meterValues[meterIndex] setStringValue:[NSString stringWithFormat:@"%.1f dB", rawValue]];
+    }
 }
 
 @end
@@ -321,59 +341,38 @@ void cplug_setVisible(void* userGUI, bool visible)
 
 void cplug_setScaleFactor(void* userGUI, float scale)
 {
-    (void)userGUI;
+    FwakPluginView* pluginView = (FwakPluginView*)userGUI;
+    if (pluginView == nil) {
+        return;
+    }
+    [pluginView setNeedsLayout:YES];
     (void)scale;
 }
 
 void cplug_getSize(void* userGUI, uint32_t* width, uint32_t* height)
 {
-    const NSSize size = [(NSView*)userGUI frame].size;
-    *width = (uint32_t)size.width;
-    *height = (uint32_t)size.height;
+    FwakPluginView* pluginView = (FwakPluginView*)userGUI;
+    const NSSize size = pluginView ? [pluginView frame].size : NSMakeSize(FWAK_UI_DEFAULT_WIDTH, FWAK_UI_DEFAULT_HEIGHT);
+    *width = (uint32_t)lrint(fmax(size.width, FWAK_UI_DEFAULT_WIDTH));
+    *height = (uint32_t)lrint(fmax(size.height, FWAK_UI_DEFAULT_HEIGHT));
 }
 
 void cplug_checkSize(void* userGUI, uint32_t* width, uint32_t* height)
 {
     (void)userGUI;
-    if (*width < 700u) {
-        *width = 700u;
-    }
-    if (*height < 420u) {
-        *height = 420u;
-    }
+    *width = (uint32_t)fmax((double)*width, FWAK_UI_DEFAULT_WIDTH);
+    *height = (uint32_t)fmax((double)*height, FWAK_UI_DEFAULT_HEIGHT);
 }
 
 bool cplug_setSize(void* userGUI, uint32_t width, uint32_t height)
 {
-    [(NSView*)userGUI setFrameSize:NSMakeSize(width, height)];
+    FwakPluginView* pluginView = (FwakPluginView*)userGUI;
+    if (!pluginView) {
+        return false;
+    }
+
+    const NSRect currentFrame = [pluginView frame];
+    [pluginView setFrame:NSMakeRect(currentFrame.origin.x, currentFrame.origin.y, width, height)];
+    [pluginView setNeedsLayout:YES];
     return true;
 }
-
-@interface FwakAuv2ViewFactory : NSObject <AUCocoaUIBase>
-@end
-
-@implementation FwakAuv2ViewFactory
-
-- (NSView*)uiViewForAudioUnit:(AudioUnit)audioUnit withSize:(NSSize)preferredSize
-{
-    void* userPlugin = NULL;
-    UInt32 dataSize = sizeof(userPlugin);
-    const OSStatus status =
-        AudioUnitGetProperty(audioUnit, kAudioUnitProperty_UserPlugin, kAudioUnitScope_Global, 0, &userPlugin, &dataSize);
-    if (status != noErr || userPlugin == NULL) {
-        return nil;
-    }
-
-    FwakPluginView* view = (FwakPluginView*)cplug_createGUI(userPlugin);
-    if (preferredSize.width > 1.0 && preferredSize.height > 1.0) {
-        cplug_setSize(view, (uint32_t)preferredSize.width, (uint32_t)preferredSize.height);
-    }
-    return view;
-}
-
-- (unsigned)interfaceVersion
-{
-    return 0;
-}
-
-@end

@@ -1,41 +1,37 @@
+const titleRoot = document.querySelector("#productTitle");
+const ledeRoot = document.querySelector("#projectDescription");
+const statusRoot = document.querySelector("#projectStatus");
 const controlsRoot = document.querySelector("#controls");
+const metersRoot = document.querySelector("#meters");
 const benchmarksRoot = document.querySelector("#benchmarks");
-
-const inputPeakFill = document.querySelector("#inputPeakFill");
-const outputPeakFill = document.querySelector("#outputPeakFill");
-const gainReductionFill = document.querySelector("#gainReductionFill");
-const inputPeakValue = document.querySelector("#inputPeakValue");
-const outputPeakValue = document.querySelector("#outputPeakValue");
-const gainReductionValue = document.querySelector("#gainReductionValue");
 
 const state = {
   controls: new Map(),
-  motionPhase: 0
+  meterViews: new Map(),
+  motionPhase: 0,
+  schema: null
 };
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
-function dbToPercent(db) {
-  return clamp((db + 72) / 78, 0, 1) * 100;
-}
-
-function setMeter(fill, label, db, mode = "peak") {
-  const percent = mode === "gr" ? clamp(db / 24, 0, 1) * 100 : dbToPercent(db);
+function setMeter(fill, label, rawValue, meter) {
+  const percent = meter.mode === "gr"
+    ? clamp(rawValue / meter.max, 0, 1) * 100
+    : clamp((rawValue + 72) / meter.max, 0, 1) * 100;
   fill.style.width = `${percent}%`;
-  label.textContent = `${db.toFixed(1)} dB`;
+  label.textContent = `${rawValue.toFixed(1)} dB`;
 }
 
 function formatValue(control, value) {
-  const unitMeta = (control.meta || []).find((item) => item.unit)?.unit;
-  if (control.type === "checkbox") {
+  if (control.isToggle) {
     return value >= 0.5 ? "On" : "Off";
   }
-  if (unitMeta === "dB") {
+  if (control.unit === "dB") {
     return `${value.toFixed(1)} dB`;
   }
-  if (unitMeta === "ms") {
+  if (control.unit === "ms") {
     return `${value.toFixed(2)} ms`;
   }
   return value.toFixed(2);
@@ -102,30 +98,48 @@ function buildSlider(control) {
   return card;
 }
 
-function renderControls(uiJson) {
-  const group = uiJson.ui?.[0];
-  const items = group?.items || [];
-  const ordered = [
-    "Input Gain",
-    "Ceiling",
-    "Attack",
-    "Hold",
-    "Release",
-    "Output Trim",
-    "Vintage Character",
-    "Bypass"
-  ];
+function renderControls(schema) {
+  controlsRoot.innerHTML = "";
+  schema.controls.forEach((control) => {
+    controlsRoot.append(control.isToggle ? buildToggle(control) : buildSlider(control));
+  });
+}
 
-  ordered
-    .map((label) => items.find((item) => item.label === label))
-    .filter(Boolean)
-    .forEach((control) => {
-      controlsRoot.append(control.type === "checkbox" ? buildToggle(control) : buildSlider(control));
-    });
+function renderMeters(schema) {
+  metersRoot.innerHTML = "";
+  state.meterViews.clear();
+
+  schema.meters.forEach((meter) => {
+    const card = document.createElement("div");
+    card.className = "meter-card";
+    const labelRow = document.createElement("div");
+    labelRow.className = "meter-label-row";
+
+    const title = document.createElement("span");
+    title.textContent = meter.label;
+    const value = document.createElement("strong");
+    value.textContent = meter.mode === "gr" ? "0.0 dB" : "-72.0 dB";
+    labelRow.append(title, value);
+
+    const track = document.createElement("div");
+    track.className = "meter-track";
+    const fill = document.createElement("div");
+    fill.className = `meter-fill ${meter.mode === "gr" ? "meter-gr" : "meter-output"}`;
+    track.append(fill);
+
+    card.append(labelRow, track);
+    metersRoot.append(card);
+    state.meterViews.set(meter.id, { fill, value, meter });
+  });
 }
 
 function renderBenchmarks(report) {
   benchmarksRoot.innerHTML = "";
+  if (!report?.results?.length) {
+    benchmarksRoot.innerHTML = "<article class=\"benchmark-card\"><h3>No Benchmarks</h3><p>Run <code>npm run benchmark</code> to refresh the compile target snapshot for this workspace.</p></article>";
+    return;
+  }
+
   report.results.forEach((entry) => {
     const card = document.createElement("article");
     card.className = "benchmark-card";
@@ -138,38 +152,75 @@ function renderBenchmarks(report) {
   });
 }
 
-function animateMeters() {
+function meterValueForId(id) {
   const inputGain = state.controls.get("Input Gain") ?? 0;
   const ceiling = state.controls.get("Ceiling") ?? -1;
   const outputTrim = state.controls.get("Output Trim") ?? 0;
   const vintage = state.controls.get("Vintage Character") ?? 0;
   const bypass = state.controls.get("Bypass") ?? 0;
-
-  state.motionPhase += 0.04;
+  const tone = state.controls.get("Tone") ?? 0.55;
+  const motion = state.controls.get("Motion") ?? 0.35;
+  const drive = state.controls.get("Drive") ?? 3.0;
+  const stereoWidth = state.controls.get("Stereo Width") ?? 0.75;
 
   const inputPeakDb = clamp(-14 + inputGain + Math.sin(state.motionPhase * 1.1) * 5.5, -72, 6);
-  const reductionBase = clamp((inputGain - ceiling) * 0.55 + vintage * 1.8 - bypass * 4.0, 0, 18);
-  const gainReductionDb = clamp(reductionBase + Math.sin(state.motionPhase * 0.8 + 0.9) * 1.4, 0, 24);
+  const gainReductionDb = clamp(
+    (inputGain - ceiling) * 0.55 + vintage * 1.8 - bypass * 4.0 + Math.sin(state.motionPhase * 0.8 + 0.9) * 1.4,
+    0,
+    24
+  );
   const outputPeakDb = clamp(inputPeakDb - gainReductionDb + outputTrim + 0.8, -72, 6);
+  const synthDensity = clamp((tone + motion) * 8.0 + Math.sin(state.motionPhase * 0.9) * 2.2 + drive * 0.3, 0, 24);
+  const stereoDrift = clamp(stereoWidth * 16.0 + Math.sin(state.motionPhase * 1.4 + 1.2) * 2.0, 0, 24);
+  const synthOutput = clamp(-18 + tone * 10 + drive * 0.7 + Math.sin(state.motionPhase * 1.1) * 4.0, -72, 6);
 
-  setMeter(inputPeakFill, inputPeakValue, inputPeakDb);
-  setMeter(outputPeakFill, outputPeakValue, outputPeakDb);
-  setMeter(gainReductionFill, gainReductionValue, gainReductionDb, "gr");
+  switch (id) {
+    case "inputPeak":
+      return inputPeakDb;
+    case "outputPeak":
+      return state.schema?.project?.kind === "instrument" ? synthOutput : outputPeakDb;
+    case "gainReduction":
+      return gainReductionDb;
+    case "voiceDensity":
+      return synthDensity;
+    case "stereoDrift":
+      return stereoDrift;
+    default:
+      return state.schema?.project?.kind === "instrument" ? synthOutput : outputPeakDb;
+  }
+}
 
+function animateMeters() {
+  state.motionPhase += 0.04;
+  state.meterViews.forEach(({ fill, value, meter }, id) => {
+    setMeter(fill, value, meterValueForId(id), meter);
+  });
   requestAnimationFrame(animateMeters);
 }
 
+function schemaPathFromLocation() {
+  const projectKey = new URLSearchParams(window.location.search).get("project");
+  return projectKey ? `/generated/${projectKey}/ui_schema.json` : "/generated/ui_schema.json";
+}
+
 async function bootstrap() {
-  const [uiResponse, benchResponse] = await Promise.all([
-    fetch("/generated/targets/limiter_lab.ui.json"),
-    fetch("/generated/benchmark-results.json")
-  ]);
+  const schemaResponse = await fetch(schemaPathFromLocation());
+  const schema = await schemaResponse.json();
+  state.schema = schema;
 
-  const uiJson = await uiResponse.json();
-  renderControls(uiJson);
+  titleRoot.textContent = schema.project.name;
+  ledeRoot.textContent = schema.project.description;
+  statusRoot.textContent = schema.project.statusText;
 
-  if (benchResponse.ok) {
-    renderBenchmarks(await benchResponse.json());
+  renderControls(schema);
+  renderMeters(schema);
+
+  try {
+    const benchmarkResponse = await fetch(schema.benchmarkPath || "/generated/benchmark-results.json");
+    renderBenchmarks(benchmarkResponse.ok ? await benchmarkResponse.json() : null);
+  } catch (error) {
+    renderBenchmarks(null);
+    console.error(error);
   }
 
   animateMeters();

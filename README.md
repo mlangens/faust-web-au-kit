@@ -1,82 +1,107 @@
 # Faust Web AU Kit
 
-`faust-web-au-kit` is a proof-of-concept framework for building native audio plugins around a Faust DSP source of truth without making handwritten C++ the center of the workflow.
+`faust-web-au-kit` is a manifest-driven framework experiment for building native audio plugins around a Faust DSP source of truth without making handwritten C++ the center of the workflow.
 
-The repo intentionally splits responsibilities:
+The repo splits responsibilities on purpose:
 
-- Faust owns DSP and control schema.
-- Node scripts handle export, manifest generation, benchmarking, and development-time preview tooling.
-- Native target adapters stay thin and target-specific.
-- Shipped plugin UI is native, not browser-hosted.
+- Faust owns DSP and control metadata.
+- Node scripts handle export, schema generation, benchmarking, packaging, and preview tooling.
+- Native adapters stay thin and format-specific.
+- The shipped runtime UI is native, while web tooling stays in the fast-iteration loop.
 
-The current flagship example is `Limiter Lab`, a 4x oversampled stereo limiter with:
+## Current proof of concept
+
+The flagship project is `Limiter Lab`, a 4x oversampled stereo limiter with:
 
 - `Modern` and `Vintage` character switching.
 - Native real-time peak and gain-reduction metering.
-- AUv2 bundle output for macOS.
+- Native AppKit UI backed by generated schema metadata.
+- AUv2, CLAP, VST3, and standalone macOS outputs.
+- Local installer and `.pkg` packaging.
 - Cross-target Faust export for `c`, `cpp`, `wasm`, `cmajor`, and `rust`.
-- A benchmark harness for locally runnable targets: `c`, `cpp`, and `wasm`.
+- A benchmark harness for `c`, `cpp`, and `wasm`.
 
-## Why this repo exists
+The repo also includes `Pulse Pad`, a synth manifest/example that uses the same export and preview path so the framework is not boxed into effect-only workflows.
 
-The goal is not just to build one limiter. The goal is to prove a framework shape:
-
-- A single Faust DSP can drive multiple compile targets.
-- Web technology can be used for rapid UI preview during development.
-- The shipped plugin runtime can still stay entirely native.
-- The adapter layer can grow toward effects, synths, standalone apps, VST3, CLAP, and future AU targets without changing the core authoring model.
-
-## Current layout
+## Layout
 
 - `faust/`
-  The DSP source.
+  Faust DSP sources.
+- `projects/`
+  Additional project manifests beyond the default root project.
 - `tools/`
-  Export, benchmark, and preview tooling.
+  Export, benchmark, preview, and packaging tooling.
 - `generated/`
-  Generated Faust outputs plus framework manifests.
+  Generated Faust targets plus framework manifests.
 - `src/`
-  Native runtime core and AU/AppKit UI adapter.
+  Native runtime core and AppKit UI layer.
 - `vendor/cplug/`
-  Vendored CPLUG AUv2 host glue.
+  Vendored CPLUG wrappers for AUv2, CLAP, VST3, and standalone macOS hosting.
 - `preview/`
-  Browser-based UI preview for active design iteration only.
+  Browser-based preview for rapid visual iteration only.
 
 ## Commands
 
 ```sh
 npm run export
+npm run export:synth
 npm run benchmark
 npm run build:au
-npm run preview
+npm run build:native
+npm run install:local
+npm run package:installer
 npm run validate:au
+npm run preview
 ```
 
 What they do:
 
 - `npm run export`
-  Generates Faust target outputs and C/CMake/UI manifests.
+  Exports the default limiter project into `generated/`.
+- `npm run export:synth`
+  Exports the `Pulse Pad` example into `generated/pulse_pad/`.
 - `npm run benchmark`
-  Rebuilds the generated targets and writes `generated/benchmark-results.json`.
+  Rebuilds generated targets and writes `generated/benchmark-results.json`.
 - `npm run build:au`
-  Builds `build/LimiterLab.component`.
-- `npm run preview`
-  Starts the web-only visual preview server for UI iteration.
+  Builds the AUv2 bundle only.
+- `npm run build:native`
+  Builds AUv2, CLAP, VST3, and the standalone app.
+- `npm run install:local`
+  Installs the built bundles into `~/Library/Audio/Plug-Ins` and `~/Applications`.
+- `npm run package:installer`
+  Writes an unsigned macOS installer package to `dist/`.
 - `npm run validate:au`
-  Installs the built component into the user AU folder and runs `auval`.
+  Installs the AUv2 bundle into the user Components folder and runs `auval`.
+- `npm run preview`
+  Starts the schema-driven preview server. Use `/` for `Limiter Lab` and `/?project=pulse_pad` for `Pulse Pad`.
+
+## Current local outputs
+
+After `npm run build:native`, the default project produces:
+
+- `build/LimiterLab.component`
+- `build/LimiterLab.clap`
+- `build/LimiterLab.vst3`
+- `build/LimiterLab.app`
+
+After `npm run package:installer`, the installer artifact is:
+
+- `dist/LimiterLab-0.1.0.pkg`
 
 ## Latest local benchmark snapshot
 
-At the time of this proof-of-concept pass, the limiter benchmark on an Apple M4 at 48 kHz / 256 samples / 6 seconds produced roughly:
+On an Apple M4 at 48 kHz / 256 samples / 6 seconds, the latest limiter run produced roughly:
 
-- `c`: `319.2x` real time
-- `cpp`: `326.4x` real time
-- `wasm`: `20.0x` real time
+- `c`: `129.9x` real time
+- `cpp`: `132.2x` real time
+- `wasm`: `6.9x` real time
 
 ## Practical caveats
 
-- The AU proof of concept currently targets AUv2 because it is a pragmatic thin-wrapper route for this experiment. The framework is intentionally not AUv2-shaped internally.
-- Web preview is development tooling only. The plugin bundle itself does not embed a web runtime.
-- The current native plugin adapter is macOS-first. The framework/export/manifest layers are broader than the current packaged target.
+- The native runtime layer is macOS-first today even though the project/config/export model is intentionally broader.
+- The `.pkg` installer is unsigned, which is fine for local testing but not for public notarized distribution.
+- AU validation passes, but the thin AUv2 wrapper still emits non-fatal warnings about CFString parameter naming and layout reporting.
+- Web preview is development tooling only. The shipped plugin bundles do not embed a web runtime.
 
 ## Research note
 

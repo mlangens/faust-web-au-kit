@@ -1,7 +1,6 @@
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
-import url from "node:url";
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 const port = Number(process.env.PORT || 4173);
@@ -26,7 +25,7 @@ function resolveFile(requestPath) {
 }
 
 const server = http.createServer((request, response) => {
-  const parsedUrl = url.parse(request.url || "/");
+  const parsedUrl = new URL(request.url || "/", `http://${host}:${port}`);
   const filePath = resolveFile(parsedUrl.pathname || "/");
 
   if (!filePath || !fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
