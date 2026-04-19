@@ -67,3 +67,29 @@ test("pulse pad preview loads the alternate generated project and its meter layo
   await setRangeValue(page, "Tone", 0.8);
   await expect(page.locator('.control-card[data-control-id="Tone"] .value')).toHaveText("0.80");
 });
+
+test("preview falls back cleanly when benchmark data is unavailable", async ({ page }) => {
+  await page.route("**/generated/benchmark-results.json", async (route) => {
+    await route.fulfill({
+      status: 503,
+      body: "temporarily unavailable"
+    });
+  });
+
+  await page.goto("/");
+
+  await expect(page.getByRole("heading", { name: limiter.schema.project.name })).toBeVisible();
+  await expect(page.locator("#controls .control-card")).toHaveCount(limiter.schema.controls.length);
+  await expect(page.locator("#benchmarks .benchmark-card")).toContainText("No Benchmarks");
+});
+
+test("preview shows a friendly error when the requested project schema is missing", async ({ page }) => {
+  await page.goto("/?project=missing_project");
+
+  await expect(page.locator("body")).toHaveAttribute("data-preview-error", "true");
+  await expect(page.locator("#productTitle")).toHaveText("Preview Error");
+  await expect(page.locator("#projectDescription")).toContainText("missing_project");
+  await expect(page.locator("#benchmarks .benchmark-card")).toContainText("Preview Error");
+  await expect(page.locator("#controls .control-card")).toHaveCount(0);
+  await expect(page.locator("#meters .meter-card")).toHaveCount(0);
+});

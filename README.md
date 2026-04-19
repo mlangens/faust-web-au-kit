@@ -83,9 +83,13 @@ What they do:
 The repo now has a small test pyramid that matches how the project is built:
 
 - `npm test`
-  Re-exports the default limiter plus `Pulse Pad`, runs schema contract tests with Node's built-in test runner, then runs Playwright smoke tests against the preview server.
+  Re-exports the default limiter plus `Pulse Pad`, runs unit tests for file-safe generation helpers, schema contract tests, export integration tests, then runs Playwright smoke tests against the preview server.
+- `npm run test:unit`
+  Exercises low-level framework helpers such as atomic file publication and scratch-directory cleanup.
 - `npm run test:contracts`
   Validates generated `ui_schema.json` files against the current manifests and Faust metadata.
+- `npm run test:integration`
+  Stress-tests the shared export pipeline, including concurrent runs against the same generated output path.
 - `npm run test:preview`
   Exercises the browser preview for `/` and `/?project=pulse_pad` so parallel UI work collides in one place before shipping.
 - `npm run test:native`

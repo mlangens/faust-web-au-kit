@@ -16,12 +16,16 @@
     "package:installer": "./scripts/package-installer.sh",
     "validate:au": "./scripts/validate-au.sh",
     "test:prepare": "node ./tools/prepare-test-artifacts.mjs",
+    "test:unit:run": "node --test tests/unit/**/*.test.mjs",
+    "test:unit": "npm run test:unit:run",
     "test:contracts:run": "node --test tests/contracts/**/*.test.mjs",
     "test:contracts": "npm run test:prepare && npm run test:contracts:run",
+    "test:integration:run": "node --test tests/integration/**/*.test.mjs",
+    "test:integration": "npm run test:prepare && npm run test:integration:run",
     "test:preview:run": "playwright test",
     "test:preview": "npm run test:prepare && npm run test:preview:run",
     "test:native": "node ./tools/run-native-validation.mjs",
-    "test": "npm run test:prepare && npm run test:contracts:run && npm run test:preview:run"
+    "test": "npm run test:prepare && npm run test:unit:run && npm run test:contracts:run && npm run test:integration:run && npm run test:preview:run"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1"

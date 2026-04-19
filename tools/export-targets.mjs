@@ -12,20 +12,43 @@ import {
   loadProjectRuntime,
   normalizeRelativePath
 } from "./lib/project-tools.mjs";
+import { createTempDir, removePathSync, replaceFileAtomically } from "./lib/fs-tools.mjs";
 
 const runtime = loadProjectRuntime();
-const { root, project, sourceFile, sourceBase, outputDir, targetDir, isDefaultProject } = runtime;
-
-fs.mkdirSync(targetDir, { recursive: true });
+const { root, project, sourceFile, sourceBase, outputDir, targetDir } = runtime;
 
 const className = project.faust.className;
 const controlOrder = project.ui?.controlOrder ?? [];
 const meters = project.ui?.meters ?? [];
 const statusText = project.ui?.statusText ?? "";
 const outputBaseName = sourceBase;
+const stageDir = createTempDir(path.dirname(outputDir), `.${path.basename(outputDir)}.export-`);
+const stageTargetDir = path.join(stageDir, "targets");
+const stagedArtifacts = [];
 
 function generatedTargetPath(extension) {
   return path.join(targetDir, `${outputBaseName}.${extension}`);
+}
+
+function stagedTargetPath(extension) {
+  return path.join(stageTargetDir, `${outputBaseName}.${extension}`);
+}
+
+function stageTextArtifact(relativePath, contents) {
+  const stagedPath = path.join(stageDir, relativePath);
+  fs.mkdirSync(path.dirname(stagedPath), { recursive: true });
+  fs.writeFileSync(stagedPath, contents);
+  stagedArtifacts.push(relativePath);
+}
+
+function stageBinaryArtifact(relativePath) {
+  stagedArtifacts.push(relativePath);
+}
+
+function publishStagedArtifacts() {
+  for (const relativePath of stagedArtifacts) {
+    replaceFileAtomically(path.join(stageDir, relativePath), path.join(outputDir, relativePath));
+  }
 }
 
 function runFaust(args, options = {}) {
@@ -117,13 +140,8 @@ set(FWAK_ACTIVE_NATIVE_TARGETS "${escapeCString(activeTargets)}")
 set(FWAK_DECLARED_NATIVE_TARGETS "${escapeCString(declaredTargets)}")
 `;
 
-  fs.writeFileSync(path.join(outputDir, "project_config.h"), header);
-  fs.writeFileSync(path.join(outputDir, "project_config.cmake"), cmake);
-
-  if (isDefaultProject) {
-    fs.writeFileSync(path.join(root, "generated", "project_config.h"), header);
-    fs.writeFileSync(path.join(root, "generated", "project_config.cmake"), cmake);
-  }
+  stageTextArtifact("project_config.h", header);
+  stageTextArtifact("project_config.cmake", cmake);
 }
 
 function exportTarget(target, extraArgs = []) {
@@ -141,22 +159,23 @@ function exportTarget(target, extraArgs = []) {
     throw new Error(`Unsupported target: ${target}`);
   }
 
-  const output = generatedTargetPath(extension);
+  fs.mkdirSync(stageTargetDir, { recursive: true });
+  const output = stagedTargetPath(extension);
   runFaust(["-lang", target, "-cn", className, "-o", output, ...extraArgs, sourceFile], { stdio: "inherit" });
+  stageBinaryArtifact(path.join("targets", `${outputBaseName}.${extension}`));
 }
 
 function exportJsonMetadata() {
+  fs.mkdirSync(stageTargetDir, { recursive: true });
   execFileSync("faust", ["-json", "-cn", className, sourceFile], {
-    cwd: targetDir,
+    cwd: stageTargetDir,
     stdio: ["ignore", "ignore", "inherit"]
   });
 
-  const emittedJson = path.join(targetDir, `${sourceBase}.json`);
-  const finalJson = path.join(targetDir, `${outputBaseName}.ui.json`);
-  if (fs.existsSync(finalJson)) {
-    fs.unlinkSync(finalJson);
-  }
+  const emittedJson = path.join(stageTargetDir, `${sourceBase}.json`);
+  const finalJson = path.join(stageTargetDir, `${outputBaseName}.ui.json`);
   fs.renameSync(emittedJson, finalJson);
+  stageBinaryArtifact(path.join("targets", `${outputBaseName}.ui.json`));
   return finalJson;
 }
 
@@ -259,22 +278,22 @@ ${meterLines.join(",\n")}
     benchmarkPath: "/generated/benchmark-results.json"
   };
 
-  fs.writeFileSync(path.join(outputDir, "ui_manifest.h"), header);
-  fs.writeFileSync(path.join(outputDir, "ui_schema.json"), `${JSON.stringify(schema, null, 2)}\n`);
-
-  if (isDefaultProject) {
-    fs.writeFileSync(path.join(root, "generated", "ui_manifest.h"), header);
-    fs.writeFileSync(path.join(root, "generated", "ui_schema.json"), `${JSON.stringify(schema, null, 2)}\n`);
-  }
+  stageTextArtifact("ui_manifest.h", header);
+  stageTextArtifact("ui_schema.json", `${JSON.stringify(schema, null, 2)}\n`);
 }
 
-writeProjectConfig();
-exportTarget("c");
-exportTarget("cpp");
-exportTarget("wast");
-exportTarget("wasm");
-exportTarget("cmajor");
-exportTarget("rust");
-writeUiManifest(exportJsonMetadata());
+try {
+  writeProjectConfig();
+  exportTarget("c");
+  exportTarget("cpp");
+  exportTarget("wast");
+  exportTarget("wasm");
+  exportTarget("cmajor");
+  exportTarget("rust");
+  writeUiManifest(exportJsonMetadata());
+  publishStagedArtifacts();
 
-console.log(`Exported Faust targets into ${path.relative(root, targetDir)}`);
+  console.log(`Exported Faust targets into ${path.relative(root, targetDir)}`);
+} finally {
+  removePathSync(stageDir);
+}

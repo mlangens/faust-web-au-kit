@@ -208,6 +208,16 @@ function meterValueForId(id) {
   }
 }
 
+function renderPreviewError(message) {
+  document.body.dataset.previewError = "true";
+  titleRoot.textContent = "Preview Error";
+  ledeRoot.textContent = message;
+  statusRoot.textContent = "The preview could not load its generated schema. Re-export the project artifacts and try again.";
+  controlsRoot.innerHTML = "";
+  metersRoot.innerHTML = "";
+  benchmarksRoot.innerHTML = `<article class="benchmark-card"><h3>Preview Error</h3><p>${message}</p></article>`;
+}
+
 function animateMeters() {
   state.motionPhase += 0.04;
   state.meterViews.forEach(({ fill, value, meter }, id) => {
@@ -216,14 +226,30 @@ function animateMeters() {
   requestAnimationFrame(animateMeters);
 }
 
+function activeProjectKeyFromLocation() {
+  return new URLSearchParams(window.location.search).get("project");
+}
+
 function schemaPathFromLocation() {
-  const projectKey = new URLSearchParams(window.location.search).get("project");
+  const projectKey = activeProjectKeyFromLocation();
   return projectKey ? `/generated/${projectKey}/ui_schema.json` : "/generated/ui_schema.json";
 }
 
-async function bootstrap() {
+async function loadSchema() {
+  const projectKey = activeProjectKeyFromLocation();
   const schemaResponse = await fetch(schemaPathFromLocation());
-  const schema = await schemaResponse.json();
+  if (!schemaResponse.ok) {
+    if (projectKey) {
+      throw new Error(`Preview schema for "${projectKey}" is unavailable (HTTP ${schemaResponse.status}).`);
+    }
+    throw new Error(`Default preview schema is unavailable (HTTP ${schemaResponse.status}).`);
+  }
+  return schemaResponse.json();
+}
+
+async function bootstrap() {
+  delete document.body.dataset.previewError;
+  const schema = await loadSchema();
   state.schema = schema;
   document.body.dataset.projectKey = schema.project.key;
 
@@ -246,5 +272,6 @@ async function bootstrap() {
 }
 
 bootstrap().catch((error) => {
-  benchmarksRoot.innerHTML = `<article class="benchmark-card"><h3>Preview Error</h3><p>${error.message}</p></article>`;
+  renderPreviewError(error.message);
+  console.error(error);
 });
