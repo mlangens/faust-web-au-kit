@@ -1,6 +1,6 @@
 {
-  "name": "faust-web-au-kit",
-  "version": "0.1.3",
+  "name": "limiter-lab",
+  "version": "0.3.0",
   "owner": "mlangens",
   "companyName": "Max Langensiepen",
   "companyTag": "Mlng",
@@ -36,7 +36,7 @@
     "factor": 4
   },
   "faust": {
-    "source": "faust/limiter_lab.dsp",
+    "source": "./dsp/main.dsp",
     "className": "LimiterLabDSP"
   },
   "ui": {

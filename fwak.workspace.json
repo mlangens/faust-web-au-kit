@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "name": "faust-web-au-kit",
+  "version": "0.3.0",
+  "defaultApp": "limiter-lab",
+  "paths": {
+    "apps": "apps",
+    "generatedRoot": "generated",
+    "generatedApps": "generated/apps",
+    "buildApps": "build/apps",
+    "distApps": "dist/apps"
+  },
+  "apps": [
+    {
+      "key": "limiter-lab",
+      "name": "Limiter Lab",
+      "manifest": "apps/limiter-lab/project.json"
+    },
+    {
+      "key": "pulse-pad",
+      "name": "Pulse Pad",
+      "manifest": "apps/pulse-pad/project.json"
+    }
+  ]
+}

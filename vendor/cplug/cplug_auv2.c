@@ -221,6 +221,21 @@ static UInt32 AUv2GetSupportedChannelConfigCount(AUv2Plugin* auv2)
     return (numInputBusses || numOutputBusses) ? 1u : 0u;
 }
 
+static UInt32 AUv2GetDefaultInputChannels(AUv2Plugin* auv2, AudioUnitElement inElement)
+{
+    const UInt32 numInputBusses = cplug_getNumInputBusses(auv2->userPlugin);
+    if (numInputBusses)
+        return cplug_getInputBusChannelCount(auv2->userPlugin, inElement);
+
+#if CPLUG_IS_INSTRUMENT
+    // Logic expects AU instruments to expose an input bus for sidechain-style routing.
+    // When we synthesize that bus, it still needs a valid default stream format.
+    return 2;
+#else
+    return 0;
+#endif
+}
+
 // This is a disgusting mess but what are you going to do about it?
 // I really want users to be able to control their own NSView, since detials surrounding its inheritance matter, and
 // users ought to be able to control it. This means CPLUG can't abstract its proposed GUI API for Audio Units since it
@@ -681,7 +696,7 @@ static OSStatus AUMethodGetProperty(
 
         int nChannels = 2;
         if (inScope == kAudioUnitScope_Input)
-            nChannels = auv2->inputChannels ? (int)auv2->inputChannels : cplug_getInputBusChannelCount(auv2->userPlugin, inElement);
+            nChannels = auv2->inputChannels ? (int)auv2->inputChannels : (int)AUv2GetDefaultInputChannels(auv2, inElement);
         if (inScope == kAudioUnitScope_Output)
             nChannels =
                 auv2->outputChannels ? (int)auv2->outputChannels : cplug_getOutputBusChannelCount(auv2->userPlugin, inElement);
@@ -752,8 +767,7 @@ static OSStatus AUMethodGetProperty(
         }
         else if (maxEntries > 0)
         {
-            infoArr[0].inChannels =
-                cplug_getNumInputBusses(auv2->userPlugin) ? cplug_getInputBusChannelCount(auv2->userPlugin, 0) : 0;
+            infoArr[0].inChannels  = AUv2GetDefaultInputChannels(auv2, 0);
             infoArr[0].outChannels =
                 cplug_getNumOutputBusses(auv2->userPlugin) ? cplug_getOutputBusChannelCount(auv2->userPlugin, 0) : 0;
         }
@@ -955,7 +969,7 @@ static OSStatus AUMethodSetProperty(
             nChannels = 1;
             break;
         case kAudioUnitScope_Input:
-            nChannels = cplug_getInputBusChannelCount(auv2->userPlugin, inElement);
+            nChannels = (int)AUv2GetDefaultInputChannels(auv2, inElement);
             auv2->inputChannels = desc->mChannelsPerFrame;
             break;
         case kAudioUnitScope_Output:
@@ -1642,7 +1656,7 @@ __attribute__((visibility("default"))) void* GetAUv2PluginFactory(const AudioCom
     auv2->supportsInPlaceProcessing = 1;
     auv2->mMaxFramesPerSlice        = kAUDefaultMaxFramesPerSlice;
     auv2->sampleRate                = kAUDefaultSampleRate;
-    auv2->inputChannels             = cplug_getNumInputBusses(auv2->userPlugin) ? cplug_getInputBusChannelCount(auv2->userPlugin, 0) : 0;
+    auv2->inputChannels             = AUv2GetDefaultInputChannels(auv2, 0);
     auv2->outputChannels            = cplug_getNumOutputBusses(auv2->userPlugin) ? cplug_getOutputBusChannelCount(auv2->userPlugin, 0) : 0;
     return auv2;
 }

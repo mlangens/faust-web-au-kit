@@ -1,6 +1,7 @@
 const titleRoot = document.querySelector("#productTitle");
 const ledeRoot = document.querySelector("#projectDescription");
 const statusRoot = document.querySelector("#projectStatus");
+const navRoot = document.querySelector("#previewNav");
 const controlsRoot = document.querySelector("#controls");
 const metersRoot = document.querySelector("#meters");
 const benchmarksRoot = document.querySelector("#benchmarks");
@@ -9,7 +10,8 @@ const state = {
   controls: new Map(),
   meterViews: new Map(),
   motionPhase: 0,
-  schema: null
+  schema: null,
+  workspace: null
 };
 
 function controlKey(control) {
@@ -208,6 +210,23 @@ function meterValueForId(id) {
   }
 }
 
+function renderWorkspaceNav(workspace, activeAppKey) {
+  navRoot.innerHTML = "";
+  if (!workspace?.apps?.length) {
+    return;
+  }
+
+  workspace.apps.forEach((app) => {
+    const link = document.createElement("a");
+    link.href = app.previewPath;
+    link.textContent = app.name;
+    if (app.key === activeAppKey) {
+      link.classList.add("is-active");
+    }
+    navRoot.append(link);
+  });
+}
+
 function renderPreviewError(message) {
   document.body.dataset.previewError = "true";
   titleRoot.textContent = "Preview Error";
@@ -226,21 +245,35 @@ function animateMeters() {
   requestAnimationFrame(animateMeters);
 }
 
-function activeProjectKeyFromLocation() {
-  return new URLSearchParams(window.location.search).get("project");
+function activeAppKeyFromLocation() {
+  const params = new URLSearchParams(window.location.search);
+  const appKey = params.get("app");
+  if (appKey) {
+    return appKey;
+  }
+
+  const legacyProjectKey = params.get("project");
+  return legacyProjectKey ? legacyProjectKey.replaceAll("_", "-") : null;
 }
 
-function schemaPathFromLocation() {
-  const projectKey = activeProjectKeyFromLocation();
-  return projectKey ? `/generated/${projectKey}/ui_schema.json` : "/generated/ui_schema.json";
+async function loadWorkspaceManifest() {
+  const response = await fetch("/generated/workspace_manifest.json");
+  if (!response.ok) {
+    return null;
+  }
+  return response.json();
 }
 
-async function loadSchema() {
-  const projectKey = activeProjectKeyFromLocation();
-  const schemaResponse = await fetch(schemaPathFromLocation());
+async function loadSchema(workspace) {
+  const appKey = activeAppKeyFromLocation() ?? workspace?.defaultApp;
+  if (!appKey) {
+    throw new Error("No workspace default app is available for preview.");
+  }
+
+  const schemaResponse = await fetch(`/generated/apps/${appKey}/ui_schema.json`);
   if (!schemaResponse.ok) {
-    if (projectKey) {
-      throw new Error(`Preview schema for "${projectKey}" is unavailable (HTTP ${schemaResponse.status}).`);
+    if (appKey) {
+      throw new Error(`Preview schema for "${appKey}" is unavailable (HTTP ${schemaResponse.status}).`);
     }
     throw new Error(`Default preview schema is unavailable (HTTP ${schemaResponse.status}).`);
   }
@@ -249,9 +282,13 @@ async function loadSchema() {
 
 async function bootstrap() {
   delete document.body.dataset.previewError;
-  const schema = await loadSchema();
+  state.workspace = await loadWorkspaceManifest();
+  renderWorkspaceNav(state.workspace, activeAppKeyFromLocation() ?? state.workspace?.defaultApp);
+
+  const schema = await loadSchema(state.workspace);
   state.schema = schema;
   document.body.dataset.projectKey = schema.project.key;
+  renderWorkspaceNav(state.workspace, schema.project.key);
 
   titleRoot.textContent = schema.project.name;
   ledeRoot.textContent = schema.project.description;
@@ -261,7 +298,10 @@ async function bootstrap() {
   renderMeters(schema);
 
   try {
-    const benchmarkResponse = await fetch(schema.benchmarkPath || "/generated/benchmark-results.json");
+    const fallbackBenchmarkPath = state.workspace?.defaultApp
+      ? `/generated/apps/${state.workspace.defaultApp}/benchmark-results.json`
+      : "/generated/apps/limiter-lab/benchmark-results.json";
+    const benchmarkResponse = await fetch(schema.benchmarkPath || fallbackBenchmarkPath);
     renderBenchmarks(benchmarkResponse.ok ? await benchmarkResponse.json() : null);
   } catch (error) {
     renderBenchmarks(null);

@@ -81,6 +81,12 @@ body {
   border-radius: 999px;
 }
 
+.preview-nav a.is-active {
+  border-color: rgba(198, 83, 43, 0.32);
+  background: rgba(198, 83, 43, 0.12);
+  color: var(--accent);
+}
+
 .dashboard {
   display: grid;
   grid-template-columns: 1.5fr 1fr;

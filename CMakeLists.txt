@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(faust_web_au_kit VERSION 0.1.3 DESCRIPTION "Native-target Faust framework proof of concept")
+project(faust_web_au_kit VERSION 0.3.0 DESCRIPTION "Monorepo-native Faust plugin suite framework")
 
 if(NOT APPLE)
   message(FATAL_ERROR "The current native adapter layer builds on macOS only.")
@@ -13,7 +13,8 @@ endif()
 set(CMAKE_C_STANDARD 99)
 enable_language(OBJC)
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/generated/project_config.cmake)
+set(FWAK_GENERATED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/generated/apps/limiter-lab" CACHE PATH "Generated app config directory")
+include(${FWAK_GENERATED_DIR}/project_config.cmake)
 
 option(FWAK_BUILD_AUV2 "Build the AUv2 bundle" ON)
 option(FWAK_BUILD_CLAP "Build the CLAP bundle" ON)
@@ -31,7 +32,7 @@ set(FWAK_COMMON_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/vendor/cplug
   ${CMAKE_CURRENT_SOURCE_DIR}/vendor/cplug/clap
   ${CMAKE_CURRENT_SOURCE_DIR}/src
-  ${CMAKE_CURRENT_SOURCE_DIR}/generated
+  ${FWAK_GENERATED_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}
   /opt/homebrew/opt/faust/include
 )

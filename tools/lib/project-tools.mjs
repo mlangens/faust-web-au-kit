@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
+const defaultWorkspaceFile = path.resolve(root, "fwak.workspace.json");
 
 function normalizeRelativePath(filePath) {
   return filePath.split(path.sep).join("/");
@@ -23,11 +24,13 @@ function formatFloatLiteral(value) {
 }
 
 function slugify(value) {
-  return String(value ?? "")
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "") || "project";
+  return (
+    String(value ?? "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "app"
+  );
 }
 
 function parseCliArgs(argv) {
@@ -49,31 +52,118 @@ function parseCliArgs(argv) {
   return parsed;
 }
 
-function loadProjectRuntime(argv = process.argv.slice(2)) {
-  const args = parseCliArgs(argv);
-  const projectFile = path.resolve(root, args.project || "project.json");
-  const project = JSON.parse(fs.readFileSync(projectFile, "utf8"));
-  const projectKey = slugify(path.parse(projectFile).name.replace(/\.project$/i, ""));
-  const sourceFile = path.resolve(root, project.faust.source);
-  const sourceBase = path.parse(sourceFile).name;
-  const outputDir =
-    args.out != null
-      ? path.resolve(root, args.out)
-      : projectFile === path.resolve(root, "project.json")
-        ? path.join(root, "generated")
-        : path.join(root, "generated", projectKey);
+function workspacePathConfig(workspace) {
+  return {
+    appsDir: path.resolve(root, workspace.paths?.apps ?? "apps"),
+    generatedRootDir: path.resolve(root, workspace.paths?.generatedRoot ?? "generated"),
+    generatedAppsDir: path.resolve(root, workspace.paths?.generatedApps ?? path.join("generated", "apps")),
+    buildAppsDir: path.resolve(root, workspace.paths?.buildApps ?? path.join("build", "apps")),
+    distAppsDir: path.resolve(root, workspace.paths?.distApps ?? path.join("dist", "apps"))
+  };
+}
 
+function loadWorkspaceRuntime(argv = process.argv.slice(2)) {
+  const args = parseCliArgs(argv);
+  const workspaceFile = path.resolve(root, args.workspace || defaultWorkspaceFile);
+  const workspace = JSON.parse(fs.readFileSync(workspaceFile, "utf8"));
+  const paths = workspacePathConfig(workspace);
+  const appEntries = (workspace.apps ?? []).map((entry) => {
+    const key = String(entry.key ?? slugify(entry.name ?? path.basename(entry.manifest ?? "")));
+    if (!entry.manifest) {
+      throw new Error(`Workspace app "${key}" is missing a manifest path.`);
+    }
+
+    const manifestPath = path.resolve(root, entry.manifest);
+    return {
+      key,
+      name: entry.name ?? key,
+      manifest: normalizeRelativePath(entry.manifest),
+      manifestPath,
+      generatedDir: path.join(paths.generatedAppsDir, key),
+      buildDir: path.join(paths.buildAppsDir, key),
+      distDir: path.join(paths.distAppsDir, key)
+    };
+  });
+
+  if (!appEntries.length) {
+    throw new Error(`Workspace "${workspaceFile}" does not declare any apps.`);
+  }
+
+  const defaultAppKey = String(workspace.defaultApp ?? appEntries[0].key);
   return {
     args,
     root,
+    workspaceFile,
+    workspace,
+    defaultAppKey,
+    ...paths,
+    appEntries: appEntries.map((entry) => ({
+      ...entry,
+      previewPath: entry.key === defaultAppKey ? "/" : `/?app=${encodeURIComponent(entry.key)}`
+    }))
+  };
+}
+
+function resolveWorkspaceApp(workspaceRuntime, args = workspaceRuntime.args) {
+  if (args.project) {
+    const manifestPath = path.resolve(root, args.project);
+    const byManifest = workspaceRuntime.appEntries.find((entry) => entry.manifestPath === manifestPath);
+    if (!byManifest) {
+      throw new Error(`No workspace app matches manifest path "${args.project}".`);
+    }
+    return byManifest;
+  }
+
+  const selectedAppKey = String(args.app ?? process.env.FWAK_APP ?? workspaceRuntime.defaultAppKey);
+  const appEntry = workspaceRuntime.appEntries.find((entry) => entry.key === selectedAppKey);
+  if (!appEntry) {
+    const available = workspaceRuntime.appEntries.map((entry) => entry.key).join(", ");
+    throw new Error(`Unknown app "${selectedAppKey}". Available apps: ${available}`);
+  }
+  return appEntry;
+}
+
+function loadProjectRuntime(argv = process.argv.slice(2)) {
+  const workspaceRuntime = loadWorkspaceRuntime(argv);
+  const appEntry = resolveWorkspaceApp(workspaceRuntime);
+  const projectFile = appEntry.manifestPath;
+  const project = JSON.parse(fs.readFileSync(projectFile, "utf8"));
+  const appDir = path.dirname(projectFile);
+  const sourceFile = path.resolve(appDir, project.faust.source);
+  const sourceBase = path.parse(sourceFile).name;
+  const outputDir = workspaceRuntime.args.out != null ? path.resolve(root, workspaceRuntime.args.out) : appEntry.generatedDir;
+  const buildDir =
+    workspaceRuntime.args["build-out"] != null
+      ? path.resolve(root, workspaceRuntime.args["build-out"])
+      : appEntry.buildDir;
+  const distDir =
+    workspaceRuntime.args["dist-out"] != null
+      ? path.resolve(root, workspaceRuntime.args["dist-out"])
+      : appEntry.distDir;
+
+  return {
+    args: workspaceRuntime.args,
+    root,
+    workspaceFile: workspaceRuntime.workspaceFile,
+    workspace: workspaceRuntime.workspace,
+    workspaceRuntime,
+    appKey: appEntry.key,
+    appEntry,
+    appDir,
     projectFile,
     project,
-    projectKey,
     sourceFile,
     sourceBase,
     outputDir,
     targetDir: path.join(outputDir, "targets"),
-    isDefaultProject: projectFile === path.resolve(root, "project.json")
+    buildDir,
+    distDir,
+    generatedRootDir: workspaceRuntime.generatedRootDir,
+    generatedAppsDir: workspaceRuntime.generatedAppsDir,
+    buildRootDir: workspaceRuntime.buildAppsDir,
+    distRootDir: workspaceRuntime.distAppsDir,
+    previewPath: appEntry.previewPath,
+    isDefaultApp: appEntry.key === workspaceRuntime.defaultAppKey
   };
 }
 
@@ -136,14 +226,16 @@ function encodeVst3Tuid(parts) {
 }
 
 export {
+  clapFeatureMacro,
   encodeVst3Tuid,
   escapeCString,
   findMetaValue,
   formatFloatLiteral,
   gatherControls,
   loadProjectRuntime,
+  loadWorkspaceRuntime,
   normalizeRelativePath,
   parseCliArgs,
-  slugify,
-  clapFeatureMacro
+  resolveWorkspaceApp,
+  slugify
 };

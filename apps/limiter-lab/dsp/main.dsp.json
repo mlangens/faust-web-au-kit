@@ -1,0 +1,317 @@
+{
+	"name": "Limiter Lab",
+	"filename": "main.dsp",
+	"version": "2.85.5",
+	"compile_options": "-lang cpp -fpga-mem-th 4 -ct 1 -cn LimiterLabDSP -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0",
+	"library_list": ["/opt/homebrew/Cellar/faust/2.85.5/share/faust/stdfaust.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/basics.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/routes.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/filters.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/analyzers.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/signals.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/maths.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/platform.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/compressors.lib"],
+	"include_pathnames": ["/opt/homebrew/Cellar/faust/2.85.5/share/faust","/usr/local/share/faust","/usr/share/faust","/Users/mlangens/dev/faust-web-au-kit/apps/limiter-lab/dsp","/Users/mlangens/dev/faust-web-au-kit/apps/limiter-lab/dsp"],
+	"size": 201360,
+	"inputs": 2,
+	"outputs": 2,
+	"meta": [ 
+		{ "analyzers.lib/ms_envelope_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "analyzers.lib/ms_envelope_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo        <sanfilippo.dario@gmail.com> and         2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "analyzers.lib/ms_envelope_rect:license": "MIT-style STK-4.3 license" },
+		{ "analyzers.lib/name": "Faust Analyzer Library" },
+		{ "analyzers.lib/rms_envelope_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "analyzers.lib/rms_envelope_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo        <sanfilippo.dario@gmail.com> and         2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "analyzers.lib/rms_envelope_rect:license": "MIT-style STK-4.3 license" },
+		{ "analyzers.lib/version": "1.3.0" },
+		{ "author": "Max Langensiepen + OpenAI Codex" },
+		{ "basics.lib/bypass2:author": "Julius Smith" },
+		{ "basics.lib/name": "Faust Basic Element Library" },
+		{ "basics.lib/peakholder:author": "Dario Sanfilippo" },
+		{ "basics.lib/peakholder:copyright": "Copyright (C) 2022 Dario Sanfilippo <sanfilippo.dario@gmail.com>" },
+		{ "basics.lib/peakholder:license": "MIT-style STK-4.3 license" },
+		{ "basics.lib/version": "1.22.0" },
+		{ "compile_options": "-lang cpp -fpga-mem-th 4 -ct 1 -cn LimiterLabDSP -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0" },
+		{ "compressors.lib/limiter_lad_N:author": "Dario Sanfilippo" },
+		{ "compressors.lib/limiter_lad_N:copyright": "Copyright (C) 2020 Dario Sanfilippo       <sanfilippo.dario@gmail.com>" },
+		{ "compressors.lib/limiter_lad_N:license": "GPLv3 license" },
+		{ "compressors.lib/limiter_lad_stereo:author": "Dario Sanfilippo" },
+		{ "compressors.lib/limiter_lad_stereo:copyright": "Copyright (C) 2020 Dario Sanfilippo       <sanfilippo.dario@gmail.com>" },
+		{ "compressors.lib/limiter_lad_stereo:license": "GPLv3 license" },
+		{ "compressors.lib/name": "Faust Compressor Effect Library" },
+		{ "compressors.lib/version": "1.6.0" },
+		{ "description": "Oversampled limiter proof of concept with modern or vintage response plus tube and transformer coloration." },
+		{ "filename": "main.dsp" },
+		{ "filters.lib/avg_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "filters.lib/avg_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo       <sanfilippo.dario@gmail.com> and        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/avg_rect:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/crossover2LR4:author": "Dario Sanfilippo" },
+		{ "filters.lib/crossover2LR4:copyright": "Copyright (C) 2022 Dario Sanfilippo <sanfilippo.dario@gmail.com>" },
+		{ "filters.lib/crossover2LR4:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/crossover3LR4:author": "Dario Sanfilippo" },
+		{ "filters.lib/crossover3LR4:copyright": "Copyright (C) 2022 Dario Sanfilippo <sanfilippo.dario@gmail.com>" },
+		{ "filters.lib/crossover3LR4:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/fir:author": "Julius O. Smith III" },
+		{ "filters.lib/fir:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/fir:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/highpass:author": "Julius O. Smith III" },
+		{ "filters.lib/highpass:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/highpassLR4:author": "Dario Sanfilippo" },
+		{ "filters.lib/highpassLR4:copyright": "Copyright (C) 2022 Dario Sanfilippo <sanfilippo.dario@gmail.com>" },
+		{ "filters.lib/highpassLR4:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/iir:author": "Julius O. Smith III" },
+		{ "filters.lib/iir:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/iir:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/integrator:author": "Julius O. Smith III" },
+		{ "filters.lib/integrator:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/integrator:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/lowpass0_highpass1": "MIT-style STK-4.3 license" },
+		{ "filters.lib/lowpass0_highpass1:author": "Julius O. Smith III" },
+		{ "filters.lib/lowpass:author": "Julius O. Smith III" },
+		{ "filters.lib/lowpass:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/lowpass:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/lowpassLR4:author": "Dario Sanfilippo" },
+		{ "filters.lib/lowpassLR4:copyright": "Copyright (C) 2022 Dario Sanfilippo <sanfilippo.dario@gmail.com>" },
+		{ "filters.lib/lowpassLR4:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/name": "Faust Filters Library" },
+		{ "filters.lib/svf:author": "Oleg Nesterov" },
+		{ "filters.lib/svf:copyright": "Copyright (C) 2020 Oleg Nesterov <oleg@redhat.com>" },
+		{ "filters.lib/svf:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/tf1:author": "Julius O. Smith III" },
+		{ "filters.lib/tf1:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/tf1:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/tf1s:author": "Julius O. Smith III" },
+		{ "filters.lib/tf1s:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/tf1s:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/tf2:author": "Julius O. Smith III" },
+		{ "filters.lib/tf2:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/tf2:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/tf2s:author": "Julius O. Smith III" },
+		{ "filters.lib/tf2s:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/tf2s:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/version": "1.7.1" },
+		{ "license": "MIT" },
+		{ "maths.lib/author": "GRAME" },
+		{ "maths.lib/copyright": "GRAME" },
+		{ "maths.lib/license": "LGPL with exception" },
+		{ "maths.lib/name": "Faust Math Library" },
+		{ "maths.lib/version": "2.9.0" },
+		{ "name": "Limiter Lab" },
+		{ "platform.lib/name": "Generic Platform Library" },
+		{ "platform.lib/version": "1.3.0" },
+		{ "routes.lib/name": "Faust Signal Routing Library" },
+		{ "routes.lib/version": "1.3.0" },
+		{ "signals.lib/name": "Faust Routing Library" },
+		{ "signals.lib/version": "1.6.0" },
+		{ "version": "0.3.0" }
+	],
+	"ui": [ 
+		{
+			"type": "vgroup",
+			"label": "Limiter Lab",
+			"items": [ 
+				{
+					"type": "hslider",
+					"label": "Attack",
+					"varname": "fHslider9",
+					"shortname": "Attack",
+					"address": "/Limiter_Lab/Attack",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "ms" }
+					],
+					"init": 0.35,
+					"min": 0.05,
+					"max": 25,
+					"step": 0.01
+				},
+				{
+					"type": "checkbox",
+					"label": "Bypass",
+					"varname": "fCheckbox0",
+					"shortname": "Bypass",
+					"address": "/Limiter_Lab/Bypass"
+				},
+				{
+					"type": "hslider",
+					"label": "Ceiling",
+					"varname": "fHslider7",
+					"shortname": "Ceiling",
+					"address": "/Limiter_Lab/Ceiling",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": -1,
+					"min": -12,
+					"max": 0,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Drive Focus",
+					"varname": "fHslider4",
+					"shortname": "Drive_Focus",
+					"address": "/Limiter_Lab/Drive_Focus",
+					"init": 0,
+					"min": 0,
+					"max": 3,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Drive High Saturation",
+					"varname": "fHbargraph2",
+					"shortname": "Drive_High_Saturation",
+					"address": "/Limiter_Lab/Drive_High_Saturation",
+					"min": 0,
+					"max": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Drive High Split",
+					"varname": "fHslider1",
+					"shortname": "Drive_High_Split",
+					"address": "/Limiter_Lab/Drive_High_Split",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "Hz" }
+					],
+					"init": 3000,
+					"min": 800,
+					"max": 18000,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Drive Low Saturation",
+					"varname": "fHbargraph0",
+					"shortname": "Drive_Low_Saturation",
+					"address": "/Limiter_Lab/Drive_Low_Saturation",
+					"min": 0,
+					"max": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Drive Low Split",
+					"varname": "fHslider0",
+					"shortname": "Drive_Low_Split",
+					"address": "/Limiter_Lab/Drive_Low_Split",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "Hz" }
+					],
+					"init": 220,
+					"min": 60,
+					"max": 4000,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Drive Mid Saturation",
+					"varname": "fHbargraph1",
+					"shortname": "Drive_Mid_Saturation",
+					"address": "/Limiter_Lab/Drive_Mid_Saturation",
+					"min": 0,
+					"max": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Drive Target",
+					"varname": "fHslider3",
+					"shortname": "Drive_Target",
+					"address": "/Limiter_Lab/Drive_Target",
+					"init": 0,
+					"min": 0,
+					"max": 2,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Hold",
+					"varname": "fHslider8",
+					"shortname": "Hold",
+					"address": "/Limiter_Lab/Hold",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "ms" }
+					],
+					"init": 3,
+					"min": 0,
+					"max": 50,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Input Gain",
+					"varname": "fHslider2",
+					"shortname": "Input_Gain",
+					"address": "/Limiter_Lab/Input_Gain",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": 0,
+					"min": -18,
+					"max": 18,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Output Trim",
+					"varname": "fHslider11",
+					"shortname": "Output_Trim",
+					"address": "/Limiter_Lab/Output_Trim",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": 0,
+					"min": -18,
+					"max": 18,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Release",
+					"varname": "fHslider10",
+					"shortname": "Release",
+					"address": "/Limiter_Lab/Release",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "ms" }
+					],
+					"init": 80,
+					"min": 5,
+					"max": 500,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Transformer Tone",
+					"varname": "fHslider5",
+					"shortname": "Transformer_Tone",
+					"address": "/Limiter_Lab/Transformer_Tone",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 0,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Tube Drive",
+					"varname": "fHslider6",
+					"shortname": "Tube_Drive",
+					"address": "/Limiter_Lab/Tube_Drive",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 0,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "checkbox",
+					"label": "Vintage Response",
+					"varname": "fCheckbox1",
+					"shortname": "Vintage_Response",
+					"address": "/Limiter_Lab/Vintage_Response"
+				}
+			]
+		}
+	]
+}

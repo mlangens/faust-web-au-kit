@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { expectedOrderedLabels, loadGeneratedProject } from "../support/generated-projects.mjs";
+import { expectedOrderedLabels, loadGeneratedProject, loadGeneratedWorkspace } from "../support/generated-projects.mjs";
 
-test("default project schema stays aligned with the current limiter manifest and Faust export", () => {
+test("default app schema stays aligned with the current limiter manifest and Faust export", () => {
   const { runtime, schema, faustControls } = loadGeneratedProject();
   const expectedLabels = expectedOrderedLabels(runtime.project, faustControls);
 
+  assert.equal(schema.project.key, "limiter-lab");
   assert.equal(schema.project.name, runtime.project.productName);
   assert.equal(schema.project.kind, runtime.project.plugin.kind);
   assert.deepEqual(schema.controls.map((control) => control.label), expectedLabels);
@@ -18,6 +19,7 @@ test("default project schema stays aligned with the current limiter manifest and
     new Set(schema.controls.map((control) => control.address)),
     new Set(faustControls.map((control) => control.address))
   );
+  assert.equal(schema.benchmarkPath, "/generated/apps/limiter-lab/benchmark-results.json");
 });
 
 test("default limiter schema exports the new drive routing controls as stable UI contracts", () => {
@@ -79,14 +81,37 @@ test("default limiter schema exports the new drive routing controls as stable UI
 });
 
 test("pulse pad schema keeps the preview route in sync with the shared export path", () => {
-  const { runtime, schema, faustControls } = loadGeneratedProject("projects/pulse_pad.json");
+  const { runtime, schema, faustControls } = loadGeneratedProject("pulse-pad");
   const expectedLabels = expectedOrderedLabels(runtime.project, faustControls);
 
+  assert.equal(schema.project.key, "pulse-pad");
   assert.equal(schema.project.name, "Pulse Pad");
   assert.equal(schema.project.kind, "instrument");
   assert.deepEqual(schema.controls.map((control) => control.label), expectedLabels);
   assert.deepEqual(
     schema.meters.map((meter) => meter.id),
     ["voiceDensity", "stereoDrift", "outputPeak"]
+  );
+  assert.equal(schema.benchmarkPath, "/generated/apps/pulse-pad/benchmark-results.json");
+});
+
+test("workspace manifest exposes the app suite through stable monorepo conventions", () => {
+  const workspace = loadGeneratedWorkspace();
+
+  assert.equal(workspace.defaultApp, "limiter-lab");
+  assert.deepEqual(
+    workspace.apps.map((app) => ({ key: app.key, previewPath: app.previewPath, schemaPath: app.schemaPath })),
+    [
+      {
+        key: "limiter-lab",
+        previewPath: "/",
+        schemaPath: "/generated/apps/limiter-lab/ui_schema.json"
+      },
+      {
+        key: "pulse-pad",
+        previewPath: "/?app=pulse-pad",
+        schemaPath: "/generated/apps/pulse-pad/ui_schema.json"
+      }
+    ]
   );
 });

@@ -1,6 +1,6 @@
 {
   "name": "pulse-pad",
-  "version": "0.1.3",
+  "version": "0.3.0",
   "owner": "mlangens",
   "companyName": "Max Langensiepen",
   "companyTag": "Mlng",
@@ -34,7 +34,7 @@
     "factor": 1
   },
   "faust": {
-    "source": "faust/pulse_pad.dsp",
+    "source": "./dsp/main.dsp",
     "className": "PulsePadDSP"
   },
   "ui": {

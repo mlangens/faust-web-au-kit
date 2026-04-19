@@ -1,130 +1,170 @@
 # Faust Web AU Kit
 
-`faust-web-au-kit` is a manifest-driven framework experiment for building native audio plugins around a Faust DSP source of truth without making handwritten C++ the center of the workflow.
+`faust-web-au-kit` is now organized as a monorepo-native framework for building a suite of Faust-driven plugins with one shared set of export, preview, native-wrapper, validation, and packaging conventions.
 
-The repo splits responsibilities on purpose:
+The repo is designed around a simple rule: product identity lives in `apps/<app-key>`, while framework behavior lives in shared workspace tooling. That keeps new plugins from becoming one-off snowflakes and lets shared DSP export, UI schema generation, native runtime glue, installers, and tests scale across the suite.
 
-- Faust owns DSP and control metadata.
-- Node scripts handle export, schema generation, benchmarking, packaging, and preview tooling.
-- Native adapters stay thin and format-specific.
-- The shipped runtime UI is native, while web tooling stays in the fast-iteration loop.
+## Workspace Model
 
-## Current proof of concept
+The workspace root is described by `fwak.workspace.json`. It defines:
 
-The flagship project is `Limiter Lab`, a 4x oversampled stereo limiter with:
+- the workspace name and version
+- the default app used by commands with no explicit selection
+- the canonical app registry
+- the namespaced output roots for generated files, builds, and installers
 
-- `Modern` and `Vintage Response` timing options plus independent `Tube Drive` and `Transformer Tone` coloration that can be combined.
-- Native real-time peak and gain-reduction metering plus a scrolling analyzer view for input/output waveform history and gain reduction.
-- Native AppKit UI backed by generated schema metadata.
-- AUv2, CLAP, VST3, and standalone macOS outputs.
-- Local installer and `.pkg` packaging.
-- Cross-target Faust export for `c`, `cpp`, `wasm`, `cmajor`, and `rust`.
-- A benchmark harness for `c`, `cpp`, and `wasm`.
+Each app follows the same convention:
 
-The repo also includes `Pulse Pad`, a synth manifest/example that uses the same export and preview path so the framework is not boxed into effect-only workflows.
+- `apps/<app-key>/project.json`
+  Product manifest and target metadata.
+- `apps/<app-key>/dsp/main.dsp`
+  Faust source of truth for that app.
+- `generated/apps/<app-key>/`
+  Generated schema, target exports, and benchmark snapshots.
+- `build/apps/<app-key>/`
+  Native build products for that app only.
+- `dist/apps/<app-key>/`
+  Installer artifacts for that app only.
 
-## Layout
+Shared framework code stays centralized:
 
-- `faust/`
-  Faust DSP sources.
-- `projects/`
-  Additional project manifests beyond the default root project.
-- `tools/`
-  Export, benchmark, preview, and packaging tooling.
-- `generated/`
-  Generated Faust targets plus framework manifests.
 - `src/`
-  Native runtime core and AppKit UI layer.
+  Shared native runtime core and AppKit editor layer.
+- `tools/`
+  Shared export, workspace orchestration, preview, benchmark, and validation tooling.
+- `scripts/`
+  Shared native build, install, doctor, and packaging entrypoints.
 - `vendor/cplug/`
-  Vendored CPLUG wrappers for AUv2, CLAP, VST3, and standalone macOS hosting.
+  Shared wrapper layer for AUv2, CLAP, VST3, and standalone targets.
 - `preview/`
-  Browser-based preview for rapid visual iteration only.
+  Shared schema-driven browser preview for rapid UI iteration.
+
+## Naming Conventions
+
+The framework now treats plugin products as workspace apps with explicit, repeatable conventions:
+
+- App keys are lowercase kebab-case, for example `limiter-lab` and `pulse-pad`.
+- The default app is selected by `fwak.workspace.json`, not by a magic root `project.json`.
+- CLI app selection uses `--app <app-key>`.
+- Product manifests are always named `project.json`.
+- Faust entrypoints are always `dsp/main.dsp`.
+- Generated artifacts, native builds, and installers are always namespaced by app key.
+- Shared framework behavior belongs in root-level shared code, not duplicated inside app folders.
+
+That means a new plugin should be added by registering a new app, not by copying Limiter Lab into a parallel ad hoc structure.
+
+## Current Apps
+
+- `Limiter Lab`
+  The flagship proof of concept: an oversampled limiter with native AU/CLAP/VST3/standalone targets, analyzer history, and drive-before-limiter routing.
+- `Pulse Pad`
+  A synth example that exercises the same manifest, export, preview, and native wrapper conventions.
 
 ## Commands
 
+Default app commands target `limiter-lab` unless another app is selected.
+
 ```sh
 npm run export
-npm run export:synth
+npm run export:all
+npm run export:pulse-pad
 npm run benchmark
+npm run benchmark:pulse-pad
 npm run build:au
+npm run build:au -- --app pulse-pad
 npm run build:native
-npm run doctor:au
 npm run install:local
-npm run package:installer
 npm run validate:au
+npm run doctor:au
+npm run package:installer
 npm run preview
 ```
 
 What they do:
 
 - `npm run export`
-  Exports the default limiter project into `generated/`.
-- `npm run export:synth`
-  Exports the `Pulse Pad` example into `generated/pulse_pad/`.
+  Exports generated artifacts for the default app into `generated/apps/limiter-lab/`.
+- `npm run export:all`
+  Exports every registered app in the workspace.
+- `npm run export:pulse-pad`
+  Exports generated artifacts for `pulse-pad`.
 - `npm run benchmark`
-  Rebuilds generated targets and writes `generated/benchmark-results.json`.
+  Rebuilds the default app’s generated targets and writes `generated/apps/limiter-lab/benchmark-results.json`.
+- `npm run benchmark:pulse-pad`
+  Rebuilds the `pulse-pad` benchmark snapshot.
 - `npm run build:au`
-  Builds the AUv2 bundle only.
+  Builds the default app’s AUv2 bundle into `build/apps/limiter-lab/`.
 - `npm run build:native`
-  Builds AUv2, CLAP, VST3, and the standalone app.
-- `npm run doctor:au`
-  Reports user vs system AU installs, version mismatches, and a compact `auval` summary.
+  Builds AUv2, CLAP, VST3, and standalone outputs for the selected app.
 - `npm run install:local`
-  Installs the built bundles into `~/Library/Audio/Plug-Ins` and `~/Applications`.
-- `npm run package:installer`
-  Writes an unsigned macOS installer package to `dist/`.
+  Installs the selected app into `~/Library/Audio/Plug-Ins` and `~/Applications`.
 - `npm run validate:au`
-  Installs the AUv2 bundle into the user Components folder and runs `auval`.
+  Rebuilds, installs, and runs `auval` for the selected app.
+- `npm run doctor:au`
+  Reports user vs system AU installs, versions, hashes, and a compact `auval` summary for the selected app.
+- `npm run package:installer`
+  Builds a namespaced unsigned macOS installer for the selected app.
 - `npm run preview`
-  Starts the schema-driven preview server. Use `/` for `Limiter Lab` and `/?project=pulse_pad` for `Pulse Pad`.
+  Starts the shared preview server. Use `/` for the default app or `/?app=<app-key>` for any other registered app.
+
+The scripts also honor `FWAK_APP=<app-key>` if you prefer selecting an app through the environment.
 
 ## Testing
 
-The repo now has a small test pyramid that matches how the project is built:
+The framework is validated in layers:
 
 - `npm test`
-  Re-exports the default limiter plus `Pulse Pad`, runs unit tests for file-safe generation helpers, schema contract tests, export integration tests, then runs Playwright smoke tests against the preview server.
+  Runs the workspace export prepare step, unit tests, schema contract tests, export integration tests, and Playwright preview tests.
 - `npm run test:unit`
-  Exercises low-level framework helpers such as atomic file publication and scratch-directory cleanup.
+  Exercises low-level framework helpers such as atomic publication and scratch cleanup.
 - `npm run test:contracts`
-  Validates generated `ui_schema.json` files against the current manifests and Faust metadata.
+  Validates generated UI schema against the current app manifests and Faust metadata.
 - `npm run test:integration`
-  Stress-tests the shared export pipeline, including concurrent runs against the same generated output path.
+  Stress-tests export behavior, including concurrent publication into shared workspace outputs.
 - `npm run test:preview`
-  Exercises the browser preview for `/` and `/?project=pulse_pad` so parallel UI work collides in one place before shipping.
+  Exercises the shared browser preview across workspace routes and failure states.
 - `npm run test:native`
-  Runs the AU validation path. Keep this as the host-dependent top of the pyramid rather than the default local/CI path.
+  Runs the AU validation path and keeps host-dependent checks at the top of the pyramid.
 
-## Current local outputs
+For app-specific native regression, pass an app key through the native scripts:
 
-After `npm run build:native`, the default project produces:
+```sh
+npm run build:au -- --app pulse-pad
+npm run validate:au -- --app pulse-pad
+npm run package:installer -- --app pulse-pad
+```
 
-- `build/LimiterLab.component`
-- `build/LimiterLab.clap`
-- `build/LimiterLab.vst3`
-- `build/LimiterLab.app`
+## Outputs
 
-After `npm run package:installer`, the installer artifact is:
+For `Limiter Lab`, the shared conventions now produce:
 
-- `dist/LimiterLab-0.1.3.pkg`
+- `generated/apps/limiter-lab/`
+- `build/apps/limiter-lab/LimiterLab.component`
+- `build/apps/limiter-lab/LimiterLab.clap`
+- `build/apps/limiter-lab/LimiterLab.vst3`
+- `build/apps/limiter-lab/LimiterLab.app`
+- `dist/apps/limiter-lab/LimiterLab-0.3.0.pkg`
 
-If Logic sees the plugin but hangs while instantiating it, run `npm run doctor:au` first. A stale `/Library` AU bundle plus a newer `~/Library` AU bundle can make Logic validate one copy and try to open another.
+The preview server also publishes `generated/workspace_manifest.json`, which the web preview uses to render app navigation and route-aware schema loading.
 
-## Latest local benchmark snapshot
+## Logic And Installer Notes
 
-On an Apple M4 at 48 kHz / 256 samples / 6 seconds, the latest limiter run produced roughly:
+Logic can be confused by duplicate AU installs in both `/Library` and `~/Library`. The framework now makes this easier to reason about because `doctor:au` reports both versions and both binary hashes for the selected app.
 
-- `c`: `129.9x` real time
-- `cpp`: `132.2x` real time
-- `wasm`: `6.9x` real time
+Recommended local flow:
 
-## Practical caveats
+1. Build or validate the selected app.
+2. Install locally with `npm run install:local`.
+3. Run `npm run doctor:au`.
+4. If the user and system copies differ, either remove the stale copy or install the fresh `.pkg` so `/Library` matches the current build.
 
-- The native runtime layer is macOS-first today even though the project/config/export model is intentionally broader.
-- The `.pkg` installer is unsigned, which is fine for local testing but not for public notarized distribution.
+## Practical Caveats
+
+- The native runtime layer is still macOS-first today.
+- The generated preview is development tooling only; shipped plugin bundles do not embed a web runtime.
+- The installer is unsigned and intended for local testing until a signed/notarized distribution path is added.
 - AU validation passes, but the thin AUv2 wrapper still emits non-fatal warnings about CFString parameter naming and layout reporting.
-- Web preview is development tooling only. The shipped plugin bundles do not embed a web runtime.
 
-## Research note
+## Research Note
 
-A short feasibility summary with source links lives in [docs/feasibility.md](/Users/mlangens/Documents/Playground/faust-web-au-kit/docs/feasibility.md).
+A short feasibility summary with source links lives in `docs/feasibility.md`.

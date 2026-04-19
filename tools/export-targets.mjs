@@ -12,7 +12,7 @@ import {
   loadProjectRuntime,
   normalizeRelativePath
 } from "./lib/project-tools.mjs";
-import { createTempDir, removePathSync, replaceFileAtomically } from "./lib/fs-tools.mjs";
+import { createTempDir, removePathSync, replaceFileAtomically, writeFileAtomically } from "./lib/fs-tools.mjs";
 
 const runtime = loadProjectRuntime();
 const { root, project, sourceFile, sourceBase, outputDir, targetDir } = runtime;
@@ -58,6 +58,42 @@ function runFaust(args, options = {}) {
   });
 }
 
+function fnv1a32(value) {
+  let hash = 0x811c9dc5;
+  const text = Buffer.from(String(value ?? ""), "utf8");
+  for (const byte of text) {
+    hash ^= byte;
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash >>> 0;
+}
+
+function controlParameterId(control, index) {
+  const hash = fnv1a32(`${runtime.project.bundleId}:${control.address}`);
+  return hash === 0 ? (0x10000000 + index) >>> 0 : hash;
+}
+
+function controlDisplayKind(control) {
+  if (control.label === "Drive Target") {
+    return "FWAK_PARAM_DISPLAY_DRIVE_TARGET";
+  }
+  if (control.label === "Drive Focus") {
+    return "FWAK_PARAM_DISPLAY_DRIVE_FOCUS";
+  }
+  return "FWAK_PARAM_DISPLAY_DEFAULT";
+}
+
+function controlFlags(control) {
+  const flags = ["CPLUG_FLAG_PARAMETER_IS_AUTOMATABLE"];
+  if (control.type === "checkbox" || control.type === "button") {
+    flags.unshift("CPLUG_FLAG_PARAMETER_IS_BOOL");
+  }
+  if (control.label === "Bypass") {
+    flags.push("CPLUG_FLAG_PARAMETER_IS_BYPASS");
+  }
+  return flags.join(" | ");
+}
+
 function writeProjectConfig() {
   const cmakeTags = project.au.tags.map((tag) => `<string>${tag}</string>`).join("\n");
   const versionParts = project.version.split(".").map((item) => Number(item) || 0);
@@ -74,6 +110,8 @@ function writeProjectConfig() {
   const projectDescription = project.description ?? "";
   const standaloneBundleId = project.standalone?.bundleId ?? `${project.bundleId}.app`;
   const generatedTargetRelPath = normalizeRelativePath(path.relative(outputDir, generatedTargetPath("c")));
+  const latencyLiteral = formatFloatLiteral(project.plugin.latencySeconds);
+  const artifactStemToken = project.artifactStem ?? project.productName.replaceAll(" ", "");
 
   const header = `#ifndef FWAK_PROJECT_CONFIG_H
 #define FWAK_PROJECT_CONFIG_H
@@ -82,7 +120,7 @@ function writeProjectConfig() {
 #define FWAK_PROJECT_VERSION "${escapeCString(project.version)}"
 #define FWAK_PROJECT_DESCRIPTION "${escapeCString(projectDescription)}"
 #define FWAK_PRODUCT_NAME "${escapeCString(project.productName)}"
-#define FWAK_ARTIFACT_STEM "${escapeCString(project.artifactStem ?? project.productName.replaceAll(" ", ""))}"
+#define FWAK_ARTIFACT_STEM "${escapeCString(artifactStemToken)}"
 #define FWAK_COMPANY_NAME "${escapeCString(project.companyName)}"
 #define FWAK_BUNDLE_ID "${escapeCString(project.bundleId)}"
 #define FWAK_STANDALONE_BUNDLE_ID "${escapeCString(standaloneBundleId)}"
@@ -94,12 +132,24 @@ function writeProjectConfig() {
 #define FWAK_PLUGIN_NUM_INPUTS ${project.plugin.inputs}
 #define FWAK_PLUGIN_NUM_OUTPUTS ${project.plugin.outputs}
 #define FWAK_PLUGIN_WANTS_MIDI_INPUT ${wantsMidiInput}
-#define FWAK_PLUGIN_LATENCY_SECONDS ${project.plugin.latencySeconds}f
+#define FWAK_PLUGIN_LATENCY_SECONDS ${latencyLiteral}
 #define FWAK_GUI_NATIVE ${wantsNativeGui}
 #define FWAK_GUI_WEB_PREVIEW ${wantsWebPreview}
 #define FWAK_GUI_RESIZABLE ${guiResizable}
+#define FWAK_PLUGIN_VIEW_CLASS FwakPluginView_${artifactStemToken}
+#define FWAK_ANALYZER_VIEW_CLASS FwakAnalyzerView_${artifactStemToken}
+#define FWAK_AUV2_FACTORY_CLASS FwakAuv2ViewFactory_${artifactStemToken}
+#define FWAK_AUV2_FACTORY_CLASS_STR "FwakAuv2ViewFactory_${artifactStemToken}"
 #define FWAK_OVERSAMPLING_FACTOR ${project.oversampling.factor}
 #define FWAK_FAUST_CLASS "${escapeCString(project.faust.className)}"
+#define FWAK_DSP_TYPE ${project.faust.className}
+#define FWAK_DSP_CPP_CLASS ${project.faust.className}
+#define FWAK_DSP_NEW_FN new${project.faust.className}
+#define FWAK_DSP_DELETE_FN delete${project.faust.className}
+#define FWAK_DSP_INIT_FN init${project.faust.className}
+#define FWAK_DSP_INSTANCE_INIT_FN instanceInit${project.faust.className}
+#define FWAK_DSP_BUILD_UI_FN buildUserInterface${project.faust.className}
+#define FWAK_DSP_COMPUTE_FN compute${project.faust.className}
 #define FWAK_GENERATED_C_TARGET_PATH "${generatedTargetRelPath}"
 #define FWAK_ACTIVE_NATIVE_TARGETS "${escapeCString(activeTargets)}"
 #define FWAK_DECLARED_NATIVE_TARGETS "${escapeCString(declaredTargets)}"
@@ -116,7 +166,7 @@ function writeProjectConfig() {
   const cmake = `set(FWAK_PROJECT_NAME "${escapeCString(project.name)}")
 set(FWAK_PROJECT_VERSION "${escapeCString(project.version)}")
 set(FWAK_PRODUCT_NAME "${escapeCString(project.productName)}")
-set(FWAK_ARTIFACT_STEM "${escapeCString(project.artifactStem ?? project.productName.replaceAll(" ", ""))}")
+set(FWAK_ARTIFACT_STEM "${escapeCString(artifactStemToken)}")
 set(FWAK_PROJECT_DESCRIPTION "${escapeCString(project.description)}")
 set(FWAK_COMPANY_NAME "${escapeCString(project.companyName)}")
 set(FWAK_BUNDLE_ID "${escapeCString(project.bundleId)}")
@@ -201,6 +251,13 @@ function writeUiManifest(uiJsonPath) {
 
   const orderedIndices = orderedControls.map((control) => controls.findIndex((candidate) => candidate.label === control.label));
   const orderedIndexLines = orderedIndices.map((index) => `    ${index}`).join(",\n");
+  const parameterLines = controls.map((control, index) => {
+    const initValue = formatFloatLiteral(control.init ?? 0);
+    const minValue = formatFloatLiteral(control.min ?? 0);
+    const maxValue = formatFloatLiteral(control.max ?? 1);
+    const unit = findMetaValue(control, "unit") ?? "";
+    return `    { ${controlParameterId(control, index)}u, "${escapeCString(control.label)}", "${escapeCString(unit)}", ${minValue}, ${maxValue}, ${initValue}, ${controlFlags(control)}, ${controlDisplayKind(control)} }`;
+  });
 
   const meterLines = meters.map((meter) => {
     const mode = meter.mode === "gr" ? 1 : 0;
@@ -242,6 +299,10 @@ static const int FWAK_CONTROL_ORDER[FWAK_CONTROL_ORDER_COUNT] = {
 ${orderedIndexLines}
 };
 
+static const FwakParameterInfo FWAK_PARAMETER_MANIFEST[FWAK_CONTROL_COUNT] = {
+${parameterLines.join(",\n")}
+};
+
 static const FwakMeterManifestItem FWAK_METER_MANIFEST[FWAK_METER_COUNT] = {
 ${meterLines.join(",\n")}
 };
@@ -251,7 +312,7 @@ ${meterLines.join(",\n")}
 
   const schema = {
     project: {
-      key: runtime.projectKey,
+      key: runtime.appKey,
       name: project.productName,
       description: project.description,
       statusText,
@@ -275,11 +336,36 @@ ${meterLines.join(",\n")}
       isToggle: control.type === "checkbox" || control.type === "button"
     })),
     meters,
-    benchmarkPath: "/generated/benchmark-results.json"
+    benchmarkPath: `/generated/apps/${runtime.appKey}/benchmark-results.json`
   };
 
   stageTextArtifact("ui_manifest.h", header);
   stageTextArtifact("ui_schema.json", `${JSON.stringify(schema, null, 2)}\n`);
+}
+
+function writeWorkspaceManifest() {
+  const workspaceManifest = {
+    name: runtime.workspace.name,
+    version: runtime.workspace.version,
+    defaultApp: runtime.workspaceRuntime.defaultAppKey,
+    apps: runtime.workspaceRuntime.appEntries.map((entry) => {
+      const appProject = JSON.parse(fs.readFileSync(entry.manifestPath, "utf8"));
+      return {
+        key: entry.key,
+        name: appProject.productName,
+        description: appProject.description,
+        manifest: entry.manifest,
+        schemaPath: `/generated/apps/${entry.key}/ui_schema.json`,
+        benchmarkPath: `/generated/apps/${entry.key}/benchmark-results.json`,
+        previewPath: entry.previewPath
+      };
+    })
+  };
+
+  writeFileAtomically(
+    path.join(runtime.generatedRootDir, "workspace_manifest.json"),
+    `${JSON.stringify(workspaceManifest, null, 2)}\n`
+  );
 }
 
 try {
@@ -292,6 +378,7 @@ try {
   exportTarget("rust");
   writeUiManifest(exportJsonMetadata());
   publishStagedArtifacts();
+  writeWorkspaceManifest();
 
   console.log(`Exported Faust targets into ${path.relative(root, targetDir)}`);
 } finally {

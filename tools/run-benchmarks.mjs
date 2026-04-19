@@ -13,7 +13,7 @@ const initialControl = project.benchmark?.initialControls?.[0] ?? null;
 
 fs.mkdirSync(benchDir, { recursive: true });
 
-execFileSync("node", [path.join(root, "tools", "export-targets.mjs")], {
+execFileSync(process.execPath, [path.join(root, "tools", "export-targets.mjs"), ...process.argv.slice(2)], {
   cwd: root,
   stdio: "inherit"
 });

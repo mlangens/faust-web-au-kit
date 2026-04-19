@@ -19,7 +19,7 @@ async function runExport(args = []) {
 test("concurrent default exports finish cleanly and leave stable generated artifacts", { timeout: 120000 }, async () => {
   const scratchDirRoot = path.dirname(loadGeneratedProject().runtime.outputDir);
   const scratchDirsBefore = new Set(
-    fs.readdirSync(scratchDirRoot).filter((entry) => entry.startsWith(".generated.export-"))
+    fs.readdirSync(scratchDirRoot).filter((entry) => entry.startsWith(`.${path.basename(loadGeneratedProject().runtime.outputDir)}.export-`))
   );
 
   await Promise.all([runExport(), runExport()]);
@@ -44,9 +44,10 @@ test("concurrent default exports finish cleanly and leave stable generated artif
     assert.ok(fs.statSync(artifactPath).size > 0, `${artifactPath} should not be empty after concurrent export`);
   }
 
-  assert.equal(schema.project.key, runtime.projectKey);
+  assert.equal(schema.project.key, runtime.appKey);
   assert.ok(Array.isArray(faustUi.ui));
   assert.ok(schema.controls.length > 0);
+  assert.equal(fs.existsSync(path.join(runtime.generatedRootDir, "workspace_manifest.json")), true);
 
   const scratchDirsAfter = new Set(
     fs.readdirSync(scratchDirRoot).filter((entry) => entry.startsWith(`.${path.basename(runtime.outputDir)}.export-`))

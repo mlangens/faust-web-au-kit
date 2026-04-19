@@ -1,14 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { gatherControls, loadProjectRuntime } from "../../tools/lib/project-tools.mjs";
+import { gatherControls, loadProjectRuntime, loadWorkspaceRuntime } from "../../tools/lib/project-tools.mjs";
 
 function loadJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
 
-function loadGeneratedProject(projectFile = null) {
-  const runtime = loadProjectRuntime(projectFile ? ["--project", projectFile] : []);
+function loadGeneratedProject(appKey = null) {
+  const runtime = loadProjectRuntime(appKey ? ["--app", appKey] : []);
   const schemaPath = path.join(runtime.outputDir, "ui_schema.json");
   const faustUiPath = path.join(runtime.targetDir, `${runtime.sourceBase}.ui.json`);
   const schema = loadJson(schemaPath);
@@ -23,6 +23,11 @@ function loadGeneratedProject(projectFile = null) {
   };
 }
 
+function loadGeneratedWorkspace() {
+  const workspaceRuntime = loadWorkspaceRuntime();
+  return loadJson(path.join(workspaceRuntime.generatedRootDir, "workspace_manifest.json"));
+}
+
 function expectedOrderedLabels(project, faustControls) {
   const faustLabels = new Set(faustControls.map((control) => control.label));
   return [
@@ -31,4 +36,4 @@ function expectedOrderedLabels(project, faustControls) {
   ];
 }
 
-export { expectedOrderedLabels, loadGeneratedProject };
+export { expectedOrderedLabels, loadGeneratedProject, loadGeneratedWorkspace };

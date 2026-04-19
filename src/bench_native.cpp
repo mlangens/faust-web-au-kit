@@ -89,31 +89,31 @@ static UIGlue makeBenchGlue(BenchUIState* state)
 #endif
 
 #ifndef GENERATED_C_DSP_TYPE
-#define GENERATED_C_DSP_TYPE LimiterLabDSP
+#define GENERATED_C_DSP_TYPE FWAK_DSP_TYPE
 #endif
 
 #ifndef GENERATED_C_NEW_FN
-#define GENERATED_C_NEW_FN newLimiterLabDSP
+#define GENERATED_C_NEW_FN FWAK_DSP_NEW_FN
 #endif
 
 #ifndef GENERATED_C_INIT_FN
-#define GENERATED_C_INIT_FN initLimiterLabDSP
+#define GENERATED_C_INIT_FN FWAK_DSP_INIT_FN
 #endif
 
 #ifndef GENERATED_C_BUILD_UI_FN
-#define GENERATED_C_BUILD_UI_FN buildUserInterfaceLimiterLabDSP
+#define GENERATED_C_BUILD_UI_FN FWAK_DSP_BUILD_UI_FN
 #endif
 
 #ifndef GENERATED_C_COMPUTE_FN
-#define GENERATED_C_COMPUTE_FN computeLimiterLabDSP
+#define GENERATED_C_COMPUTE_FN FWAK_DSP_COMPUTE_FN
 #endif
 
 #ifndef GENERATED_C_DELETE_FN
-#define GENERATED_C_DELETE_FN deleteLimiterLabDSP
+#define GENERATED_C_DELETE_FN FWAK_DSP_DELETE_FN
 #endif
 
 #ifndef GENERATED_CPP_CLASS
-#define GENERATED_CPP_CLASS LimiterLabDSP
+#define GENERATED_CPP_CLASS FWAK_DSP_CPP_CLASS
 #endif
 
 #ifndef GENERATED_BENCH_CONTROL_LABEL

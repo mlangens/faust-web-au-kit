@@ -2,7 +2,7 @@ import("stdfaust.lib");
 
 declare name "Pulse Pad";
 declare author "Max Langensiepen + OpenAI Codex";
-declare version "0.1.3";
+declare version "0.3.0";
 declare description "Synth example manifest for framework export and preview.";
 declare license "MIT";
 declare options "[midi:on][nvoices:8]";

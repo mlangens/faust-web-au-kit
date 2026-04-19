@@ -6,7 +6,6 @@
 #include <string.h>
 
 #include "faust/gui/CInterface.h"
-#include "ui_manifest.h"
 #include FWAK_GENERATED_C_TARGET_PATH
 
 #ifndef M_PI
@@ -22,36 +21,6 @@ typedef struct {
     float value;
 } FwakSavedParameter;
 
-enum {
-    FWAK_PARAM_DISPLAY_DEFAULT = 0,
-    FWAK_PARAM_DISPLAY_DRIVE_TARGET,
-    FWAK_PARAM_DISPLAY_DRIVE_FOCUS
-};
-
-enum {
-    FWAK_ANALYZER_ZONE_DRIVE_LOW = 0,
-    FWAK_ANALYZER_ZONE_DRIVE_MID,
-    FWAK_ANALYZER_ZONE_DRIVE_HIGH,
-    FWAK_ANALYZER_ZONE_COUNT
-};
-
-static const char* gParameterLabels[FWAK_PARAMETER_COUNT] = {
-    "Vintage Response",
-    "Bypass",
-    "Tube Drive",
-    "Transformer Tone",
-    "Drive Target",
-    "Drive Focus",
-    "Drive Low Split",
-    "Drive High Split",
-    "Input Gain",
-    "Ceiling",
-    "Attack",
-    "Hold",
-    "Release",
-    "Output Trim"
-};
-
 static const char* gDriveTargetLabels[] = {"Both", "Mid", "Side"};
 static const char* gDriveFocusLabels[] = {"Full", "Low", "Mid", "High"};
 static const char* gAnalyzerZoneLabels[FWAK_ANALYZER_ZONE_COUNT] = {
@@ -60,46 +29,14 @@ static const char* gAnalyzerZoneLabels[FWAK_ANALYZER_ZONE_COUNT] = {
     "Drive High Saturation"
 };
 
-const FwakParameterInfo gFwakParameters[FWAK_PARAMETER_COUNT] = {
-    {FWAK_FOURCC('v', 'i', 'n', 't'), "Vintage Response", "", 0.0, 1.0, 0.0,
-     CPLUG_FLAG_PARAMETER_IS_BOOL | CPLUG_FLAG_PARAMETER_IS_AUTOMATABLE, FWAK_PARAM_DISPLAY_DEFAULT},
-    {FWAK_FOURCC('b', 'p', 'a', 's'), "Bypass", "", 0.0, 1.0, 0.0,
-     CPLUG_FLAG_PARAMETER_IS_BOOL | CPLUG_FLAG_PARAMETER_IS_AUTOMATABLE | CPLUG_FLAG_PARAMETER_IS_BYPASS,
-     FWAK_PARAM_DISPLAY_DEFAULT},
-    {FWAK_FOURCC('t', 'u', 'b', 'e'), "Tube Drive", "%", 0.0, 100.0, 0.0, CPLUG_FLAG_PARAMETER_IS_AUTOMATABLE,
-     FWAK_PARAM_DISPLAY_DEFAULT},
-    {FWAK_FOURCC('x', 'f', 'm', 'r'), "Transformer Tone", "%", 0.0, 100.0, 0.0,
-     CPLUG_FLAG_PARAMETER_IS_AUTOMATABLE, FWAK_PARAM_DISPLAY_DEFAULT},
-    {FWAK_FOURCC('d', 't', 'g', 't'), "Drive Target", "", 0.0, 2.0, 0.0, CPLUG_FLAG_PARAMETER_IS_AUTOMATABLE,
-     FWAK_PARAM_DISPLAY_DRIVE_TARGET},
-    {FWAK_FOURCC('d', 'f', 'c', 's'), "Drive Focus", "", 0.0, 3.0, 0.0, CPLUG_FLAG_PARAMETER_IS_AUTOMATABLE,
-     FWAK_PARAM_DISPLAY_DRIVE_FOCUS},
-    {FWAK_FOURCC('d', 'l', 'o', 'w'), "Drive Low Split", "Hz", 60.0, 4000.0, 220.0,
-     CPLUG_FLAG_PARAMETER_IS_AUTOMATABLE, FWAK_PARAM_DISPLAY_DEFAULT},
-    {FWAK_FOURCC('d', 'h', 'i', 'g'), "Drive High Split", "Hz", 800.0, 18000.0, 3000.0,
-     CPLUG_FLAG_PARAMETER_IS_AUTOMATABLE, FWAK_PARAM_DISPLAY_DEFAULT},
-    {FWAK_FOURCC('i', 'g', 'a', 'n'), "Input Gain", "dB", -18.0, 18.0, 0.0, CPLUG_FLAG_PARAMETER_IS_AUTOMATABLE,
-     FWAK_PARAM_DISPLAY_DEFAULT},
-    {FWAK_FOURCC('c', 'e', 'i', 'l'), "Ceiling", "dB", -12.0, 0.0, -1.0, CPLUG_FLAG_PARAMETER_IS_AUTOMATABLE,
-     FWAK_PARAM_DISPLAY_DEFAULT},
-    {FWAK_FOURCC('a', 't', 't', 'k'), "Attack", "ms", 0.05, 25.0, 0.35, CPLUG_FLAG_PARAMETER_IS_AUTOMATABLE,
-     FWAK_PARAM_DISPLAY_DEFAULT},
-    {FWAK_FOURCC('h', 'o', 'l', 'd'), "Hold", "ms", 0.0, 50.0, 3.0, CPLUG_FLAG_PARAMETER_IS_AUTOMATABLE,
-     FWAK_PARAM_DISPLAY_DEFAULT},
-    {FWAK_FOURCC('r', 'e', 'l', 's'), "Release", "ms", 5.0, 500.0, 80.0, CPLUG_FLAG_PARAMETER_IS_AUTOMATABLE,
-     FWAK_PARAM_DISPLAY_DEFAULT},
-    {FWAK_FOURCC('o', 't', 'r', 'm'), "Output Trim", "dB", -18.0, 18.0, 0.0,
-     CPLUG_FLAG_PARAMETER_IS_AUTOMATABLE, FWAK_PARAM_DISPLAY_DEFAULT},
-};
-
 void cplug_libraryLoad() {}
 void cplug_libraryUnload() {}
 
-static int fwak_find_parameter_index_by_label(const char* label)
+int fwak_find_parameter_index_by_label(const char* label)
 {
     int index = 0;
     for (; index < FWAK_PARAMETER_COUNT; ++index) {
-        if (strcmp(label, gParameterLabels[index]) == 0) {
+        if (strcmp(label, gFwakParameters[index].label) == 0) {
             return index;
         }
     }
@@ -122,6 +59,28 @@ static int fwak_find_analyzer_zone_index_by_label(const char* label)
     int index = 0;
     for (; index < FWAK_ANALYZER_ZONE_COUNT; ++index) {
         if (strcmp(label, gAnalyzerZoneLabels[index]) == 0) {
+            return index;
+        }
+    }
+    return -1;
+}
+
+static int fwak_find_meter_index_by_label(const char* label)
+{
+    int index = 0;
+    for (; index < FWAK_METER_COUNT; ++index) {
+        if (strcmp(label, FWAK_METER_MANIFEST[index].label) == 0) {
+            return index;
+        }
+    }
+    return -1;
+}
+
+static int fwak_find_meter_index_by_id(const char* meterId)
+{
+    int index = 0;
+    for (; index < FWAK_METER_COUNT; ++index) {
+        if (strcmp(meterId, FWAK_METER_MANIFEST[index].id) == 0) {
             return index;
         }
     }
@@ -318,6 +277,11 @@ static void fwak_ui_add_bargraph(void* ui, const char* label, float* zone, float
     const int analyzerIndex = fwak_find_analyzer_zone_index_by_label(label);
     if (analyzerIndex >= 0) {
         plugin->analyzerZones[analyzerIndex] = zone;
+    } else {
+        const int meterIndex = fwak_find_meter_index_by_label(label);
+        if (meterIndex >= 0) {
+            plugin->meterZones[meterIndex] = zone;
+        }
     }
     (void)minValue;
     (void)maxValue;
@@ -413,9 +377,10 @@ static void fwak_process_audio_slice(
     uint32_t frame = 0;
 
     for (; frame < frames; ++frame) {
-        const float leftInputSample = inputs[0] ? inputs[0][startFrame + frame] : 0.0f;
+        const float leftInputSample =
+            (inputChannelCount > 0 && inputs[0]) ? inputs[0][startFrame + frame] : 0.0f;
         const float rightInputSample =
-            (inputChannelCount < 2 || !inputs[1]) ? leftInputSample : inputs[1][startFrame + frame];
+            (FWAK_PLUGIN_NUM_INPUTS < 2 || inputChannelCount < 2 || !inputs[1]) ? leftInputSample : inputs[1][startFrame + frame];
         const float visualInputSample = 0.5f * (leftInputSample + rightInputSample);
         int channel = 0;
         for (; channel < FWAK_PLUGIN_NUM_INPUTS; ++channel) {
@@ -435,7 +400,7 @@ static void fwak_process_audio_slice(
         sliceInputMax = fmaxf(sliceInputMax, visualInputSample);
     }
 
-    computeLimiterLabDSP((LimiterLabDSP*)plugin->dsp, (int)oversampledFrames, plugin->upsampledInputs, plugin->upsampledOutputs);
+    FWAK_DSP_COMPUTE_FN((FWAK_DSP_TYPE*)plugin->dsp, (int)oversampledFrames, plugin->upsampledInputs, plugin->upsampledOutputs);
     driveLowSaturation =
         plugin->analyzerZones[FWAK_ANALYZER_ZONE_DRIVE_LOW] ? *plugin->analyzerZones[FWAK_ANALYZER_ZONE_DRIVE_LOW] : 0.0f;
     driveMidSaturation =
@@ -445,7 +410,7 @@ static void fwak_process_audio_slice(
                               : 0.0f;
 
     for (frame = 0; frame < frames; ++frame) {
-        float renderedFrame[FWAK_PLUGIN_NUM_OUTPUTS] = {0.0f};
+        float renderedFrame[FWAK_MAX_OUTPUT_CHANNELS] = {0.0f};
         int channel = 0;
         for (; channel < FWAK_PLUGIN_NUM_OUTPUTS; ++channel) {
             uint32_t substep = 0;
@@ -461,7 +426,13 @@ static void fwak_process_audio_slice(
             renderedFrame[channel] = filteredSample;
         }
 
-        if (outputChannelCount < 2 || !outputs[1]) {
+        if (FWAK_PLUGIN_NUM_OUTPUTS == 1) {
+            const float monoOut = renderedFrame[0];
+            outputs[0][startFrame + frame] = monoOut;
+            outputPeak = fmaxf(outputPeak, fabsf(monoOut));
+            sliceOutputMin = fminf(sliceOutputMin, monoOut);
+            sliceOutputMax = fmaxf(sliceOutputMax, monoOut);
+        } else if (outputChannelCount < 2 || !outputs[1]) {
             const float monoOut = 0.5f * (renderedFrame[0] + renderedFrame[1]);
             outputs[0][startFrame + frame] = monoOut;
             outputPeak = fmaxf(outputPeak, fabsf(monoOut));
@@ -511,17 +482,17 @@ void* cplug_createPlugin(CplugHostContext* ctx)
     plugin->hostContext = ctx;
     plugin->sampleRate = 44100.0;
     plugin->maxBlockSize = 512;
-    plugin->dsp = newLimiterLabDSP();
+    plugin->dsp = FWAK_DSP_NEW_FN();
 
     if (!plugin->dsp) {
         free(plugin);
         return NULL;
     }
 
-    initLimiterLabDSP((LimiterLabDSP*)plugin->dsp, (int)(plugin->sampleRate * FWAK_OVERSAMPLING_FACTOR));
+    FWAK_DSP_INIT_FN((FWAK_DSP_TYPE*)plugin->dsp, (int)(plugin->sampleRate * FWAK_OVERSAMPLING_FACTOR));
     {
         UIGlue ui = fwak_make_ui_glue(plugin);
-        buildUserInterfaceLimiterLabDSP((LimiterLabDSP*)plugin->dsp, &ui);
+        FWAK_DSP_BUILD_UI_FN((FWAK_DSP_TYPE*)plugin->dsp, &ui);
     }
 
     for (; parameterIndex < FWAK_PARAMETER_COUNT; ++parameterIndex) {
@@ -555,7 +526,7 @@ void cplug_destroyPlugin(void* userPlugin)
     free(plugin->monoOutputScratch);
 
     if (plugin->dsp) {
-        deleteLimiterLabDSP((LimiterLabDSP*)plugin->dsp);
+        FWAK_DSP_DELETE_FN((FWAK_DSP_TYPE*)plugin->dsp);
     }
 
     free(plugin);
@@ -805,7 +776,7 @@ void cplug_setSampleRateAndBlockSize(void* userPlugin, double sampleRate, uint32
     fwak_reset_analyzer_history(plugin);
     fwak_allocate_audio_buffers(plugin, maxBlockSize);
 
-    instanceInitLimiterLabDSP((LimiterLabDSP*)plugin->dsp, (int)(sampleRate * FWAK_OVERSAMPLING_FACTOR));
+    FWAK_DSP_INSTANCE_INIT_FN((FWAK_DSP_TYPE*)plugin->dsp, (int)(sampleRate * FWAK_OVERSAMPLING_FACTOR));
     fwak_apply_cached_parameters(plugin);
 }
 
@@ -816,19 +787,25 @@ void cplug_process(void* userPlugin, CplugProcessContext* ctx)
     uint32_t frame = 0;
     float** hostInputs = ctx->getAudioInput ? ctx->getAudioInput(ctx, 0) : NULL;
     float** hostOutputs = ctx->getAudioOutput ? ctx->getAudioOutput(ctx, 0) : NULL;
-    float* resolvedInputs[FWAK_PLUGIN_NUM_INPUTS] = {0};
-    float* resolvedOutputs[FWAK_PLUGIN_NUM_OUTPUTS] = {0};
+    float* resolvedInputs[FWAK_MAX_INPUT_CHANNELS] = {0};
+    float* resolvedOutputs[FWAK_MAX_OUTPUT_CHANNELS] = {0};
 
     if (!hostOutputs || !hostOutputs[0]) {
         return;
     }
 
     resolvedOutputs[0] = hostOutputs[0];
-    resolvedOutputs[1] = (ctx->numOutputs > 1 && hostOutputs[1]) ? hostOutputs[1] : plugin->monoOutputScratch;
+    if (FWAK_PLUGIN_NUM_OUTPUTS > 1) {
+        resolvedOutputs[1] = (ctx->numOutputs > 1 && hostOutputs[1]) ? hostOutputs[1] : plugin->monoOutputScratch;
+    }
 
-    resolvedInputs[0] = (hostInputs && hostInputs[0]) ? hostInputs[0] : resolvedOutputs[0];
-    resolvedInputs[1] =
-        (ctx->numInputs > 1 && hostInputs && hostInputs[1]) ? hostInputs[1] : resolvedInputs[0];
+    if (FWAK_PLUGIN_NUM_INPUTS > 0) {
+        resolvedInputs[0] = (ctx->numInputs > 0 && hostInputs && hostInputs[0]) ? hostInputs[0] : NULL;
+    }
+    if (FWAK_PLUGIN_NUM_INPUTS > 1) {
+        resolvedInputs[1] =
+            (ctx->numInputs > 1 && hostInputs && hostInputs[1]) ? hostInputs[1] : resolvedInputs[0];
+    }
 
     while (ctx->dequeueEvent(ctx, &event, frame)) {
         switch (event.type) {
@@ -887,6 +864,24 @@ float fwak_get_meter_output_peak_db(const FwakPlugin* plugin)
 float fwak_get_meter_gain_reduction_db(const FwakPlugin* plugin)
 {
     return fwak_atomic_load_float(&plugin->meterGainReductionDb);
+}
+
+double fwak_get_meter_value(const FwakPlugin* plugin, const char* meterId)
+{
+    const int meterIndex = fwak_find_meter_index_by_id(meterId);
+    if (meterIndex >= 0 && plugin->meterZones[meterIndex]) {
+        return *plugin->meterZones[meterIndex];
+    }
+    if (strcmp(meterId, "inputPeak") == 0) {
+        return fwak_get_meter_input_peak_db(plugin);
+    }
+    if (strcmp(meterId, "outputPeak") == 0) {
+        return fwak_get_meter_output_peak_db(plugin);
+    }
+    if (strcmp(meterId, "gainReduction") == 0) {
+        return fwak_get_meter_gain_reduction_db(plugin);
+    }
+    return 0.0;
 }
 
 void fwak_copy_analyzer_snapshot(const FwakPlugin* plugin, FwakAnalyzerSnapshot* snapshot)

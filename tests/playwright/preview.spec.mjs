@@ -1,9 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-import { loadGeneratedProject } from "../support/generated-projects.mjs";
+import { loadGeneratedProject, loadGeneratedWorkspace } from "../support/generated-projects.mjs";
 
 const limiter = loadGeneratedProject();
-const pulsePad = loadGeneratedProject("projects/pulse_pad.json");
+const pulsePad = loadGeneratedProject("pulse-pad");
+const workspace = loadGeneratedWorkspace();
 
 async function setRangeValue(page, controlId, value) {
   await page.locator(`input[data-control-id="${controlId}"]`).evaluate((node, nextValue) => {
@@ -24,6 +25,8 @@ test("default preview renders the current limiter schema surface", async ({ page
 
   await expect(page.locator("body")).toHaveAttribute("data-project-key", limiter.schema.project.key);
   await expect(page.getByRole("heading", { name: limiter.schema.project.name })).toBeVisible();
+  await expect(page.locator("#previewNav a")).toHaveCount(workspace.apps.length);
+  await expect(page.locator('#previewNav a.is-active')).toHaveText(limiter.schema.project.name);
   await expect(page.locator("#controls .control-card")).toHaveCount(limiter.schema.controls.length);
   await expect(page.locator("#meters .meter-card")).toHaveCount(limiter.schema.meters.length);
 
@@ -53,10 +56,11 @@ test("default preview interactions expose the new drive routing controls and tog
 });
 
 test("pulse pad preview loads the alternate generated project and its meter layout", async ({ page }) => {
-  await page.goto("/?project=pulse_pad");
+  await page.goto("/?app=pulse-pad");
 
   await expect(page.locator("body")).toHaveAttribute("data-project-key", pulsePad.schema.project.key);
   await expect(page.getByRole("heading", { name: pulsePad.schema.project.name })).toBeVisible();
+  await expect(page.locator('#previewNav a.is-active')).toHaveText(pulsePad.schema.project.name);
   await expect(page.locator("#controls .control-card")).toHaveCount(pulsePad.schema.controls.length);
   await expect(page.locator("#meters .meter-card")).toHaveCount(pulsePad.schema.meters.length);
 
@@ -69,7 +73,7 @@ test("pulse pad preview loads the alternate generated project and its meter layo
 });
 
 test("preview falls back cleanly when benchmark data is unavailable", async ({ page }) => {
-  await page.route("**/generated/benchmark-results.json", async (route) => {
+  await page.route("**/generated/apps/limiter-lab/benchmark-results.json", async (route) => {
     await route.fulfill({
       status: 503,
       body: "temporarily unavailable"
@@ -84,11 +88,11 @@ test("preview falls back cleanly when benchmark data is unavailable", async ({ p
 });
 
 test("preview shows a friendly error when the requested project schema is missing", async ({ page }) => {
-  await page.goto("/?project=missing_project");
+  await page.goto("/?app=missing-project");
 
   await expect(page.locator("body")).toHaveAttribute("data-preview-error", "true");
   await expect(page.locator("#productTitle")).toHaveText("Preview Error");
-  await expect(page.locator("#projectDescription")).toContainText("missing_project");
+  await expect(page.locator("#projectDescription")).toContainText("missing-project");
   await expect(page.locator("#benchmarks .benchmark-card")).toContainText("Preview Error");
   await expect(page.locator("#controls .control-card")).toHaveCount(0);
   await expect(page.locator("#meters .meter-card")).toHaveCount(0);

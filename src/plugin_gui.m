@@ -6,9 +6,8 @@
 #include <string.h>
 
 #include "plugin_core.h"
-#include "ui_manifest.h"
 
-@interface FwakPluginView : NSView
+@interface FWAK_PLUGIN_VIEW_CLASS : NSView
 {
 @private
     FwakPlugin* _plugin;
@@ -30,7 +29,7 @@
 
 @end
 
-@interface FwakAnalyzerView : NSView
+@interface FWAK_ANALYZER_VIEW_CLASS : NSView
 {
 @private
     FwakPlugin* _plugin;
@@ -41,7 +40,7 @@
 
 @end
 
-@interface FwakAuv2ViewFactory : NSObject <AUCocoaUIBase>
+@interface FWAK_AUV2_FACTORY_CLASS : NSObject <AUCocoaUIBase>
 @end
 
 static NSTextField* FwakMakeLabel(NSString* text, CGFloat fontSize, NSFontWeight weight)
@@ -71,27 +70,53 @@ static NSLevelIndicator* FwakMakeMeter(double maxValue)
 
 static int FwakParameterIndexForLabel(const char* label)
 {
-    int index = 0;
-    for (; index < FWAK_PARAMETER_COUNT; ++index) {
-        if (strcmp(gFwakParameters[index].label, label) == 0) {
-            return index;
-        }
-    }
-    return -1;
+    return fwak_find_parameter_index_by_label(label);
 }
 
 static double FwakMeterValueForId(const FwakPlugin* plugin, const char* meterId)
 {
-    if (strcmp(meterId, "inputPeak") == 0) {
-        return fwak_get_meter_input_peak_db(plugin);
+    return fwak_get_meter_value(plugin, meterId);
+}
+
+static int FwakDriveTargetParameterIndex(void)
+{
+    static int cachedIndex = -2;
+    if (cachedIndex == -2) {
+        cachedIndex = FwakParameterIndexForLabel("Drive Target");
     }
-    if (strcmp(meterId, "outputPeak") == 0) {
-        return fwak_get_meter_output_peak_db(plugin);
+    return cachedIndex;
+}
+
+static int FwakDriveFocusParameterIndex(void)
+{
+    static int cachedIndex = -2;
+    if (cachedIndex == -2) {
+        cachedIndex = FwakParameterIndexForLabel("Drive Focus");
     }
-    if (strcmp(meterId, "gainReduction") == 0) {
-        return fwak_get_meter_gain_reduction_db(plugin);
+    return cachedIndex;
+}
+
+static int FwakDriveLowSplitParameterIndex(void)
+{
+    static int cachedIndex = -2;
+    if (cachedIndex == -2) {
+        cachedIndex = FwakParameterIndexForLabel("Drive Low Split");
     }
-    return 0.0;
+    return cachedIndex;
+}
+
+static int FwakDriveHighSplitParameterIndex(void)
+{
+    static int cachedIndex = -2;
+    if (cachedIndex == -2) {
+        cachedIndex = FwakParameterIndexForLabel("Drive High Split");
+    }
+    return cachedIndex;
+}
+
+static BOOL FwakSupportsFrequencyEditor(void)
+{
+    return FwakDriveLowSplitParameterIndex() >= 0 && FwakDriveHighSplitParameterIndex() >= 0;
 }
 
 static CGFloat FwakClampUnit(CGFloat value)
@@ -112,7 +137,7 @@ static CGFloat FwakDbAmplitude(CGFloat dbValue)
 
 static BOOL FwakParameterUsesFrequencyEditor(int parameterIndex)
 {
-    return parameterIndex == FWAK_PARAM_DRIVE_LOW_SPLIT || parameterIndex == FWAK_PARAM_DRIVE_HIGH_SPLIT;
+    return parameterIndex == FwakDriveLowSplitParameterIndex() || parameterIndex == FwakDriveHighSplitParameterIndex();
 }
 
 static float FwakBandSaturationValue(const FwakAnalyzerSnapshot* snapshot, NSUInteger bandIndex, NSUInteger historyIndex)
@@ -216,13 +241,16 @@ static NSString* FwakFrequencyDisplayString(double frequency)
 
 static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterIndex)
 {
+    if (parameterIndex < 0 || parameterIndex >= FWAK_PARAMETER_COUNT) {
+        return @"";
+    }
     char buffer[64];
     const FwakParameterInfo* info = &gFwakParameters[parameterIndex];
     cplug_parameterValueToString(plugin, info->id, buffer, sizeof(buffer), cplug_getParameterValue(plugin, info->id));
     return [NSString stringWithUTF8String:buffer];
 }
 
-@implementation FwakAnalyzerView
+@implementation FWAK_ANALYZER_VIEW_CLASS
 
 - (instancetype)initWithPlugin:(FwakPlugin*)plugin
 {
@@ -251,11 +279,17 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
 
 - (NSInteger)handleIndexAtPoint:(NSPoint)point
 {
+    const int lowSplitIndex = FwakDriveLowSplitParameterIndex();
+    const int highSplitIndex = FwakDriveHighSplitParameterIndex();
+    if (lowSplitIndex < 0 || highSplitIndex < 0) {
+        return -1;
+    }
+
     const NSRect frequencyRect = [self frequencyRect];
-    const CGFloat lowSplitX = FwakFrequencyXForValue(frequencyRect,
-                                                     cplug_getParameterValue(_plugin, gFwakParameters[FWAK_PARAM_DRIVE_LOW_SPLIT].id));
-    const CGFloat highSplitX = FwakFrequencyXForValue(frequencyRect,
-                                                      cplug_getParameterValue(_plugin, gFwakParameters[FWAK_PARAM_DRIVE_HIGH_SPLIT].id));
+    const CGFloat lowSplitX =
+        FwakFrequencyXForValue(frequencyRect, cplug_getParameterValue(_plugin, gFwakParameters[lowSplitIndex].id));
+    const CGFloat highSplitX =
+        FwakFrequencyXForValue(frequencyRect, cplug_getParameterValue(_plugin, gFwakParameters[highSplitIndex].id));
     const CGFloat distanceToLow = fabs(point.x - lowSplitX);
     const CGFloat distanceToHigh = fabs(point.x - highSplitX);
     const BOOL insideY = point.y >= NSMinY(frequencyRect) - 10.0 && point.y <= NSMaxY(frequencyRect) + 12.0;
@@ -273,15 +307,17 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
 {
     [super resetCursorRects];
 
-    if (!_plugin) {
+    const int lowSplitIndex = FwakDriveLowSplitParameterIndex();
+    const int highSplitIndex = FwakDriveHighSplitParameterIndex();
+    if (!_plugin || lowSplitIndex < 0 || highSplitIndex < 0) {
         return;
     }
 
     const NSRect frequencyRect = [self frequencyRect];
-    const CGFloat lowSplitX = FwakFrequencyXForValue(frequencyRect,
-                                                     cplug_getParameterValue(_plugin, gFwakParameters[FWAK_PARAM_DRIVE_LOW_SPLIT].id));
-    const CGFloat highSplitX = FwakFrequencyXForValue(frequencyRect,
-                                                      cplug_getParameterValue(_plugin, gFwakParameters[FWAK_PARAM_DRIVE_HIGH_SPLIT].id));
+    const CGFloat lowSplitX =
+        FwakFrequencyXForValue(frequencyRect, cplug_getParameterValue(_plugin, gFwakParameters[lowSplitIndex].id));
+    const CGFloat highSplitX =
+        FwakFrequencyXForValue(frequencyRect, cplug_getParameterValue(_plugin, gFwakParameters[highSplitIndex].id));
     [self addCursorRect:NSInsetRect(NSMakeRect(lowSplitX - 8.0, NSMinY(frequencyRect) - 8.0, 16.0, frequencyRect.size.height + 16.0), -2.0, 0.0)
                  cursor:[NSCursor resizeLeftRightCursor]];
     [self addCursorRect:NSInsetRect(NSMakeRect(highSplitX - 8.0, NSMinY(frequencyRect) - 8.0, 16.0, frequencyRect.size.height + 16.0), -2.0, 0.0)
@@ -290,26 +326,28 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
 
 - (void)updateSplitParameterForHandle:(NSInteger)handleIndex point:(NSPoint)point
 {
-    if (!_plugin) {
+    const int lowSplitIndex = FwakDriveLowSplitParameterIndex();
+    const int highSplitIndex = FwakDriveHighSplitParameterIndex();
+    if (!_plugin || lowSplitIndex < 0 || highSplitIndex < 0) {
         return;
     }
 
     const NSRect frequencyRect = [self frequencyRect];
     const CGFloat clampedX = FwakClampCoordinate(point.x, NSMinX(frequencyRect), NSMaxX(frequencyRect));
     const double proposedFrequency = FwakFrequencyValueForX(frequencyRect, clampedX);
-    const double currentLow = cplug_getParameterValue(_plugin, gFwakParameters[FWAK_PARAM_DRIVE_LOW_SPLIT].id);
-    const double currentHigh = cplug_getParameterValue(_plugin, gFwakParameters[FWAK_PARAM_DRIVE_HIGH_SPLIT].id);
+    const double currentLow = cplug_getParameterValue(_plugin, gFwakParameters[lowSplitIndex].id);
+    const double currentHigh = cplug_getParameterValue(_plugin, gFwakParameters[highSplitIndex].id);
 
     if (handleIndex == 0) {
         const double nextLow = FwakClampDouble(proposedFrequency,
-                                               gFwakParameters[FWAK_PARAM_DRIVE_LOW_SPLIT].minValue,
+                                               gFwakParameters[lowSplitIndex].minValue,
                                                currentHigh - 40.0);
-        fwak_update_parameter_from_ui(_plugin, gFwakParameters[FWAK_PARAM_DRIVE_LOW_SPLIT].id, nextLow);
+        fwak_update_parameter_from_ui(_plugin, gFwakParameters[lowSplitIndex].id, nextLow);
     } else if (handleIndex == 1) {
         const double nextHigh = FwakClampDouble(proposedFrequency,
                                                 currentLow + 40.0,
-                                                gFwakParameters[FWAK_PARAM_DRIVE_HIGH_SPLIT].maxValue);
-        fwak_update_parameter_from_ui(_plugin, gFwakParameters[FWAK_PARAM_DRIVE_HIGH_SPLIT].id, nextHigh);
+                                                gFwakParameters[highSplitIndex].maxValue);
+        fwak_update_parameter_from_ui(_plugin, gFwakParameters[highSplitIndex].id, nextHigh);
     }
 
     [self.window invalidateCursorRectsForView:self];
@@ -318,7 +356,9 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
 
 - (void)mouseDown:(NSEvent*)event
 {
-    if (!_plugin) {
+    const int lowSplitIndex = FwakDriveLowSplitParameterIndex();
+    const int highSplitIndex = FwakDriveHighSplitParameterIndex();
+    if (!_plugin || lowSplitIndex < 0 || highSplitIndex < 0) {
         [super mouseDown:event];
         return;
     }
@@ -330,7 +370,7 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
         return;
     }
 
-    const uint32_t paramId = gFwakParameters[_activeHandleIndex == 0 ? FWAK_PARAM_DRIVE_LOW_SPLIT : FWAK_PARAM_DRIVE_HIGH_SPLIT].id;
+    const uint32_t paramId = gFwakParameters[_activeHandleIndex == 0 ? lowSplitIndex : highSplitIndex].id;
     fwak_begin_parameter_edit(_plugin, paramId);
     [self updateSplitParameterForHandle:_activeHandleIndex point:downPoint];
 
@@ -437,7 +477,8 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
             NSFontAttributeName: [NSFont systemFontOfSize:10.0 weight:NSFontWeightSemibold],
             NSForegroundColorAttributeName: [NSColor colorWithCalibratedWhite:0.84 alpha:0.8]
         };
-        [@"Drive Band Map" drawAtPoint:NSMakePoint(NSMinX(frequencyRect), NSMaxY(frequencyRect) + 4.0) withAttributes:heatTitleAttributes];
+        NSString* title = FwakSupportsFrequencyEditor() ? @"Drive Band Map" : @"Analyzer";
+        [title drawAtPoint:NSMakePoint(NSMinX(frequencyRect), NSMaxY(frequencyRect) + 4.0) withAttributes:heatTitleAttributes];
     }
 
     if (_plugin) {
@@ -448,16 +489,25 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
         NSBezierPath* outputPath = [NSBezierPath bezierPath];
         NSBezierPath* gainReductionPath = [NSBezierPath bezierPath];
         const NSUInteger currentHistoryIndex = (snapshot.writeIndex + FWAK_ANALYZER_HISTORY_LENGTH - 1u) % FWAK_ANALYZER_HISTORY_LENGTH;
+        const int driveLowSplitIndex = FwakDriveLowSplitParameterIndex();
+        const int driveHighSplitIndex = FwakDriveHighSplitParameterIndex();
+        const int driveFocusIndex = FwakDriveFocusParameterIndex();
+        const BOOL supportsFrequencyEditor = driveLowSplitIndex >= 0 && driveHighSplitIndex >= 0;
         const CGFloat lowSplitX =
-            FwakFrequencyXForValue(frequencyRect, cplug_getParameterValue(_plugin, gFwakParameters[FWAK_PARAM_DRIVE_LOW_SPLIT].id));
+            supportsFrequencyEditor
+                ? FwakFrequencyXForValue(frequencyRect, cplug_getParameterValue(_plugin, gFwakParameters[driveLowSplitIndex].id))
+                : NSMinX(frequencyRect) + frequencyRect.size.width * 0.34;
         const CGFloat highSplitX =
-            FwakFrequencyXForValue(frequencyRect, cplug_getParameterValue(_plugin, gFwakParameters[FWAK_PARAM_DRIVE_HIGH_SPLIT].id));
+            supportsFrequencyEditor
+                ? FwakFrequencyXForValue(frequencyRect, cplug_getParameterValue(_plugin, gFwakParameters[driveHighSplitIndex].id))
+                : NSMinX(frequencyRect) + frequencyRect.size.width * 0.68;
         const CGFloat bandEdges[4] = {NSMinX(frequencyRect), lowSplitX, highSplitX, NSMaxX(frequencyRect)};
-        const double focusValue = cplug_getParameterValue(_plugin, gFwakParameters[FWAK_PARAM_DRIVE_FOCUS].id);
-        const NSInteger selectedBandIndex = (NSInteger)lrint(focusValue) - 1;
+        const double focusValue =
+            driveFocusIndex >= 0 ? cplug_getParameterValue(_plugin, gFwakParameters[driveFocusIndex].id) : 0.0;
+        const NSInteger selectedBandIndex = driveFocusIndex >= 0 ? (NSInteger)lrint(focusValue) - 1 : -1;
         NSUInteger i = 0;
 
-        {
+        if (supportsFrequencyEditor) {
             NSUInteger bandIndex = 0;
             for (; bandIndex < 3; ++bandIndex) {
                 const CGFloat bandMinX = bandEdges[bandIndex];
@@ -527,7 +577,7 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
         [gainReductionPath setLineWidth:2.0];
         [gainReductionPath stroke];
 
-        {
+        if (supportsFrequencyEditor) {
             NSDictionary* bandAttributes = @{
                 NSFontAttributeName: [NSFont systemFontOfSize:10.0 weight:NSFontWeightSemibold],
                 NSForegroundColorAttributeName: [NSColor colorWithCalibratedWhite:0.92 alpha:0.94]
@@ -542,9 +592,9 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
             }
         }
 
-        {
+        if (supportsFrequencyEditor) {
             const CGFloat handleXs[2] = {lowSplitX, highSplitX};
-            const int handleParameters[2] = {FWAK_PARAM_DRIVE_LOW_SPLIT, FWAK_PARAM_DRIVE_HIGH_SPLIT};
+            const int handleParameters[2] = {driveLowSplitIndex, driveHighSplitIndex};
             int handleIndex = 0;
             for (; handleIndex < 2; ++handleIndex) {
                 const CGFloat handleX = handleXs[handleIndex];
@@ -608,12 +658,12 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
         }
     }
 
-    if (_plugin) {
+    if (_plugin && FwakDriveTargetParameterIndex() >= 0 && FwakDriveFocusParameterIndex() >= 0) {
         [self drawRoundedBadgeInRect:NSMakeRect(NSMaxX(frequencyRect) - 146.0, NSMaxY(frequencyRect) + 2.0, 66.0, 18.0)
-                                text:FwakParameterDisplayString(_plugin, FWAK_PARAM_DRIVE_TARGET)
+                                text:FwakParameterDisplayString(_plugin, FwakDriveTargetParameterIndex())
                            fillColor:[NSColor colorWithCalibratedRed:0.18 green:0.39 blue:0.61 alpha:0.92]];
         [self drawRoundedBadgeInRect:NSMakeRect(NSMaxX(frequencyRect) - 74.0, NSMaxY(frequencyRect) + 2.0, 66.0, 18.0)
-                                text:FwakParameterDisplayString(_plugin, FWAK_PARAM_DRIVE_FOCUS)
+                                text:FwakParameterDisplayString(_plugin, FwakDriveFocusParameterIndex())
                            fillColor:[NSColor colorWithCalibratedRed:0.52 green:0.27 blue:0.17 alpha:0.94]];
     }
 
@@ -630,7 +680,7 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
 
 @end
 
-@implementation FwakPluginView
+@implementation FWAK_PLUGIN_VIEW_CLASS
 
 - (BOOL)isFlipped
 {
@@ -661,7 +711,7 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
     [self setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
     [self setWantsLayer:YES];
 
-    _analyzerView = [[FwakAnalyzerView alloc] initWithPlugin:plugin];
+    _analyzerView = [[FWAK_ANALYZER_VIEW_CLASS alloc] initWithPlugin:plugin];
     [self addSubview:_analyzerView];
 
     _titleLabel = FwakMakeLabel(@FWAK_PRODUCT_NAME, 24.0, NSFontWeightSemibold);
@@ -911,7 +961,7 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
 
 @end
 
-@implementation FwakAuv2ViewFactory
+@implementation FWAK_AUV2_FACTORY_CLASS
 
 - (unsigned)interfaceVersion
 {
@@ -920,7 +970,7 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
 
 - (NSString*)description
 {
-    return @"Limiter Lab View";
+    return [NSString stringWithFormat:@"%s View", FWAK_PRODUCT_NAME];
 }
 
 - (NSView*)uiViewForAudioUnit:(AudioUnit)inAudioUnit withSize:(NSSize)inPreferredSize
@@ -933,7 +983,7 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
         return nil;
     }
 
-    FwakPluginView* view = (FwakPluginView*)cplug_createGUI((void*)(uintptr_t)userPluginValue);
+    FWAK_PLUGIN_VIEW_CLASS* view = (FWAK_PLUGIN_VIEW_CLASS*)cplug_createGUI((void*)(uintptr_t)userPluginValue);
     if (!view) {
         return nil;
     }
@@ -955,17 +1005,17 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
 
 void* cplug_createGUI(void* userPlugin)
 {
-    return [[FwakPluginView alloc] initWithPlugin:(FwakPlugin*)userPlugin];
+    return [[FWAK_PLUGIN_VIEW_CLASS alloc] initWithPlugin:(FwakPlugin*)userPlugin];
 }
 
 void cplug_destroyGUI(void* userGUI)
 {
-    [(FwakPluginView*)userGUI release];
+    [(FWAK_PLUGIN_VIEW_CLASS*)userGUI release];
 }
 
 void cplug_setParent(void* userGUI, void* view)
 {
-    FwakPluginView* pluginView = (FwakPluginView*)userGUI;
+    FWAK_PLUGIN_VIEW_CLASS* pluginView = (FWAK_PLUGIN_VIEW_CLASS*)userGUI;
     if ([pluginView superview]) {
         [pluginView removeFromSuperview];
     }
@@ -976,12 +1026,12 @@ void cplug_setParent(void* userGUI, void* view)
 
 void cplug_setVisible(void* userGUI, bool visible)
 {
-    [(FwakPluginView*)userGUI setHidden:(visible ? NO : YES)];
+    [(FWAK_PLUGIN_VIEW_CLASS*)userGUI setHidden:(visible ? NO : YES)];
 }
 
 void cplug_setScaleFactor(void* userGUI, float scale)
 {
-    FwakPluginView* pluginView = (FwakPluginView*)userGUI;
+    FWAK_PLUGIN_VIEW_CLASS* pluginView = (FWAK_PLUGIN_VIEW_CLASS*)userGUI;
     if (pluginView == nil) {
         return;
     }
@@ -991,7 +1041,7 @@ void cplug_setScaleFactor(void* userGUI, float scale)
 
 void cplug_getSize(void* userGUI, uint32_t* width, uint32_t* height)
 {
-    FwakPluginView* pluginView = (FwakPluginView*)userGUI;
+    FWAK_PLUGIN_VIEW_CLASS* pluginView = (FWAK_PLUGIN_VIEW_CLASS*)userGUI;
     const NSSize size = pluginView ? [pluginView frame].size : NSMakeSize(FWAK_UI_DEFAULT_WIDTH, FwakMinimumViewHeight());
     *width = (uint32_t)lrint(fmax(size.width, FWAK_UI_DEFAULT_WIDTH));
     *height = (uint32_t)lrint(fmax(size.height, FwakMinimumViewHeight()));
@@ -1006,7 +1056,7 @@ void cplug_checkSize(void* userGUI, uint32_t* width, uint32_t* height)
 
 bool cplug_setSize(void* userGUI, uint32_t width, uint32_t height)
 {
-    FwakPluginView* pluginView = (FwakPluginView*)userGUI;
+    FWAK_PLUGIN_VIEW_CLASS* pluginView = (FWAK_PLUGIN_VIEW_CLASS*)userGUI;
     if (!pluginView) {
         return false;
     }
