@@ -905,6 +905,23 @@ void fwak_copy_analyzer_snapshot(const FwakPlugin* plugin, FwakAnalyzerSnapshot*
     snapshot->writeIndex = atomic_load_explicit(&plugin->analyzerWriteIndex, memory_order_acquire);
 }
 
+bool fwak_has_analyzer_zones(const FwakPlugin* plugin)
+{
+    int index = 0;
+
+    if (!plugin) {
+        return false;
+    }
+
+    for (; index < FWAK_ANALYZER_ZONE_COUNT; ++index) {
+        if (plugin->analyzerZones[index]) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void fwak_begin_parameter_edit(FwakPlugin* plugin, uint32_t paramId)
 {
     if (plugin->hostContext && plugin->hostContext->sendParamEvent) {

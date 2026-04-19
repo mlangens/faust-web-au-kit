@@ -477,7 +477,10 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
             NSFontAttributeName: [NSFont systemFontOfSize:10.0 weight:NSFontWeightSemibold],
             NSForegroundColorAttributeName: [NSColor colorWithCalibratedWhite:0.84 alpha:0.8]
         };
-        NSString* title = FwakSupportsFrequencyEditor() ? @"Drive Band Map" : @"Analyzer";
+        NSString* title = @"Analyzer";
+        if (_plugin && fwak_has_analyzer_zones(_plugin)) {
+            title = FwakSupportsFrequencyEditor() ? @"Drive Band Map" : @"Band Activity";
+        }
         [title drawAtPoint:NSMakePoint(NSMinX(frequencyRect), NSMaxY(frequencyRect) + 4.0) withAttributes:heatTitleAttributes];
     }
 
@@ -493,6 +496,7 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
         const int driveHighSplitIndex = FwakDriveHighSplitParameterIndex();
         const int driveFocusIndex = FwakDriveFocusParameterIndex();
         const BOOL supportsFrequencyEditor = driveLowSplitIndex >= 0 && driveHighSplitIndex >= 0;
+        const BOOL showsBandMap = fwak_has_analyzer_zones(_plugin);
         const CGFloat lowSplitX =
             supportsFrequencyEditor
                 ? FwakFrequencyXForValue(frequencyRect, cplug_getParameterValue(_plugin, gFwakParameters[driveLowSplitIndex].id))
@@ -507,7 +511,7 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
         const NSInteger selectedBandIndex = driveFocusIndex >= 0 ? (NSInteger)lrint(focusValue) - 1 : -1;
         NSUInteger i = 0;
 
-        if (supportsFrequencyEditor) {
+        if (showsBandMap) {
             NSUInteger bandIndex = 0;
             for (; bandIndex < 3; ++bandIndex) {
                 const CGFloat bandMinX = bandEdges[bandIndex];
@@ -515,11 +519,11 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
                 const CGFloat bandWidth = bandMaxX - bandMinX;
                 const CGFloat saturation = FwakClampUnit(FwakBandSaturationValue(&snapshot, bandIndex, currentHistoryIndex));
                 const NSRect bandRect = NSMakeRect(bandMinX, NSMinY(frequencyRect), bandWidth, frequencyRect.size.height);
-                const CGFloat glowAlpha = 0.12 + saturation * 0.46;
+                const CGFloat glowAlpha = (supportsFrequencyEditor ? 0.12 : 0.05) + saturation * (supportsFrequencyEditor ? 0.46 : 0.34);
                 [[bandColors[bandIndex] colorWithAlphaComponent:glowAlpha] setFill];
                 NSRectFillUsingOperation(bandRect, NSCompositingOperationSourceOver);
 
-                if ((NSInteger)bandIndex == selectedBandIndex) {
+                if (supportsFrequencyEditor && (NSInteger)bandIndex == selectedBandIndex) {
                     [[NSColor colorWithCalibratedWhite:1.0 alpha:0.16] setStroke];
                     NSBezierPath* highlight = [NSBezierPath bezierPathWithRoundedRect:NSInsetRect(bandRect, 1.0, 1.0) xRadius:10.0 yRadius:10.0];
                     [highlight setLineWidth:1.4];
@@ -577,7 +581,7 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
         [gainReductionPath setLineWidth:2.0];
         [gainReductionPath stroke];
 
-        if (supportsFrequencyEditor) {
+        if (showsBandMap) {
             NSDictionary* bandAttributes = @{
                 NSFontAttributeName: [NSFont systemFontOfSize:10.0 weight:NSFontWeightSemibold],
                 NSForegroundColorAttributeName: [NSColor colorWithCalibratedWhite:0.92 alpha:0.94]

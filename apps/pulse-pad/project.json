@@ -1,13 +1,13 @@
 {
   "name": "pulse-pad",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "owner": "mlangens",
   "companyName": "Max Langensiepen",
   "companyTag": "Mlng",
   "productName": "Pulse Pad",
   "artifactStem": "PulsePad",
   "bundleId": "io.github.mlangens.faust-web-au-kit.pulse-pad",
-  "description": "Synth example manifest for the Faust Web AU Kit framework.",
+  "description": "Polyphonic Faust synth with morphable tone shaping, stereo motion, and shared analyzer telemetry.",
   "license": "MIT",
   "plugin": {
     "kind": "instrument",
@@ -38,10 +38,14 @@
     "className": "PulsePadDSP"
   },
   "ui": {
-    "statusText": "Polyphonic synth example driven by the same generated schema path as the limiter.",
+    "statusText": "MIDI-ready synth voice with morphable oscillators, contour sweep, stereo drift, and drive-aware band activity.",
     "controlOrder": [
+      "Texture",
       "Tone",
+      "Contour",
       "Motion",
+      "Detune",
+      "Sub",
       "Drive",
       "Stereo Width",
       "Attack",
@@ -49,16 +53,16 @@
     ],
     "meters": [
       {
-        "id": "voiceDensity",
-        "label": "Voice Density",
-        "max": 24,
-        "mode": "gr"
+        "id": "voiceBody",
+        "label": "Voice Body",
+        "max": 78,
+        "mode": "peak"
       },
       {
-        "id": "stereoDrift",
-        "label": "Stereo Drift",
-        "max": 24,
-        "mode": "gr"
+        "id": "motionBloom",
+        "label": "Motion Bloom",
+        "max": 78,
+        "mode": "peak"
       },
       {
         "id": "outputPeak",
@@ -78,7 +82,7 @@
   },
   "clap": {
     "id": "io.github.mlangens.faust-web-au-kit.pulse-pad",
-    "description": "Pulse Pad synth example for the Faust Web AU Kit framework.",
+    "description": "Morphable MIDI synth with shared framework-native analyzer telemetry.",
     "features": [
       "instrument",
       "synthesizer",
@@ -112,12 +116,24 @@
     "seconds": 6,
     "initialControls": [
       {
+        "label": "Texture",
+        "value": 0.6
+      },
+      {
         "label": "Tone",
-        "value": 0.7
+        "value": 0.72
+      },
+      {
+        "label": "Contour",
+        "value": 0.58
       },
       {
         "label": "Motion",
-        "value": 0.45
+        "value": 0.48
+      },
+      {
+        "label": "Drive",
+        "value": 6.5
       }
     ],
     "nativeTargets": [

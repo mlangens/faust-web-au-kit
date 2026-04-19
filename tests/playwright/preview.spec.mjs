@@ -68,8 +68,14 @@ test("pulse pad preview loads the alternate generated project and its meter layo
     await expect(page.locator(`.meter-card[data-meter-id="${meter.id}"]`)).toBeVisible();
   }
 
-  await setRangeValue(page, "Tone", 0.8);
-  await expect(page.locator('.control-card[data-control-id="Tone"] .value')).toHaveText("0.80");
+  await setRangeValue(page, "Texture", 0.8);
+  await expect(page.locator('.control-card[data-control-id="Texture"] .value')).toHaveText("0.80");
+
+  await setRangeValue(page, "Detune", 12.5);
+  await expect(page.locator('.control-card[data-control-id="Detune"] .value')).toHaveText("12.5 ct");
+
+  await setRangeValue(page, "Sub", 48);
+  await expect(page.locator('.control-card[data-control-id="Sub"] .value')).toHaveText("48 %");
 });
 
 test("preview falls back cleanly when benchmark data is unavailable", async ({ page }) => {

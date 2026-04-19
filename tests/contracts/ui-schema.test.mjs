@@ -90,9 +90,42 @@ test("pulse pad schema keeps the preview route in sync with the shared export pa
   assert.deepEqual(schema.controls.map((control) => control.label), expectedLabels);
   assert.deepEqual(
     schema.meters.map((meter) => meter.id),
-    ["voiceDensity", "stereoDrift", "outputPeak"]
+    ["voiceBody", "motionBloom", "outputPeak"]
   );
   assert.equal(schema.benchmarkPath, "/generated/apps/pulse-pad/benchmark-results.json");
+});
+
+test("pulse pad schema exports the richer synth controls and peak-based meters", () => {
+  const { schema } = loadGeneratedProject("pulse-pad");
+  const controlByLabel = new Map(schema.controls.map((control) => [control.label, control]));
+
+  assert.deepEqual(
+    ["Texture", "Tone", "Contour", "Motion", "Detune", "Sub", "Drive", "Stereo Width", "Attack", "Release"]
+      .map((label) => controlByLabel.get(label)?.label),
+    ["Texture", "Tone", "Contour", "Motion", "Detune", "Sub", "Drive", "Stereo Width", "Attack", "Release"]
+  );
+  assert.deepEqual(
+    {
+      detuneUnit: controlByLabel.get("Detune")?.unit,
+      subUnit: controlByLabel.get("Sub")?.unit,
+      driveUnit: controlByLabel.get("Drive")?.unit,
+      attackScale: controlByLabel.get("Attack")?.scale
+    },
+    {
+      detuneUnit: "ct",
+      subUnit: "%",
+      driveUnit: "dB",
+      attackScale: "log"
+    }
+  );
+  assert.deepEqual(
+    schema.meters.map(({ id, label, mode }) => ({ id, label, mode })),
+    [
+      { id: "voiceBody", label: "Voice Body", mode: "peak" },
+      { id: "motionBloom", label: "Motion Bloom", mode: "peak" },
+      { id: "outputPeak", label: "Output Peak", mode: "peak" }
+    ]
+  );
 });
 
 test("workspace manifest exposes the app suite through stable monorepo conventions", () => {

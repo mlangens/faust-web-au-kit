@@ -100,6 +100,7 @@ float fwak_get_meter_output_peak_db(const FwakPlugin* plugin);
 float fwak_get_meter_gain_reduction_db(const FwakPlugin* plugin);
 double fwak_get_meter_value(const FwakPlugin* plugin, const char* meterId);
 void fwak_copy_analyzer_snapshot(const FwakPlugin* plugin, FwakAnalyzerSnapshot* snapshot);
+bool fwak_has_analyzer_zones(const FwakPlugin* plugin);
 void fwak_begin_parameter_edit(FwakPlugin* plugin, uint32_t paramId);
 void fwak_update_parameter_from_ui(FwakPlugin* plugin, uint32_t paramId, double value);
 void fwak_end_parameter_edit(FwakPlugin* plugin, uint32_t paramId);

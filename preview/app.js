@@ -43,6 +43,12 @@ function formatValue(control, value) {
   if (control.unit === "Hz") {
     return `${Math.round(value)} Hz`;
   }
+  if (control.unit === "%") {
+    return `${Math.round(value)} %`;
+  }
+  if (control.unit === "ct") {
+    return `${value.toFixed(1)} ct`;
+  }
   if (control.unit === "dB") {
     return `${value.toFixed(1)} dB`;
   }
@@ -172,7 +178,7 @@ function renderBenchmarks(report) {
   });
 }
 
-function meterValueForId(id) {
+function limiterMeterValueForId(id) {
   const inputGain = state.controls.get("Input Gain") ?? 0;
   const ceiling = state.controls.get("Ceiling") ?? -1;
   const outputTrim = state.controls.get("Output Trim") ?? 0;
@@ -208,6 +214,51 @@ function meterValueForId(id) {
     default:
       return outputPeakDb;
   }
+}
+
+function pulsePadMeterValueForId(id) {
+  const texture = state.controls.get("Texture") ?? 0.42;
+  const tone = state.controls.get("Tone") ?? 0.58;
+  const contour = state.controls.get("Contour") ?? 0.52;
+  const motion = state.controls.get("Motion") ?? 0.36;
+  const detune = state.controls.get("Detune") ?? 8.0;
+  const sub = state.controls.get("Sub") ?? 24.0;
+  const driveDb = state.controls.get("Drive") ?? 4.0;
+  const stereoWidth = state.controls.get("Stereo Width") ?? 0.78;
+
+  const voiceBodyDb = clamp(
+    -35 + tone * 16 + contour * 10 + texture * 6 + sub * 0.08 + driveDb * 0.32 + Math.sin(state.motionPhase * 0.8) * 2.4,
+    -72,
+    6
+  );
+  const motionBloomDb = clamp(
+    -44 + motion * 20 + detune * 0.45 + stereoWidth * 12 + texture * 4 + Math.sin(state.motionPhase * 1.2 + 0.7) * 3.6,
+    -72,
+    6
+  );
+  const outputPeakDb = clamp(
+    Math.max(voiceBodyDb + 6.5, motionBloomDb + 4.0) + driveDb * 0.14 - (1 - tone) * 3.5,
+    -72,
+    6
+  );
+
+  switch (id) {
+    case "voiceBody":
+      return voiceBodyDb;
+    case "motionBloom":
+      return motionBloomDb;
+    case "outputPeak":
+      return outputPeakDb;
+    default:
+      return outputPeakDb;
+  }
+}
+
+function meterValueForId(id) {
+  if (state.schema?.project?.key === "pulse-pad") {
+    return pulsePadMeterValueForId(id);
+  }
+  return limiterMeterValueForId(id);
 }
 
 function renderWorkspaceNav(workspace, activeAppKey) {
