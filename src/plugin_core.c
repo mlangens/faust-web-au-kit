@@ -23,8 +23,10 @@ typedef struct {
 } FwakSavedParameter;
 
 static const char* gParameterLabels[FWAK_PARAMETER_COUNT] = {
-    "Vintage Character",
+    "Vintage Response",
     "Bypass",
+    "Tube Drive",
+    "Transformer Tone",
     "Input Gain",
     "Ceiling",
     "Attack",
@@ -34,10 +36,12 @@ static const char* gParameterLabels[FWAK_PARAMETER_COUNT] = {
 };
 
 const FwakParameterInfo gFwakParameters[FWAK_PARAMETER_COUNT] = {
-    {FWAK_FOURCC('v', 'i', 'n', 't'), "Vintage Character", "", 0.0, 1.0, 0.0,
+    {FWAK_FOURCC('v', 'i', 'n', 't'), "Vintage Response", "", 0.0, 1.0, 0.0,
      CPLUG_FLAG_PARAMETER_IS_BOOL | CPLUG_FLAG_PARAMETER_IS_AUTOMATABLE},
     {FWAK_FOURCC('b', 'p', 'a', 's'), "Bypass", "", 0.0, 1.0, 0.0,
      CPLUG_FLAG_PARAMETER_IS_BOOL | CPLUG_FLAG_PARAMETER_IS_AUTOMATABLE | CPLUG_FLAG_PARAMETER_IS_BYPASS},
+    {FWAK_FOURCC('t', 'u', 'b', 'e'), "Tube Drive", "%", 0.0, 100.0, 0.0, CPLUG_FLAG_PARAMETER_IS_AUTOMATABLE},
+    {FWAK_FOURCC('x', 'f', 'm', 'r'), "Transformer Tone", "%", 0.0, 100.0, 0.0, CPLUG_FLAG_PARAMETER_IS_AUTOMATABLE},
     {FWAK_FOURCC('i', 'g', 'a', 'n'), "Input Gain", "dB", -18.0, 18.0, 0.0, CPLUG_FLAG_PARAMETER_IS_AUTOMATABLE},
     {FWAK_FOURCC('c', 'e', 'i', 'l'), "Ceiling", "dB", -12.0, 0.0, -1.0, CPLUG_FLAG_PARAMETER_IS_AUTOMATABLE},
     {FWAK_FOURCC('a', 't', 't', 'k'), "Attack", "ms", 0.05, 25.0, 0.35, CPLUG_FLAG_PARAMETER_IS_AUTOMATABLE},
@@ -82,6 +86,16 @@ static float fwak_clampf(float value, float minValue, float maxValue)
     return value;
 }
 
+static float fwak_atomic_load_float(const _Atomic float* value)
+{
+    return atomic_load_explicit(value, memory_order_relaxed);
+}
+
+static void fwak_atomic_store_float(_Atomic float* destination, float value)
+{
+    atomic_store_explicit(destination, value, memory_order_relaxed);
+}
+
 static float fwak_linear_to_db(float value)
 {
     return 20.0f * log10f(fmaxf(value, 1.0e-6f));
@@ -108,9 +122,42 @@ static void fwak_reset_metering(FwakPlugin* plugin)
     plugin->meterInputEnvelope = 0.0f;
     plugin->meterOutputEnvelope = 0.0f;
     plugin->meterGainReductionEnvelope = 0.0f;
-    plugin->meterInputPeakDb = -72.0f;
-    plugin->meterOutputPeakDb = -72.0f;
-    plugin->meterGainReductionDb = 0.0f;
+    fwak_atomic_store_float(&plugin->meterInputPeakDb, -72.0f);
+    fwak_atomic_store_float(&plugin->meterOutputPeakDb, -72.0f);
+    fwak_atomic_store_float(&plugin->meterGainReductionDb, 0.0f);
+}
+
+static void fwak_reset_analyzer_history(FwakPlugin* plugin)
+{
+    uint32_t index = 0;
+    for (; index < FWAK_ANALYZER_HISTORY_LENGTH; ++index) {
+        fwak_atomic_store_float(&plugin->analyzerInputMin[index], 0.0f);
+        fwak_atomic_store_float(&plugin->analyzerInputMax[index], 0.0f);
+        fwak_atomic_store_float(&plugin->analyzerOutputMin[index], 0.0f);
+        fwak_atomic_store_float(&plugin->analyzerOutputMax[index], 0.0f);
+        fwak_atomic_store_float(&plugin->analyzerGainReductionDb[index], 0.0f);
+    }
+    atomic_store_explicit(&plugin->analyzerWriteIndex, 0u, memory_order_relaxed);
+}
+
+static void fwak_push_analyzer_history(
+    FwakPlugin* plugin,
+    float inputMin,
+    float inputMax,
+    float outputMin,
+    float outputMax,
+    float gainReductionDb)
+{
+    const uint32_t writeIndex = atomic_load_explicit(&plugin->analyzerWriteIndex, memory_order_relaxed);
+    fwak_atomic_store_float(&plugin->analyzerInputMin[writeIndex], inputMin);
+    fwak_atomic_store_float(&plugin->analyzerInputMax[writeIndex], inputMax);
+    fwak_atomic_store_float(&plugin->analyzerOutputMin[writeIndex], outputMin);
+    fwak_atomic_store_float(&plugin->analyzerOutputMax[writeIndex], outputMax);
+    fwak_atomic_store_float(&plugin->analyzerGainReductionDb[writeIndex], gainReductionDb);
+    atomic_store_explicit(
+        &plugin->analyzerWriteIndex,
+        (writeIndex + 1u) % FWAK_ANALYZER_HISTORY_LENGTH,
+        memory_order_release);
 }
 
 static void fwak_update_meter_values(FwakPlugin* plugin, float sliceInputPeak, float sliceOutputPeak, uint32_t frames)
@@ -124,9 +171,9 @@ static void fwak_update_meter_values(FwakPlugin* plugin, float sliceInputPeak, f
     plugin->meterInputEnvelope = inputEnvelope;
     plugin->meterOutputEnvelope = outputEnvelope;
     plugin->meterGainReductionEnvelope = fmaxf(gainReduction, plugin->meterGainReductionEnvelope * grDecay);
-    plugin->meterInputPeakDb = fwak_linear_to_db(plugin->meterInputEnvelope);
-    plugin->meterOutputPeakDb = fwak_linear_to_db(plugin->meterOutputEnvelope);
-    plugin->meterGainReductionDb = plugin->meterGainReductionEnvelope;
+    fwak_atomic_store_float(&plugin->meterInputPeakDb, fwak_linear_to_db(plugin->meterInputEnvelope));
+    fwak_atomic_store_float(&plugin->meterOutputPeakDb, fwak_linear_to_db(plugin->meterOutputEnvelope));
+    fwak_atomic_store_float(&plugin->meterGainReductionDb, plugin->meterGainReductionEnvelope);
 }
 
 static void fwak_bind_parameter_zone(FwakPlugin* plugin, const char* label, float* zone)
@@ -275,14 +322,20 @@ static void fwak_process_audio_slice(
     const uint32_t oversampledFrames = frames * factor;
     float inputPeak = 0.0f;
     float outputPeak = 0.0f;
+    float sliceInputMin = 1.0f;
+    float sliceInputMax = -1.0f;
+    float sliceOutputMin = 1.0f;
+    float sliceOutputMax = -1.0f;
     uint32_t frame = 0;
 
     for (; frame < frames; ++frame) {
-        const float monoSample = inputs[0] ? inputs[0][startFrame + frame] : 0.0f;
+        const float leftInputSample = inputs[0] ? inputs[0][startFrame + frame] : 0.0f;
+        const float rightInputSample =
+            (inputChannelCount < 2 || !inputs[1]) ? leftInputSample : inputs[1][startFrame + frame];
+        const float visualInputSample = 0.5f * (leftInputSample + rightInputSample);
         int channel = 0;
         for (; channel < FWAK_PLUGIN_NUM_INPUTS; ++channel) {
-            const float currentSample =
-                (channel == 0 || inputChannelCount < 2 || !inputs[1]) ? monoSample : inputs[1][startFrame + frame];
+            const float currentSample = channel == 0 ? leftInputSample : rightInputSample;
             const float previousSample = plugin->prevInput[channel];
             uint32_t substep = 0;
             for (; substep < factor; ++substep) {
@@ -293,6 +346,9 @@ static void fwak_process_audio_slice(
             plugin->prevInput[channel] = currentSample;
             inputPeak = fmaxf(inputPeak, fabsf(currentSample));
         }
+
+        sliceInputMin = fminf(sliceInputMin, visualInputSample);
+        sliceInputMax = fmaxf(sliceInputMax, visualInputSample);
     }
 
     computeLimiterLabDSP((LimiterLabDSP*)plugin->dsp, (int)oversampledFrames, plugin->upsampledInputs, plugin->upsampledOutputs);
@@ -318,15 +374,35 @@ static void fwak_process_audio_slice(
             const float monoOut = 0.5f * (renderedFrame[0] + renderedFrame[1]);
             outputs[0][startFrame + frame] = monoOut;
             outputPeak = fmaxf(outputPeak, fabsf(monoOut));
+            sliceOutputMin = fminf(sliceOutputMin, monoOut);
+            sliceOutputMax = fmaxf(sliceOutputMax, monoOut);
         } else {
             for (channel = 0; channel < FWAK_PLUGIN_NUM_OUTPUTS; ++channel) {
                 outputs[channel][startFrame + frame] = renderedFrame[channel];
                 outputPeak = fmaxf(outputPeak, fabsf(renderedFrame[channel]));
             }
+            {
+                const float visualOutputSample = 0.5f * (renderedFrame[0] + renderedFrame[1]);
+                sliceOutputMin = fminf(sliceOutputMin, visualOutputSample);
+                sliceOutputMax = fmaxf(sliceOutputMax, visualOutputSample);
+            }
         }
     }
 
     fwak_update_meter_values(plugin, inputPeak, outputPeak, frames);
+    if (frames == 0) {
+        sliceInputMin = 0.0f;
+        sliceInputMax = 0.0f;
+        sliceOutputMin = 0.0f;
+        sliceOutputMax = 0.0f;
+    }
+    fwak_push_analyzer_history(
+        plugin,
+        fwak_clampf(sliceInputMin, -1.0f, 1.0f),
+        fwak_clampf(sliceInputMax, -1.0f, 1.0f),
+        fwak_clampf(sliceOutputMin, -1.0f, 1.0f),
+        fwak_clampf(sliceOutputMax, -1.0f, 1.0f),
+        fwak_atomic_load_float(&plugin->meterGainReductionDb));
 }
 
 void* cplug_createPlugin(CplugHostContext* ctx)
@@ -363,6 +439,7 @@ void* cplug_createPlugin(CplugHostContext* ctx)
         plugin->sampleRate * FWAK_OVERSAMPLING_FACTOR,
         fmin(18000.0, plugin->sampleRate * 0.45));
     fwak_reset_metering(plugin);
+    fwak_reset_analyzer_history(plugin);
     fwak_apply_cached_parameters(plugin);
     return plugin;
 }
@@ -585,6 +662,7 @@ void cplug_setSampleRateAndBlockSize(void* userPlugin, double sampleRate, uint32
     memset(plugin->prevInput, 0, sizeof(plugin->prevInput));
     memset(plugin->decimateState, 0, sizeof(plugin->decimateState));
     fwak_reset_metering(plugin);
+    fwak_reset_analyzer_history(plugin);
     fwak_allocate_audio_buffers(plugin, maxBlockSize);
 
     instanceInitLimiterLabDSP((LimiterLabDSP*)plugin->dsp, (int)(sampleRate * FWAK_OVERSAMPLING_FACTOR));
@@ -654,6 +732,39 @@ void cplug_loadState(void* userPlugin, const void* stateCtx, cplug_readProc read
     for (; index < bytesRead / (int64_t)sizeof(FwakSavedParameter); ++index) {
         cplug_setParameterValue(userPlugin, values[index].id, values[index].value);
     }
+}
+
+float fwak_get_meter_input_peak_db(const FwakPlugin* plugin)
+{
+    return fwak_atomic_load_float(&plugin->meterInputPeakDb);
+}
+
+float fwak_get_meter_output_peak_db(const FwakPlugin* plugin)
+{
+    return fwak_atomic_load_float(&plugin->meterOutputPeakDb);
+}
+
+float fwak_get_meter_gain_reduction_db(const FwakPlugin* plugin)
+{
+    return fwak_atomic_load_float(&plugin->meterGainReductionDb);
+}
+
+void fwak_copy_analyzer_snapshot(const FwakPlugin* plugin, FwakAnalyzerSnapshot* snapshot)
+{
+    uint32_t index = 0;
+    if (!snapshot) {
+        return;
+    }
+
+    for (; index < FWAK_ANALYZER_HISTORY_LENGTH; ++index) {
+        snapshot->inputMin[index] = fwak_atomic_load_float(&plugin->analyzerInputMin[index]);
+        snapshot->inputMax[index] = fwak_atomic_load_float(&plugin->analyzerInputMax[index]);
+        snapshot->outputMin[index] = fwak_atomic_load_float(&plugin->analyzerOutputMin[index]);
+        snapshot->outputMax[index] = fwak_atomic_load_float(&plugin->analyzerOutputMax[index]);
+        snapshot->gainReductionDb[index] = fwak_atomic_load_float(&plugin->analyzerGainReductionDb[index]);
+    }
+
+    snapshot->writeIndex = atomic_load_explicit(&plugin->analyzerWriteIndex, memory_order_acquire);
 }
 
 void fwak_begin_parameter_edit(FwakPlugin* plugin, uint32_t paramId)

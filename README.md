@@ -13,8 +13,8 @@ The repo splits responsibilities on purpose:
 
 The flagship project is `Limiter Lab`, a 4x oversampled stereo limiter with:
 
-- `Modern` and `Vintage` character switching.
-- Native real-time peak and gain-reduction metering.
+- `Modern` and `Vintage Response` timing options plus independent `Tube Drive` and `Transformer Tone` coloration that can be combined.
+- Native real-time peak and gain-reduction metering plus a scrolling analyzer view for input/output waveform history and gain reduction.
 - Native AppKit UI backed by generated schema metadata.
 - AUv2, CLAP, VST3, and standalone macOS outputs.
 - Local installer and `.pkg` packaging.
@@ -89,7 +89,7 @@ After `npm run build:native`, the default project produces:
 
 After `npm run package:installer`, the installer artifact is:
 
-- `dist/LimiterLab-0.1.2.pkg`
+- `dist/LimiterLab-0.1.3.pkg`
 
 If Logic sees the plugin but hangs while instantiating it, run `npm run doctor:au` first. A stale `/Library` AU bundle plus a newer `~/Library` AU bundle can make Logic validate one copy and try to open another.
 

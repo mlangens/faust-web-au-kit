@@ -12,6 +12,7 @@
 {
 @private
     FwakPlugin* _plugin;
+    NSView* _analyzerView;
     NSTextField* _titleLabel;
     NSTextField* _statusLabel;
     NSTextField* _nameLabels[FWAK_PARAMETER_COUNT];
@@ -29,6 +30,16 @@
 
 @end
 
+@interface FwakAnalyzerView : NSView
+{
+@private
+    FwakPlugin* _plugin;
+}
+
+- (instancetype)initWithPlugin:(FwakPlugin*)plugin;
+
+@end
+
 @interface FwakAuv2ViewFactory : NSObject <AUCocoaUIBase>
 @end
 
@@ -41,7 +52,7 @@ static NSTextField* FwakMakeLabel(NSString* text, CGFloat fontSize, NSFontWeight
     [label setDrawsBackground:NO];
     [label setStringValue:text];
     [label setFont:[NSFont systemFontOfSize:fontSize weight:weight]];
-    [label setTextColor:[NSColor colorWithCalibratedWhite:0.15 alpha:1.0]];
+    [label setTextColor:[NSColor colorWithCalibratedWhite:0.94 alpha:1.0]];
     return label;
 }
 
@@ -71,22 +82,211 @@ static int FwakParameterIndexForLabel(const char* label)
 static double FwakMeterValueForId(const FwakPlugin* plugin, const char* meterId)
 {
     if (strcmp(meterId, "inputPeak") == 0) {
-        return plugin->meterInputPeakDb;
+        return fwak_get_meter_input_peak_db(plugin);
     }
     if (strcmp(meterId, "outputPeak") == 0) {
-        return plugin->meterOutputPeakDb;
+        return fwak_get_meter_output_peak_db(plugin);
     }
     if (strcmp(meterId, "gainReduction") == 0) {
-        return plugin->meterGainReductionDb;
+        return fwak_get_meter_gain_reduction_db(plugin);
     }
     return 0.0;
 }
+
+static CGFloat FwakClampUnit(CGFloat value)
+{
+    return fmax(0.0, fmin(1.0, value));
+}
+
+static CGFloat FwakAmplitudeY(CGFloat centerY, CGFloat halfHeight, float sampleValue)
+{
+    const CGFloat clamped = fmax(-1.0, fmin(1.0, (CGFloat)sampleValue));
+    return centerY + clamped * halfHeight;
+}
+
+static CGFloat FwakDbAmplitude(CGFloat dbValue)
+{
+    return pow(10.0, dbValue / 20.0);
+}
+
+@implementation FwakAnalyzerView
+
+- (instancetype)initWithPlugin:(FwakPlugin*)plugin
+{
+    self = [super initWithFrame:NSZeroRect];
+    if (!self) {
+        return nil;
+    }
+
+    _plugin = plugin;
+    [self setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+    [self setWantsLayer:YES];
+    return self;
+}
+
+- (void)drawRoundedBadgeInRect:(NSRect)rect text:(NSString*)text fillColor:(NSColor*)fillColor
+{
+    NSBezierPath* badge = [NSBezierPath bezierPathWithRoundedRect:rect xRadius:8.0 yRadius:8.0];
+    [fillColor setFill];
+    [badge fill];
+
+    NSMutableParagraphStyle* style = [[[NSMutableParagraphStyle alloc] init] autorelease];
+    [style setAlignment:NSTextAlignmentCenter];
+    NSDictionary* attributes = @{
+        NSFontAttributeName: [NSFont systemFontOfSize:11.0 weight:NSFontWeightSemibold],
+        NSForegroundColorAttributeName: [NSColor colorWithCalibratedWhite:0.98 alpha:1.0],
+        NSParagraphStyleAttributeName: style
+    };
+    [text drawInRect:NSInsetRect(rect, 4.0, 3.0) withAttributes:attributes];
+}
+
+- (void)drawRect:(NSRect)dirtyRect
+{
+    (void)dirtyRect;
+
+    const NSRect bounds = self.bounds;
+    const NSRect panelRect = NSInsetRect(bounds, 2.0, 2.0);
+    const NSRect plotRect = NSMakeRect(panelRect.origin.x + 18.0, panelRect.origin.y + 20.0, panelRect.size.width - 82.0, panelRect.size.height - 44.0);
+    const CGFloat centerY = NSMidY(plotRect);
+    const CGFloat halfHeight = plotRect.size.height * 0.47;
+    const CGFloat maxGrDb = 18.0;
+
+    NSBezierPath* panelPath = [NSBezierPath bezierPathWithRoundedRect:panelRect xRadius:18.0 yRadius:18.0];
+    NSGradient* gradient = [[[NSGradient alloc] initWithColorsAndLocations:
+        [NSColor colorWithCalibratedRed:0.08 green:0.09 blue:0.13 alpha:1.0], 0.0,
+        [NSColor colorWithCalibratedRed:0.10 green:0.13 blue:0.19 alpha:1.0], 0.52,
+        [NSColor colorWithCalibratedRed:0.07 green:0.08 blue:0.12 alpha:1.0], 1.0,
+        nil] autorelease];
+    [gradient drawInBezierPath:panelPath angle:-90.0];
+    [[NSColor colorWithCalibratedWhite:1.0 alpha:0.08] setStroke];
+    [panelPath setLineWidth:1.0];
+    [panelPath stroke];
+
+    [[NSColor colorWithCalibratedWhite:1.0 alpha:0.05] setStroke];
+    {
+        const CGFloat dbStops[] = {0.0, -6.0, -12.0, -18.0, -24.0};
+        NSUInteger stopIndex = 0;
+        for (; stopIndex < sizeof(dbStops) / sizeof(dbStops[0]); ++stopIndex) {
+            const CGFloat amplitude = FwakDbAmplitude(dbStops[stopIndex]);
+            const CGFloat upperY = centerY + amplitude * halfHeight;
+            const CGFloat lowerY = centerY - amplitude * halfHeight;
+            NSBezierPath* upper = [NSBezierPath bezierPath];
+            [upper moveToPoint:NSMakePoint(NSMinX(plotRect), upperY)];
+            [upper lineToPoint:NSMakePoint(NSMaxX(plotRect), upperY)];
+            [upper stroke];
+
+            if (stopIndex > 0) {
+                NSBezierPath* lower = [NSBezierPath bezierPath];
+                [lower moveToPoint:NSMakePoint(NSMinX(plotRect), lowerY)];
+                [lower lineToPoint:NSMakePoint(NSMaxX(plotRect), lowerY)];
+                [lower stroke];
+            }
+        }
+    }
+
+    [[NSColor colorWithCalibratedRed:0.83 green:0.22 blue:0.22 alpha:0.9] setStroke];
+    {
+        NSBezierPath* ceilingLine = [NSBezierPath bezierPath];
+        [ceilingLine moveToPoint:NSMakePoint(NSMinX(plotRect), centerY + halfHeight)];
+        [ceilingLine lineToPoint:NSMakePoint(NSMaxX(plotRect), centerY + halfHeight)];
+        [ceilingLine setLineWidth:1.2];
+        [ceilingLine stroke];
+    }
+
+    if (_plugin) {
+        FwakAnalyzerSnapshot snapshot;
+        fwak_copy_analyzer_snapshot(_plugin, &snapshot);
+
+        NSBezierPath* inputPath = [NSBezierPath bezierPath];
+        NSBezierPath* outputPath = [NSBezierPath bezierPath];
+        NSBezierPath* gainReductionPath = [NSBezierPath bezierPath];
+        NSUInteger i = 0;
+
+        for (; i < FWAK_ANALYZER_HISTORY_LENGTH; ++i) {
+            const NSUInteger historyIndex = (snapshot.writeIndex + i) % FWAK_ANALYZER_HISTORY_LENGTH;
+            const CGFloat x = NSMinX(plotRect) + ((CGFloat)i / (CGFloat)(FWAK_ANALYZER_HISTORY_LENGTH - 1)) * plotRect.size.width;
+            const CGFloat inputUpperY = FwakAmplitudeY(centerY, halfHeight, snapshot.inputMax[historyIndex]);
+            const CGFloat outputUpperY = FwakAmplitudeY(centerY, halfHeight, snapshot.outputMax[historyIndex]);
+            const CGFloat grUnit = FwakClampUnit(snapshot.gainReductionDb[historyIndex] / maxGrDb);
+            const CGFloat grY = NSMaxY(plotRect) - grUnit * plotRect.size.height;
+
+            if (i == 0) {
+                [inputPath moveToPoint:NSMakePoint(x, centerY)];
+                [outputPath moveToPoint:NSMakePoint(x, centerY)];
+                [gainReductionPath moveToPoint:NSMakePoint(x, grY)];
+            }
+
+            [inputPath lineToPoint:NSMakePoint(x, inputUpperY)];
+            [outputPath lineToPoint:NSMakePoint(x, outputUpperY)];
+            [gainReductionPath lineToPoint:NSMakePoint(x, grY)];
+        }
+
+        for (i = FWAK_ANALYZER_HISTORY_LENGTH; i-- > 0;) {
+            const NSUInteger historyIndex = (snapshot.writeIndex + i) % FWAK_ANALYZER_HISTORY_LENGTH;
+            const CGFloat x = NSMinX(plotRect) + ((CGFloat)i / (CGFloat)(FWAK_ANALYZER_HISTORY_LENGTH - 1)) * plotRect.size.width;
+            [inputPath lineToPoint:NSMakePoint(x, FwakAmplitudeY(centerY, halfHeight, snapshot.inputMin[historyIndex]))];
+            [outputPath lineToPoint:NSMakePoint(x, FwakAmplitudeY(centerY, halfHeight, snapshot.outputMin[historyIndex]))];
+        }
+
+        [inputPath closePath];
+        [outputPath closePath];
+
+        [[NSColor colorWithCalibratedRed:0.57 green:0.52 blue:0.82 alpha:0.18] setFill];
+        [inputPath fill];
+
+        [[NSColor colorWithCalibratedRed:0.71 green:0.79 blue:1.0 alpha:0.52] setFill];
+        [outputPath fill];
+
+        [[NSColor colorWithCalibratedRed:0.96 green:0.78 blue:0.38 alpha:0.95] setStroke];
+        [gainReductionPath setLineWidth:2.0];
+        [gainReductionPath stroke];
+    }
+
+    {
+        NSDictionary* axisAttributes = @{
+            NSFontAttributeName: [NSFont systemFontOfSize:10.0 weight:NSFontWeightMedium],
+            NSForegroundColorAttributeName: [NSColor colorWithCalibratedWhite:0.82 alpha:0.72]
+        };
+        const CGFloat dbStops[] = {0.0, -6.0, -12.0, -18.0, -24.0};
+        NSUInteger stopIndex = 0;
+        for (; stopIndex < sizeof(dbStops) / sizeof(dbStops[0]); ++stopIndex) {
+            const CGFloat amplitude = FwakDbAmplitude(dbStops[stopIndex]);
+            const CGFloat y = centerY + amplitude * halfHeight - 7.0;
+            [[NSString stringWithFormat:@"%.0f dB", dbStops[stopIndex]] drawAtPoint:NSMakePoint(NSMaxX(plotRect) + 10.0, y)
+                                                                     withAttributes:axisAttributes];
+        }
+    }
+
+    [self drawRoundedBadgeInRect:NSMakeRect(NSMinX(panelRect) + 18.0, NSMaxY(panelRect) - 34.0, 92.0, 20.0)
+                            text:[NSString stringWithFormat:@"In %.1f dB", fwak_get_meter_input_peak_db(_plugin)]
+                       fillColor:[NSColor colorWithCalibratedRed:0.36 green:0.42 blue:0.74 alpha:0.92]];
+    [self drawRoundedBadgeInRect:NSMakeRect(NSMinX(panelRect) + 116.0, NSMaxY(panelRect) - 34.0, 102.0, 20.0)
+                            text:[NSString stringWithFormat:@"Out %.1f dB", fwak_get_meter_output_peak_db(_plugin)]
+                       fillColor:[NSColor colorWithCalibratedRed:0.48 green:0.56 blue:0.92 alpha:0.92]];
+    [self drawRoundedBadgeInRect:NSMakeRect(NSMinX(panelRect) + 224.0, NSMaxY(panelRect) - 34.0, 92.0, 20.0)
+                            text:[NSString stringWithFormat:@"GR %.1f dB", fwak_get_meter_gain_reduction_db(_plugin)]
+                       fillColor:[NSColor colorWithCalibratedRed:0.80 green:0.55 blue:0.24 alpha:0.96]];
+}
+
+@end
 
 @implementation FwakPluginView
 
 - (BOOL)isFlipped
 {
     return YES;
+}
+
+- (void)drawRect:(NSRect)dirtyRect
+{
+    (void)dirtyRect;
+
+    NSGradient* background = [[[NSGradient alloc] initWithColorsAndLocations:
+        [NSColor colorWithCalibratedRed:0.13 green:0.14 blue:0.18 alpha:1.0], 0.0,
+        [NSColor colorWithCalibratedRed:0.11 green:0.12 blue:0.16 alpha:1.0], 0.55,
+        [NSColor colorWithCalibratedRed:0.09 green:0.10 blue:0.14 alpha:1.0], 1.0,
+        nil] autorelease];
+    [background drawInRect:self.bounds angle:-90.0];
 }
 
 - (instancetype)initWithPlugin:(FwakPlugin*)plugin
@@ -99,12 +299,16 @@ static double FwakMeterValueForId(const FwakPlugin* plugin, const char* meterId)
     _plugin = plugin;
     _scaleFactor = 1.0;
     [self setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+    [self setWantsLayer:YES];
+
+    _analyzerView = [[FwakAnalyzerView alloc] initWithPlugin:plugin];
+    [self addSubview:_analyzerView];
 
     _titleLabel = FwakMakeLabel(@FWAK_PRODUCT_NAME, 24.0, NSFontWeightSemibold);
     [self addSubview:_titleLabel];
 
     _statusLabel = FwakMakeLabel(@FWAK_STATUS_TEXT, 11.0, NSFontWeightRegular);
-    [_statusLabel setTextColor:[NSColor colorWithCalibratedWhite:0.35 alpha:1.0]];
+    [_statusLabel setTextColor:[NSColor colorWithCalibratedWhite:0.75 alpha:1.0]];
     [self addSubview:_statusLabel];
 
     {
@@ -118,6 +322,11 @@ static double FwakMeterValueForId(const FwakPlugin* plugin, const char* meterId)
                 NSButton* checkbox = [[NSButton alloc] initWithFrame:NSZeroRect];
                 [checkbox setButtonType:NSSwitchButton];
                 [checkbox setTitle:[NSString stringWithUTF8String:info->label]];
+                [checkbox setAttributedTitle:[[[NSAttributedString alloc] initWithString:[NSString stringWithUTF8String:info->label]
+                                                                               attributes:@{
+                                                                                   NSForegroundColorAttributeName: [NSColor colorWithCalibratedWhite:0.92 alpha:1.0],
+                                                                                   NSFontAttributeName: [NSFont systemFontOfSize:12.0 weight:NSFontWeightMedium]
+                                                                               }] autorelease]];
                 [checkbox setTag:index];
                 [checkbox setTarget:self];
                 [checkbox setAction:@selector(parameterChanged:)];
@@ -137,7 +346,7 @@ static double FwakMeterValueForId(const FwakPlugin* plugin, const char* meterId)
 
             _valueLabels[index] = FwakMakeLabel(@"", 11.0, NSFontWeightRegular);
             [_valueLabels[index] setAlignment:NSTextAlignmentRight];
-            [_valueLabels[index] setTextColor:[NSColor colorWithCalibratedWhite:0.32 alpha:1.0]];
+            [_valueLabels[index] setTextColor:[NSColor colorWithCalibratedRed:0.95 green:0.81 blue:0.48 alpha:1.0]];
             [self addSubview:_valueLabels[index]];
         }
     }
@@ -149,6 +358,7 @@ static double FwakMeterValueForId(const FwakPlugin* plugin, const char* meterId)
             _meterViews[index] = FwakMakeMeter(FWAK_METER_MANIFEST[index].maxValue);
             _meterValues[index] = FwakMakeLabel(@"", 11.0, NSFontWeightRegular);
             [_meterValues[index] setAlignment:NSTextAlignmentRight];
+            [_meterValues[index] setTextColor:[NSColor colorWithCalibratedRed:0.95 green:0.81 blue:0.48 alpha:1.0]];
             [self addSubview:_meterLabels[index]];
             [self addSubview:_meterViews[index]];
             [self addSubview:_meterValues[index]];
@@ -169,6 +379,7 @@ static double FwakMeterValueForId(const FwakPlugin* plugin, const char* meterId)
 {
     [_meterTimer invalidate];
     [_meterTimer release];
+    [_analyzerView release];
     [_titleLabel release];
     [_statusLabel release];
 
@@ -227,21 +438,28 @@ static double FwakMeterValueForId(const FwakPlugin* plugin, const char* meterId)
 
     const CGFloat inset = 24.0;
     const CGFloat boundsWidth = self.bounds.size.width;
-    const CGFloat controlColumnWidth = FWAK_METER_COUNT > 0 ? boundsWidth * 0.62 : boundsWidth - inset * 2.0;
-    const CGFloat meterColumnX = inset + controlColumnWidth + 28.0;
-    const CGFloat meterWidth = boundsWidth - meterColumnX - inset;
-    const CGFloat titleWidth = boundsWidth - inset * 2.0;
+    const CGFloat analyzerHeight = 278.0;
+    const CGFloat analyzerTop = 78.0;
+    const CGFloat controlsTop = analyzerTop + analyzerHeight + 24.0;
+    const CGFloat contentWidth = boundsWidth - inset * 2.0;
+    const CGFloat meterWidth = 210.0;
+    const CGFloat sliderAreaWidth = contentWidth - meterWidth - 28.0;
+    const CGFloat meterColumnX = inset + sliderAreaWidth + 28.0;
+    const CGFloat titleWidth = contentWidth;
 
     [_titleLabel setFrame:NSMakeRect(inset, 18.0, titleWidth, 28.0)];
     [_statusLabel setFrame:NSMakeRect(inset, 48.0, titleWidth, 18.0)];
+    [_analyzerView setFrame:NSMakeRect(inset, analyzerTop, contentWidth, analyzerHeight)];
 
     {
-        const CGFloat rowTop = 94.0;
-        const CGFloat rowHeight = 44.0;
-        const CGFloat toggleGap = 220.0;
-        const CGFloat toggleTopPadding = 18.0;
-        int sliderRow = 0;
-        int toggleRow = 0;
+        const CGFloat toggleTop = controlsTop;
+        const CGFloat toggleGap = 186.0;
+        const CGFloat sliderTop = controlsTop + 36.0;
+        const CGFloat rowHeight = 54.0;
+        const CGFloat columnGap = 26.0;
+        const CGFloat columnWidth = (sliderAreaWidth - columnGap) * 0.5;
+        int sliderIndex = 0;
+        int toggleIndex = 0;
         int orderIndex = 0;
 
         for (; orderIndex < FWAK_CONTROL_ORDER_COUNT; ++orderIndex) {
@@ -253,29 +471,29 @@ static double FwakMeterValueForId(const FwakPlugin* plugin, const char* meterId)
 
             const FwakParameterInfo* info = &gFwakParameters[parameterIndex];
             if (info->flags & CPLUG_FLAG_PARAMETER_IS_BOOL) {
-                const CGFloat toggleTop = rowTop + sliderRow * rowHeight + toggleTopPadding + toggleRow * 28.0;
-                [_controls[parameterIndex] setFrame:NSMakeRect(inset + toggleRow * toggleGap, toggleTop, 210.0, 24.0)];
-                toggleRow += 1;
+                [_controls[parameterIndex] setFrame:NSMakeRect(inset + toggleIndex * toggleGap, toggleTop, 172.0, 24.0)];
+                toggleIndex += 1;
                 continue;
             }
 
-            const CGFloat y = rowTop + sliderRow * rowHeight;
-            [_nameLabels[parameterIndex] setFrame:NSMakeRect(inset, y, 140.0, 18.0)];
-            [_controls[parameterIndex] setFrame:NSMakeRect(inset + 150.0, y - 2.0, controlColumnWidth - 230.0, 24.0)];
-            [_valueLabels[parameterIndex] setFrame:NSMakeRect(inset + controlColumnWidth - 70.0, y, 70.0, 18.0)];
-            sliderRow += 1;
+            const CGFloat columnX = inset + (sliderIndex % 2) * (columnWidth + columnGap);
+            const CGFloat rowY = sliderTop + (sliderIndex / 2) * rowHeight;
+            [_nameLabels[parameterIndex] setFrame:NSMakeRect(columnX, rowY, columnWidth - 72.0, 16.0)];
+            [_valueLabels[parameterIndex] setFrame:NSMakeRect(columnX + columnWidth - 70.0, rowY, 70.0, 16.0)];
+            [_controls[parameterIndex] setFrame:NSMakeRect(columnX, rowY + 18.0, columnWidth, 24.0)];
+            sliderIndex += 1;
         }
     }
 
     {
-        const CGFloat meterTop = 110.0;
-        const CGFloat meterRow = 82.0;
+        const CGFloat meterTop = controlsTop + 6.0;
+        const CGFloat meterRow = 74.0;
         int meterIndex = 0;
         for (; meterIndex < FWAK_METER_COUNT; ++meterIndex) {
             const CGFloat y = meterTop + meterRow * meterIndex;
             [_meterLabels[meterIndex] setFrame:NSMakeRect(meterColumnX, y, meterWidth, 18.0)];
-            [_meterViews[meterIndex] setFrame:NSMakeRect(meterColumnX, y + 24.0, meterWidth - 70.0, 18.0)];
-            [_meterValues[meterIndex] setFrame:NSMakeRect(meterColumnX + meterWidth - 66.0, y + 24.0, 66.0, 18.0)];
+            [_meterViews[meterIndex] setFrame:NSMakeRect(meterColumnX, y + 24.0, meterWidth - 8.0, 18.0)];
+            [_meterValues[meterIndex] setFrame:NSMakeRect(meterColumnX, y + 46.0, meterWidth, 18.0)];
         }
     }
 }
@@ -312,6 +530,8 @@ static double FwakMeterValueForId(const FwakPlugin* plugin, const char* meterId)
         [_meterViews[meterIndex] setDoubleValue:fmin(manifest->maxValue, meterValue)];
         [_meterValues[meterIndex] setStringValue:[NSString stringWithFormat:@"%.1f dB", rawValue]];
     }
+
+    [_analyzerView setNeedsDisplay:YES];
 }
 
 @end
@@ -325,7 +545,7 @@ static double FwakMeterValueForId(const FwakPlugin* plugin, const char* meterId)
 
 - (NSString*)description
 {
-    return [NSString stringWithString:@"Limiter Lab View"];
+    return @"Limiter Lab View";
 }
 
 - (NSView*)uiViewForAudioUnit:(AudioUnit)inAudioUnit withSize:(NSSize)inPreferredSize

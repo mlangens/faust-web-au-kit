@@ -1,6 +1,6 @@
 {
   "name": "faust-web-au-kit",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "owner": "mlangens",
   "companyName": "Max Langensiepen",
   "companyTag": "Mlng",
@@ -44,11 +44,13 @@
     "controlOrder": [
       "Input Gain",
       "Ceiling",
+      "Tube Drive",
+      "Transformer Tone",
       "Attack",
       "Hold",
       "Release",
       "Output Trim",
-      "Vintage Character",
+      "Vintage Response",
       "Bypass"
     ],
     "meters": [
@@ -83,7 +85,7 @@
   },
   "clap": {
     "id": "io.github.mlangens.faust-web-au-kit.limiter-lab",
-    "description": "Oversampled limiter with switchable vintage and modern characters.",
+    "description": "Oversampled limiter with tube and transformer coloration plus modern or vintage response shaping.",
     "features": [
       "audio-effect",
       "limiter",
@@ -119,8 +121,16 @@
     "seconds": 6,
     "initialControls": [
       {
-        "label": "Vintage Character",
+        "label": "Vintage Response",
         "value": 1
+      },
+      {
+        "label": "Tube Drive",
+        "value": 30
+      },
+      {
+        "label": "Transformer Tone",
+        "value": 35
       }
     ],
     "nativeTargets": [
