@@ -34,6 +34,7 @@
 {
 @private
     FwakPlugin* _plugin;
+    NSInteger _activeHandleIndex;
 }
 
 - (instancetype)initWithPlugin:(FwakPlugin*)plugin;
@@ -109,6 +110,11 @@ static CGFloat FwakDbAmplitude(CGFloat dbValue)
     return pow(10.0, dbValue / 20.0);
 }
 
+static BOOL FwakParameterUsesFrequencyEditor(int parameterIndex)
+{
+    return parameterIndex == FWAK_PARAM_DRIVE_LOW_SPLIT || parameterIndex == FWAK_PARAM_DRIVE_HIGH_SPLIT;
+}
+
 static float FwakBandSaturationValue(const FwakAnalyzerSnapshot* snapshot, NSUInteger bandIndex, NSUInteger historyIndex)
 {
     switch (bandIndex) {
@@ -128,7 +134,8 @@ static NSInteger FwakVisibleSliderCount(void)
     for (; orderIndex < FWAK_CONTROL_ORDER_COUNT; ++orderIndex) {
         const FwakControlManifestItem* manifest = &FWAK_CONTROL_MANIFEST[FWAK_CONTROL_ORDER[orderIndex]];
         const int parameterIndex = FwakParameterIndexForLabel(manifest->label);
-        if (parameterIndex >= 0 && !(gFwakParameters[parameterIndex].flags & CPLUG_FLAG_PARAMETER_IS_BOOL)) {
+        if (parameterIndex >= 0 && !(gFwakParameters[parameterIndex].flags & CPLUG_FLAG_PARAMETER_IS_BOOL) &&
+            !FwakParameterUsesFrequencyEditor(parameterIndex)) {
             sliderCount += 1;
         }
     }
@@ -150,6 +157,71 @@ static CGFloat FwakMinimumViewHeight(void)
     return fmax(FWAK_UI_DEFAULT_HEIGHT, fmax(sliderBottom, meterBottom));
 }
 
+static CGFloat FwakClampCoordinate(CGFloat value, CGFloat minValue, CGFloat maxValue)
+{
+    return fmax(minValue, fmin(maxValue, value));
+}
+
+static double FwakClampDouble(double value, double minValue, double maxValue)
+{
+    return fmax(minValue, fmin(maxValue, value));
+}
+
+static NSRect FwakAnalyzerPanelRect(NSRect bounds)
+{
+    return NSInsetRect(bounds, 2.0, 2.0);
+}
+
+static NSRect FwakAnalyzerFrequencyRect(NSRect panelRect)
+{
+    return NSMakeRect(NSMinX(panelRect) + 18.0, NSMaxY(panelRect) - 96.0, panelRect.size.width - 82.0, 56.0);
+}
+
+static NSRect FwakAnalyzerPlotRect(NSRect panelRect, NSRect frequencyRect)
+{
+    return NSMakeRect(NSMinX(panelRect) + 18.0, NSMinY(panelRect) + 20.0, panelRect.size.width - 82.0,
+                      NSMinY(frequencyRect) - NSMinY(panelRect) - 34.0);
+}
+
+static CGFloat FwakNormalizedLogFrequency(double frequency)
+{
+    const double minHz = 60.0;
+    const double maxHz = 18000.0;
+    const double clamped = FwakClampDouble(frequency, minHz, maxHz);
+    return (CGFloat)((log10(clamped) - log10(minHz)) / (log10(maxHz) - log10(minHz)));
+}
+
+static CGFloat FwakFrequencyXForValue(NSRect rect, double frequency)
+{
+    return NSMinX(rect) + FwakNormalizedLogFrequency(frequency) * rect.size.width;
+}
+
+static double FwakFrequencyValueForX(NSRect rect, CGFloat x)
+{
+    const double minHz = 60.0;
+    const double maxHz = 18000.0;
+    const CGFloat clampedX = FwakClampCoordinate(x, NSMinX(rect), NSMaxX(rect));
+    const double unit = (clampedX - NSMinX(rect)) / fmax(rect.size.width, 1.0);
+    return pow(10.0, log10(minHz) + unit * (log10(maxHz) - log10(minHz)));
+}
+
+static NSString* FwakFrequencyDisplayString(double frequency)
+{
+    if (frequency >= 1000.0) {
+        const double kiloHz = frequency / 1000.0;
+        return kiloHz >= 10.0 ? [NSString stringWithFormat:@"%.0fk", kiloHz] : [NSString stringWithFormat:@"%.1fk", kiloHz];
+    }
+    return [NSString stringWithFormat:@"%.0f", frequency];
+}
+
+static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterIndex)
+{
+    char buffer[64];
+    const FwakParameterInfo* info = &gFwakParameters[parameterIndex];
+    cplug_parameterValueToString(plugin, info->id, buffer, sizeof(buffer), cplug_getParameterValue(plugin, info->id));
+    return [NSString stringWithUTF8String:buffer];
+}
+
 @implementation FwakAnalyzerView
 
 - (instancetype)initWithPlugin:(FwakPlugin*)plugin
@@ -160,9 +232,119 @@ static CGFloat FwakMinimumViewHeight(void)
     }
 
     _plugin = plugin;
+    _activeHandleIndex = -1;
     [self setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
     [self setWantsLayer:YES];
     return self;
+}
+
+- (BOOL)acceptsFirstMouse:(NSEvent*)event
+{
+    (void)event;
+    return YES;
+}
+
+- (NSRect)frequencyRect
+{
+    return FwakAnalyzerFrequencyRect(FwakAnalyzerPanelRect(self.bounds));
+}
+
+- (NSInteger)handleIndexAtPoint:(NSPoint)point
+{
+    const NSRect frequencyRect = [self frequencyRect];
+    const CGFloat lowSplitX = FwakFrequencyXForValue(frequencyRect,
+                                                     cplug_getParameterValue(_plugin, gFwakParameters[FWAK_PARAM_DRIVE_LOW_SPLIT].id));
+    const CGFloat highSplitX = FwakFrequencyXForValue(frequencyRect,
+                                                      cplug_getParameterValue(_plugin, gFwakParameters[FWAK_PARAM_DRIVE_HIGH_SPLIT].id));
+    const CGFloat distanceToLow = fabs(point.x - lowSplitX);
+    const CGFloat distanceToHigh = fabs(point.x - highSplitX);
+    const BOOL insideY = point.y >= NSMinY(frequencyRect) - 10.0 && point.y <= NSMaxY(frequencyRect) + 12.0;
+
+    if (!insideY) {
+        return -1;
+    }
+    if (distanceToLow <= 10.0 || distanceToHigh <= 10.0) {
+        return distanceToLow <= distanceToHigh ? 0 : 1;
+    }
+    return -1;
+}
+
+- (void)resetCursorRects
+{
+    [super resetCursorRects];
+
+    if (!_plugin) {
+        return;
+    }
+
+    const NSRect frequencyRect = [self frequencyRect];
+    const CGFloat lowSplitX = FwakFrequencyXForValue(frequencyRect,
+                                                     cplug_getParameterValue(_plugin, gFwakParameters[FWAK_PARAM_DRIVE_LOW_SPLIT].id));
+    const CGFloat highSplitX = FwakFrequencyXForValue(frequencyRect,
+                                                      cplug_getParameterValue(_plugin, gFwakParameters[FWAK_PARAM_DRIVE_HIGH_SPLIT].id));
+    [self addCursorRect:NSInsetRect(NSMakeRect(lowSplitX - 8.0, NSMinY(frequencyRect) - 8.0, 16.0, frequencyRect.size.height + 16.0), -2.0, 0.0)
+                 cursor:[NSCursor resizeLeftRightCursor]];
+    [self addCursorRect:NSInsetRect(NSMakeRect(highSplitX - 8.0, NSMinY(frequencyRect) - 8.0, 16.0, frequencyRect.size.height + 16.0), -2.0, 0.0)
+                 cursor:[NSCursor resizeLeftRightCursor]];
+}
+
+- (void)updateSplitParameterForHandle:(NSInteger)handleIndex point:(NSPoint)point
+{
+    if (!_plugin) {
+        return;
+    }
+
+    const NSRect frequencyRect = [self frequencyRect];
+    const CGFloat clampedX = FwakClampCoordinate(point.x, NSMinX(frequencyRect), NSMaxX(frequencyRect));
+    const double proposedFrequency = FwakFrequencyValueForX(frequencyRect, clampedX);
+    const double currentLow = cplug_getParameterValue(_plugin, gFwakParameters[FWAK_PARAM_DRIVE_LOW_SPLIT].id);
+    const double currentHigh = cplug_getParameterValue(_plugin, gFwakParameters[FWAK_PARAM_DRIVE_HIGH_SPLIT].id);
+
+    if (handleIndex == 0) {
+        const double nextLow = FwakClampDouble(proposedFrequency,
+                                               gFwakParameters[FWAK_PARAM_DRIVE_LOW_SPLIT].minValue,
+                                               currentHigh - 40.0);
+        fwak_update_parameter_from_ui(_plugin, gFwakParameters[FWAK_PARAM_DRIVE_LOW_SPLIT].id, nextLow);
+    } else if (handleIndex == 1) {
+        const double nextHigh = FwakClampDouble(proposedFrequency,
+                                                currentLow + 40.0,
+                                                gFwakParameters[FWAK_PARAM_DRIVE_HIGH_SPLIT].maxValue);
+        fwak_update_parameter_from_ui(_plugin, gFwakParameters[FWAK_PARAM_DRIVE_HIGH_SPLIT].id, nextHigh);
+    }
+
+    [self.window invalidateCursorRectsForView:self];
+    [self setNeedsDisplay:YES];
+}
+
+- (void)mouseDown:(NSEvent*)event
+{
+    if (!_plugin) {
+        [super mouseDown:event];
+        return;
+    }
+
+    const NSPoint downPoint = [self convertPoint:[event locationInWindow] fromView:nil];
+    _activeHandleIndex = [self handleIndexAtPoint:downPoint];
+    if (_activeHandleIndex < 0) {
+        [super mouseDown:event];
+        return;
+    }
+
+    const uint32_t paramId = gFwakParameters[_activeHandleIndex == 0 ? FWAK_PARAM_DRIVE_LOW_SPLIT : FWAK_PARAM_DRIVE_HIGH_SPLIT].id;
+    fwak_begin_parameter_edit(_plugin, paramId);
+    [self updateSplitParameterForHandle:_activeHandleIndex point:downPoint];
+
+    BOOL keepTracking = YES;
+    while (keepTracking) {
+        NSEvent* nextEvent =
+            [self.window nextEventMatchingMask:(NSEventMaskLeftMouseDragged | NSEventMaskLeftMouseUp)];
+        const NSPoint nextPoint = [self convertPoint:[nextEvent locationInWindow] fromView:nil];
+        [self updateSplitParameterForHandle:_activeHandleIndex point:nextPoint];
+        keepTracking = nextEvent.type != NSEventTypeLeftMouseUp;
+    }
+
+    fwak_end_parameter_edit(_plugin, paramId);
+    _activeHandleIndex = -1;
 }
 
 - (void)drawRoundedBadgeInRect:(NSRect)rect text:(NSString*)text fillColor:(NSColor*)fillColor
@@ -186,10 +368,9 @@ static CGFloat FwakMinimumViewHeight(void)
     (void)dirtyRect;
 
     const NSRect bounds = self.bounds;
-    const NSRect panelRect = NSInsetRect(bounds, 2.0, 2.0);
-    const NSRect heatRect = NSMakeRect(panelRect.origin.x + 18.0, panelRect.origin.y + 18.0, panelRect.size.width - 82.0, 42.0);
-    const NSRect plotRect =
-        NSMakeRect(panelRect.origin.x + 18.0, NSMaxY(heatRect) + 10.0, panelRect.size.width - 82.0, panelRect.size.height - 78.0);
+    const NSRect panelRect = FwakAnalyzerPanelRect(bounds);
+    const NSRect frequencyRect = FwakAnalyzerFrequencyRect(panelRect);
+    const NSRect plotRect = FwakAnalyzerPlotRect(panelRect, frequencyRect);
     const CGFloat centerY = NSMidY(plotRect);
     const CGFloat halfHeight = plotRect.size.height * 0.47;
     const CGFloat maxGrDb = 18.0;
@@ -211,8 +392,14 @@ static CGFloat FwakMinimumViewHeight(void)
     [panelPath setLineWidth:1.0];
     [panelPath stroke];
 
-    [[NSColor colorWithCalibratedWhite:1.0 alpha:0.04] setFill];
-    [[NSBezierPath bezierPathWithRoundedRect:heatRect xRadius:12.0 yRadius:12.0] fill];
+    [[NSColor colorWithCalibratedWhite:1.0 alpha:0.05] setFill];
+    [[NSBezierPath bezierPathWithRoundedRect:frequencyRect xRadius:12.0 yRadius:12.0] fill];
+    [[NSColor colorWithCalibratedWhite:1.0 alpha:0.08] setStroke];
+    {
+        NSBezierPath* frequencyBorder = [NSBezierPath bezierPathWithRoundedRect:frequencyRect xRadius:12.0 yRadius:12.0];
+        [frequencyBorder setLineWidth:1.0];
+        [frequencyBorder stroke];
+    }
 
     [[NSColor colorWithCalibratedWhite:1.0 alpha:0.05] setStroke];
     {
@@ -250,7 +437,7 @@ static CGFloat FwakMinimumViewHeight(void)
             NSFontAttributeName: [NSFont systemFontOfSize:10.0 weight:NSFontWeightSemibold],
             NSForegroundColorAttributeName: [NSColor colorWithCalibratedWhite:0.84 alpha:0.8]
         };
-        [@"Drive Saturation" drawAtPoint:NSMakePoint(NSMinX(heatRect), NSMaxY(heatRect) + 2.0) withAttributes:heatTitleAttributes];
+        [@"Drive Band Map" drawAtPoint:NSMakePoint(NSMinX(frequencyRect), NSMaxY(frequencyRect) + 4.0) withAttributes:heatTitleAttributes];
     }
 
     if (_plugin) {
@@ -260,14 +447,46 @@ static CGFloat FwakMinimumViewHeight(void)
         NSBezierPath* inputPath = [NSBezierPath bezierPath];
         NSBezierPath* outputPath = [NSBezierPath bezierPath];
         NSBezierPath* gainReductionPath = [NSBezierPath bezierPath];
-        NSBezierPath* bandPaths[3] = {
-            [NSBezierPath bezierPath],
-            [NSBezierPath bezierPath],
-            [NSBezierPath bezierPath]
-        };
-        const CGFloat bandGap = 4.0;
-        const CGFloat bandRowHeight = (heatRect.size.height - bandGap * 2.0) / 3.0;
+        const NSUInteger currentHistoryIndex = (snapshot.writeIndex + FWAK_ANALYZER_HISTORY_LENGTH - 1u) % FWAK_ANALYZER_HISTORY_LENGTH;
+        const CGFloat lowSplitX =
+            FwakFrequencyXForValue(frequencyRect, cplug_getParameterValue(_plugin, gFwakParameters[FWAK_PARAM_DRIVE_LOW_SPLIT].id));
+        const CGFloat highSplitX =
+            FwakFrequencyXForValue(frequencyRect, cplug_getParameterValue(_plugin, gFwakParameters[FWAK_PARAM_DRIVE_HIGH_SPLIT].id));
+        const CGFloat bandEdges[4] = {NSMinX(frequencyRect), lowSplitX, highSplitX, NSMaxX(frequencyRect)};
+        const double focusValue = cplug_getParameterValue(_plugin, gFwakParameters[FWAK_PARAM_DRIVE_FOCUS].id);
+        const NSInteger selectedBandIndex = (NSInteger)lrint(focusValue) - 1;
         NSUInteger i = 0;
+
+        {
+            NSUInteger bandIndex = 0;
+            for (; bandIndex < 3; ++bandIndex) {
+                const CGFloat bandMinX = bandEdges[bandIndex];
+                const CGFloat bandMaxX = bandEdges[bandIndex + 1];
+                const CGFloat bandWidth = bandMaxX - bandMinX;
+                const CGFloat saturation = FwakClampUnit(FwakBandSaturationValue(&snapshot, bandIndex, currentHistoryIndex));
+                const NSRect bandRect = NSMakeRect(bandMinX, NSMinY(frequencyRect), bandWidth, frequencyRect.size.height);
+                const CGFloat glowAlpha = 0.12 + saturation * 0.46;
+                [[bandColors[bandIndex] colorWithAlphaComponent:glowAlpha] setFill];
+                NSRectFillUsingOperation(bandRect, NSCompositingOperationSourceOver);
+
+                if ((NSInteger)bandIndex == selectedBandIndex) {
+                    [[NSColor colorWithCalibratedWhite:1.0 alpha:0.16] setStroke];
+                    NSBezierPath* highlight = [NSBezierPath bezierPathWithRoundedRect:NSInsetRect(bandRect, 1.0, 1.0) xRadius:10.0 yRadius:10.0];
+                    [highlight setLineWidth:1.4];
+                    [highlight stroke];
+                }
+
+                {
+                    const CGFloat levelY = NSMinY(frequencyRect) + saturation * frequencyRect.size.height;
+                    NSBezierPath* saturationLine = [NSBezierPath bezierPath];
+                    [saturationLine moveToPoint:NSMakePoint(bandMinX + 2.0, levelY)];
+                    [saturationLine lineToPoint:NSMakePoint(bandMaxX - 2.0, levelY)];
+                    [[bandColors[bandIndex] colorWithAlphaComponent:0.95] setStroke];
+                    [saturationLine setLineWidth:2.0];
+                    [saturationLine stroke];
+                }
+            }
+        }
 
         for (; i < FWAK_ANALYZER_HISTORY_LENGTH; ++i) {
             const NSUInteger historyIndex = (snapshot.writeIndex + i) % FWAK_ANALYZER_HISTORY_LENGTH;
@@ -286,19 +505,6 @@ static CGFloat FwakMinimumViewHeight(void)
             [inputPath lineToPoint:NSMakePoint(x, inputUpperY)];
             [outputPath lineToPoint:NSMakePoint(x, outputUpperY)];
             [gainReductionPath lineToPoint:NSMakePoint(x, grY)];
-
-            {
-                NSUInteger bandIndex = 0;
-                for (; bandIndex < 3; ++bandIndex) {
-                    const CGFloat rowY = NSMinY(heatRect) + (CGFloat)bandIndex * (bandRowHeight + bandGap);
-                    const CGFloat bandUnit = FwakClampUnit(FwakBandSaturationValue(&snapshot, bandIndex, historyIndex));
-                    const CGFloat bandY = rowY + bandUnit * bandRowHeight;
-                    if (i == 0) {
-                        [bandPaths[bandIndex] moveToPoint:NSMakePoint(x, rowY)];
-                    }
-                    [bandPaths[bandIndex] lineToPoint:NSMakePoint(x, bandY)];
-                }
-            }
         }
 
         for (i = FWAK_ANALYZER_HISTORY_LENGTH; i-- > 0;) {
@@ -311,16 +517,6 @@ static CGFloat FwakMinimumViewHeight(void)
         [inputPath closePath];
         [outputPath closePath];
 
-        {
-            NSUInteger bandIndex = 0;
-            for (; bandIndex < 3; ++bandIndex) {
-                const CGFloat rowY = NSMinY(heatRect) + (CGFloat)bandIndex * (bandRowHeight + bandGap);
-                [bandPaths[bandIndex] lineToPoint:NSMakePoint(NSMaxX(heatRect), rowY)];
-                [bandPaths[bandIndex] lineToPoint:NSMakePoint(NSMinX(heatRect), rowY)];
-                [bandPaths[bandIndex] closePath];
-            }
-        }
-
         [[NSColor colorWithCalibratedRed:0.57 green:0.52 blue:0.82 alpha:0.18] setFill];
         [inputPath fill];
 
@@ -332,13 +528,45 @@ static CGFloat FwakMinimumViewHeight(void)
         [gainReductionPath stroke];
 
         {
+            NSDictionary* bandAttributes = @{
+                NSFontAttributeName: [NSFont systemFontOfSize:10.0 weight:NSFontWeightSemibold],
+                NSForegroundColorAttributeName: [NSColor colorWithCalibratedWhite:0.92 alpha:0.94]
+            };
             NSUInteger bandIndex = 0;
             for (; bandIndex < 3; ++bandIndex) {
-                [[bandColors[bandIndex] colorWithAlphaComponent:0.48] setFill];
-                [bandPaths[bandIndex] fill];
-                [[bandColors[bandIndex] colorWithAlphaComponent:0.9] setStroke];
-                [bandPaths[bandIndex] setLineWidth:1.1];
-                [bandPaths[bandIndex] stroke];
+                const CGFloat bandMinX = bandEdges[bandIndex];
+                const CGFloat bandMaxX = bandEdges[bandIndex + 1];
+                const CGFloat bandWidth = bandMaxX - bandMinX;
+                [bandLabels[bandIndex] drawInRect:NSMakeRect(bandMinX + 8.0, NSMinY(frequencyRect) + 6.0, fmax(42.0, bandWidth - 16.0), 14.0)
+                                   withAttributes:bandAttributes];
+            }
+        }
+
+        {
+            const CGFloat handleXs[2] = {lowSplitX, highSplitX};
+            const int handleParameters[2] = {FWAK_PARAM_DRIVE_LOW_SPLIT, FWAK_PARAM_DRIVE_HIGH_SPLIT};
+            int handleIndex = 0;
+            for (; handleIndex < 2; ++handleIndex) {
+                const CGFloat handleX = handleXs[handleIndex];
+                NSBezierPath* line = [NSBezierPath bezierPath];
+                [line moveToPoint:NSMakePoint(handleX, NSMinY(frequencyRect) - 8.0)];
+                [line lineToPoint:NSMakePoint(handleX, NSMaxY(frequencyRect) + 4.0)];
+                [[NSColor colorWithCalibratedWhite:1.0 alpha:0.32] setStroke];
+                [line setLineWidth:1.2];
+                [line stroke];
+
+                NSBezierPath* knob = [NSBezierPath bezierPathWithOvalInRect:NSMakeRect(handleX - 6.0, NSMaxY(frequencyRect) - 4.0, 12.0, 12.0)];
+                [[NSColor colorWithCalibratedWhite:0.12 alpha:0.95] setFill];
+                [knob fill];
+                [[NSColor colorWithCalibratedWhite:1.0 alpha:0.82] setStroke];
+                [knob setLineWidth:1.1];
+                [knob stroke];
+
+                {
+                    NSString* valueText = FwakParameterDisplayString(_plugin, handleParameters[handleIndex]);
+                    NSRect badgeRect = NSMakeRect(handleX - 34.0, NSMaxY(frequencyRect) - 18.0, 68.0, 14.0);
+                    [self drawRoundedBadgeInRect:badgeRect text:valueText fillColor:[NSColor colorWithCalibratedWhite:0.16 alpha:0.94]];
+                }
             }
         }
     }
@@ -363,14 +591,30 @@ static CGFloat FwakMinimumViewHeight(void)
             NSFontAttributeName: [NSFont systemFontOfSize:10.0 weight:NSFontWeightSemibold],
             NSForegroundColorAttributeName: [NSColor colorWithCalibratedWhite:0.82 alpha:0.78]
         };
-        const CGFloat bandGap = 4.0;
-        const CGFloat bandRowHeight = (heatRect.size.height - bandGap * 2.0) / 3.0;
-        NSUInteger bandIndex = 0;
-        for (; bandIndex < 3; ++bandIndex) {
-            const CGFloat rowY = NSMinY(heatRect) + (CGFloat)bandIndex * (bandRowHeight + bandGap);
-            [bandLabels[bandIndex] drawAtPoint:NSMakePoint(NSMaxX(heatRect) + 10.0, rowY + bandRowHeight * 0.2)
-                                 withAttributes:bandAttributes];
+        const double frequencyTicks[] = {60.0, 100.0, 300.0, 600.0, 1000.0, 3000.0, 6000.0, 10000.0};
+        NSUInteger tickIndex = 0;
+        for (; tickIndex < sizeof(frequencyTicks) / sizeof(frequencyTicks[0]); ++tickIndex) {
+            const CGFloat tickX = FwakFrequencyXForValue(frequencyRect, frequencyTicks[tickIndex]);
+            NSBezierPath* tickPath = [NSBezierPath bezierPath];
+            [tickPath moveToPoint:NSMakePoint(tickX, NSMinY(frequencyRect) - 3.0)];
+            [tickPath lineToPoint:NSMakePoint(tickX, NSMinY(frequencyRect) + 4.0)];
+            [[NSColor colorWithCalibratedWhite:1.0 alpha:0.18] setStroke];
+            [tickPath setLineWidth:1.0];
+            [tickPath stroke];
+
+            [FwakFrequencyDisplayString(frequencyTicks[tickIndex])
+                drawAtPoint:NSMakePoint(tickX - 10.0, NSMinY(frequencyRect) - 18.0)
+                withAttributes:bandAttributes];
         }
+    }
+
+    if (_plugin) {
+        [self drawRoundedBadgeInRect:NSMakeRect(NSMaxX(frequencyRect) - 146.0, NSMaxY(frequencyRect) + 2.0, 66.0, 18.0)
+                                text:FwakParameterDisplayString(_plugin, FWAK_PARAM_DRIVE_TARGET)
+                           fillColor:[NSColor colorWithCalibratedRed:0.18 green:0.39 blue:0.61 alpha:0.92]];
+        [self drawRoundedBadgeInRect:NSMakeRect(NSMaxX(frequencyRect) - 74.0, NSMaxY(frequencyRect) + 2.0, 66.0, 18.0)
+                                text:FwakParameterDisplayString(_plugin, FWAK_PARAM_DRIVE_FOCUS)
+                           fillColor:[NSColor colorWithCalibratedRed:0.52 green:0.27 blue:0.17 alpha:0.94]];
     }
 
     [self drawRoundedBadgeInRect:NSMakeRect(NSMinX(panelRect) + 18.0, NSMaxY(panelRect) - 34.0, 92.0, 20.0)
@@ -539,15 +783,23 @@ static CGFloat FwakMinimumViewHeight(void)
     for (; index < FWAK_PARAMETER_COUNT; ++index) {
         const FwakParameterInfo* info = &gFwakParameters[index];
         const double value = cplug_getParameterValue(_plugin, info->id);
+        if (FwakParameterUsesFrequencyEditor(index)) {
+            [_controls[index] setHidden:YES];
+            [_nameLabels[index] setHidden:YES];
+            [_valueLabels[index] setHidden:YES];
+            continue;
+        }
         if (info->flags & CPLUG_FLAG_PARAMETER_IS_BOOL) {
             [(NSButton*)_controls[index] setState:(value >= 0.5 ? NSControlStateValueOn : NSControlStateValueOff)];
             [_valueLabels[index] setHidden:YES];
             [_nameLabels[index] setHidden:YES];
+            [_controls[index] setHidden:NO];
         } else {
             [(NSSlider*)_controls[index] setDoubleValue:value];
             [_valueLabels[index] setStringValue:[self formattedValueForParameter:index]];
             [_valueLabels[index] setHidden:NO];
             [_nameLabels[index] setHidden:NO];
+            [_controls[index] setHidden:NO];
         }
     }
 }
@@ -586,6 +838,9 @@ static CGFloat FwakMinimumViewHeight(void)
             const FwakControlManifestItem* manifest = &FWAK_CONTROL_MANIFEST[FWAK_CONTROL_ORDER[orderIndex]];
             const int parameterIndex = FwakParameterIndexForLabel(manifest->label);
             if (parameterIndex < 0) {
+                continue;
+            }
+            if (FwakParameterUsesFrequencyEditor(parameterIndex)) {
                 continue;
             }
 
