@@ -109,6 +109,47 @@ static CGFloat FwakDbAmplitude(CGFloat dbValue)
     return pow(10.0, dbValue / 20.0);
 }
 
+static float FwakBandSaturationValue(const FwakAnalyzerSnapshot* snapshot, NSUInteger bandIndex, NSUInteger historyIndex)
+{
+    switch (bandIndex) {
+    case 0:
+        return snapshot->driveLowSaturation[historyIndex];
+    case 1:
+        return snapshot->driveMidSaturation[historyIndex];
+    default:
+        return snapshot->driveHighSaturation[historyIndex];
+    }
+}
+
+static NSInteger FwakVisibleSliderCount(void)
+{
+    NSInteger sliderCount = 0;
+    int orderIndex = 0;
+    for (; orderIndex < FWAK_CONTROL_ORDER_COUNT; ++orderIndex) {
+        const FwakControlManifestItem* manifest = &FWAK_CONTROL_MANIFEST[FWAK_CONTROL_ORDER[orderIndex]];
+        const int parameterIndex = FwakParameterIndexForLabel(manifest->label);
+        if (parameterIndex >= 0 && !(gFwakParameters[parameterIndex].flags & CPLUG_FLAG_PARAMETER_IS_BOOL)) {
+            sliderCount += 1;
+        }
+    }
+    return sliderCount;
+}
+
+static CGFloat FwakMinimumViewHeight(void)
+{
+    const CGFloat analyzerHeight = 278.0;
+    const CGFloat analyzerTop = 78.0;
+    const CGFloat controlsTop = analyzerTop + analyzerHeight + 24.0;
+    const CGFloat sliderTop = controlsTop + 36.0;
+    const CGFloat rowHeight = 54.0;
+    const NSInteger sliderRows = (FwakVisibleSliderCount() + 1) / 2;
+    const CGFloat sliderBottom = sliderRows > 0 ? sliderTop + (sliderRows - 1) * rowHeight + 66.0 : controlsTop + 24.0;
+    const CGFloat meterTop = controlsTop + 6.0;
+    const CGFloat meterBottom =
+        FWAK_METER_COUNT > 0 ? meterTop + (FWAK_METER_COUNT - 1) * 74.0 + 88.0 : controlsTop + 24.0;
+    return fmax(FWAK_UI_DEFAULT_HEIGHT, fmax(sliderBottom, meterBottom));
+}
+
 @implementation FwakAnalyzerView
 
 - (instancetype)initWithPlugin:(FwakPlugin*)plugin
@@ -146,10 +187,18 @@ static CGFloat FwakDbAmplitude(CGFloat dbValue)
 
     const NSRect bounds = self.bounds;
     const NSRect panelRect = NSInsetRect(bounds, 2.0, 2.0);
-    const NSRect plotRect = NSMakeRect(panelRect.origin.x + 18.0, panelRect.origin.y + 20.0, panelRect.size.width - 82.0, panelRect.size.height - 44.0);
+    const NSRect heatRect = NSMakeRect(panelRect.origin.x + 18.0, panelRect.origin.y + 18.0, panelRect.size.width - 82.0, 42.0);
+    const NSRect plotRect =
+        NSMakeRect(panelRect.origin.x + 18.0, NSMaxY(heatRect) + 10.0, panelRect.size.width - 82.0, panelRect.size.height - 78.0);
     const CGFloat centerY = NSMidY(plotRect);
     const CGFloat halfHeight = plotRect.size.height * 0.47;
     const CGFloat maxGrDb = 18.0;
+    NSColor* bandColors[3] = {
+        [NSColor colorWithCalibratedRed:0.95 green:0.58 blue:0.24 alpha:1.0],
+        [NSColor colorWithCalibratedRed:0.95 green:0.42 blue:0.32 alpha:1.0],
+        [NSColor colorWithCalibratedRed:0.90 green:0.28 blue:0.46 alpha:1.0]
+    };
+    NSString* bandLabels[3] = {@"Low", @"Mid", @"High"};
 
     NSBezierPath* panelPath = [NSBezierPath bezierPathWithRoundedRect:panelRect xRadius:18.0 yRadius:18.0];
     NSGradient* gradient = [[[NSGradient alloc] initWithColorsAndLocations:
@@ -161,6 +210,9 @@ static CGFloat FwakDbAmplitude(CGFloat dbValue)
     [[NSColor colorWithCalibratedWhite:1.0 alpha:0.08] setStroke];
     [panelPath setLineWidth:1.0];
     [panelPath stroke];
+
+    [[NSColor colorWithCalibratedWhite:1.0 alpha:0.04] setFill];
+    [[NSBezierPath bezierPathWithRoundedRect:heatRect xRadius:12.0 yRadius:12.0] fill];
 
     [[NSColor colorWithCalibratedWhite:1.0 alpha:0.05] setStroke];
     {
@@ -193,6 +245,14 @@ static CGFloat FwakDbAmplitude(CGFloat dbValue)
         [ceilingLine stroke];
     }
 
+    {
+        NSDictionary* heatTitleAttributes = @{
+            NSFontAttributeName: [NSFont systemFontOfSize:10.0 weight:NSFontWeightSemibold],
+            NSForegroundColorAttributeName: [NSColor colorWithCalibratedWhite:0.84 alpha:0.8]
+        };
+        [@"Drive Saturation" drawAtPoint:NSMakePoint(NSMinX(heatRect), NSMaxY(heatRect) + 2.0) withAttributes:heatTitleAttributes];
+    }
+
     if (_plugin) {
         FwakAnalyzerSnapshot snapshot;
         fwak_copy_analyzer_snapshot(_plugin, &snapshot);
@@ -200,6 +260,13 @@ static CGFloat FwakDbAmplitude(CGFloat dbValue)
         NSBezierPath* inputPath = [NSBezierPath bezierPath];
         NSBezierPath* outputPath = [NSBezierPath bezierPath];
         NSBezierPath* gainReductionPath = [NSBezierPath bezierPath];
+        NSBezierPath* bandPaths[3] = {
+            [NSBezierPath bezierPath],
+            [NSBezierPath bezierPath],
+            [NSBezierPath bezierPath]
+        };
+        const CGFloat bandGap = 4.0;
+        const CGFloat bandRowHeight = (heatRect.size.height - bandGap * 2.0) / 3.0;
         NSUInteger i = 0;
 
         for (; i < FWAK_ANALYZER_HISTORY_LENGTH; ++i) {
@@ -219,6 +286,19 @@ static CGFloat FwakDbAmplitude(CGFloat dbValue)
             [inputPath lineToPoint:NSMakePoint(x, inputUpperY)];
             [outputPath lineToPoint:NSMakePoint(x, outputUpperY)];
             [gainReductionPath lineToPoint:NSMakePoint(x, grY)];
+
+            {
+                NSUInteger bandIndex = 0;
+                for (; bandIndex < 3; ++bandIndex) {
+                    const CGFloat rowY = NSMinY(heatRect) + (CGFloat)bandIndex * (bandRowHeight + bandGap);
+                    const CGFloat bandUnit = FwakClampUnit(FwakBandSaturationValue(&snapshot, bandIndex, historyIndex));
+                    const CGFloat bandY = rowY + bandUnit * bandRowHeight;
+                    if (i == 0) {
+                        [bandPaths[bandIndex] moveToPoint:NSMakePoint(x, rowY)];
+                    }
+                    [bandPaths[bandIndex] lineToPoint:NSMakePoint(x, bandY)];
+                }
+            }
         }
 
         for (i = FWAK_ANALYZER_HISTORY_LENGTH; i-- > 0;) {
@@ -231,6 +311,16 @@ static CGFloat FwakDbAmplitude(CGFloat dbValue)
         [inputPath closePath];
         [outputPath closePath];
 
+        {
+            NSUInteger bandIndex = 0;
+            for (; bandIndex < 3; ++bandIndex) {
+                const CGFloat rowY = NSMinY(heatRect) + (CGFloat)bandIndex * (bandRowHeight + bandGap);
+                [bandPaths[bandIndex] lineToPoint:NSMakePoint(NSMaxX(heatRect), rowY)];
+                [bandPaths[bandIndex] lineToPoint:NSMakePoint(NSMinX(heatRect), rowY)];
+                [bandPaths[bandIndex] closePath];
+            }
+        }
+
         [[NSColor colorWithCalibratedRed:0.57 green:0.52 blue:0.82 alpha:0.18] setFill];
         [inputPath fill];
 
@@ -240,6 +330,17 @@ static CGFloat FwakDbAmplitude(CGFloat dbValue)
         [[NSColor colorWithCalibratedRed:0.96 green:0.78 blue:0.38 alpha:0.95] setStroke];
         [gainReductionPath setLineWidth:2.0];
         [gainReductionPath stroke];
+
+        {
+            NSUInteger bandIndex = 0;
+            for (; bandIndex < 3; ++bandIndex) {
+                [[bandColors[bandIndex] colorWithAlphaComponent:0.48] setFill];
+                [bandPaths[bandIndex] fill];
+                [[bandColors[bandIndex] colorWithAlphaComponent:0.9] setStroke];
+                [bandPaths[bandIndex] setLineWidth:1.1];
+                [bandPaths[bandIndex] stroke];
+            }
+        }
     }
 
     {
@@ -254,6 +355,21 @@ static CGFloat FwakDbAmplitude(CGFloat dbValue)
             const CGFloat y = centerY + amplitude * halfHeight - 7.0;
             [[NSString stringWithFormat:@"%.0f dB", dbStops[stopIndex]] drawAtPoint:NSMakePoint(NSMaxX(plotRect) + 10.0, y)
                                                                      withAttributes:axisAttributes];
+        }
+    }
+
+    {
+        NSDictionary* bandAttributes = @{
+            NSFontAttributeName: [NSFont systemFontOfSize:10.0 weight:NSFontWeightSemibold],
+            NSForegroundColorAttributeName: [NSColor colorWithCalibratedWhite:0.82 alpha:0.78]
+        };
+        const CGFloat bandGap = 4.0;
+        const CGFloat bandRowHeight = (heatRect.size.height - bandGap * 2.0) / 3.0;
+        NSUInteger bandIndex = 0;
+        for (; bandIndex < 3; ++bandIndex) {
+            const CGFloat rowY = NSMinY(heatRect) + (CGFloat)bandIndex * (bandRowHeight + bandGap);
+            [bandLabels[bandIndex] drawAtPoint:NSMakePoint(NSMaxX(heatRect) + 10.0, rowY + bandRowHeight * 0.2)
+                                 withAttributes:bandAttributes];
         }
     }
 
@@ -291,7 +407,7 @@ static CGFloat FwakDbAmplitude(CGFloat dbValue)
 
 - (instancetype)initWithPlugin:(FwakPlugin*)plugin
 {
-    self = [super initWithFrame:NSMakeRect(0, 0, FWAK_UI_DEFAULT_WIDTH, FWAK_UI_DEFAULT_HEIGHT)];
+    self = [super initWithFrame:NSMakeRect(0, 0, FWAK_UI_DEFAULT_WIDTH, FwakMinimumViewHeight())];
     if (!self) {
         return nil;
     }
@@ -337,6 +453,10 @@ static CGFloat FwakDbAmplitude(CGFloat dbValue)
                 [slider setMinValue:info->minValue];
                 [slider setMaxValue:info->maxValue];
                 [slider setContinuous:YES];
+                if (info->displayKind != 0u) {
+                    [slider setNumberOfTickMarks:(NSInteger)(info->maxValue - info->minValue + 1.0)];
+                    [slider setAllowsTickMarkValuesOnly:YES];
+                }
                 [slider setTag:index];
                 [slider setTarget:self];
                 [slider setAction:@selector(parameterChanged:)];
@@ -617,16 +737,16 @@ void cplug_setScaleFactor(void* userGUI, float scale)
 void cplug_getSize(void* userGUI, uint32_t* width, uint32_t* height)
 {
     FwakPluginView* pluginView = (FwakPluginView*)userGUI;
-    const NSSize size = pluginView ? [pluginView frame].size : NSMakeSize(FWAK_UI_DEFAULT_WIDTH, FWAK_UI_DEFAULT_HEIGHT);
+    const NSSize size = pluginView ? [pluginView frame].size : NSMakeSize(FWAK_UI_DEFAULT_WIDTH, FwakMinimumViewHeight());
     *width = (uint32_t)lrint(fmax(size.width, FWAK_UI_DEFAULT_WIDTH));
-    *height = (uint32_t)lrint(fmax(size.height, FWAK_UI_DEFAULT_HEIGHT));
+    *height = (uint32_t)lrint(fmax(size.height, FwakMinimumViewHeight()));
 }
 
 void cplug_checkSize(void* userGUI, uint32_t* width, uint32_t* height)
 {
     (void)userGUI;
     *width = (uint32_t)fmax((double)*width, FWAK_UI_DEFAULT_WIDTH);
-    *height = (uint32_t)fmax((double)*height, FWAK_UI_DEFAULT_HEIGHT);
+    *height = (uint32_t)fmax((double)*height, FwakMinimumViewHeight());
 }
 
 bool cplug_setSize(void* userGUI, uint32_t width, uint32_t height)

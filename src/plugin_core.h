@@ -17,6 +17,10 @@ enum {
     FWAK_PARAM_BYPASS,
     FWAK_PARAM_TUBE_DRIVE,
     FWAK_PARAM_TRANSFORMER_TONE,
+    FWAK_PARAM_DRIVE_TARGET,
+    FWAK_PARAM_DRIVE_FOCUS,
+    FWAK_PARAM_DRIVE_LOW_SPLIT,
+    FWAK_PARAM_DRIVE_HIGH_SPLIT,
     FWAK_PARAM_INPUT_GAIN,
     FWAK_PARAM_CEILING,
     FWAK_PARAM_ATTACK,
@@ -34,6 +38,7 @@ typedef struct {
     double maxValue;
     double defaultValue;
     uint32_t flags;
+    uint32_t displayKind;
 } FwakParameterInfo;
 
 typedef struct {
@@ -42,6 +47,9 @@ typedef struct {
     float outputMin[FWAK_ANALYZER_HISTORY_LENGTH];
     float outputMax[FWAK_ANALYZER_HISTORY_LENGTH];
     float gainReductionDb[FWAK_ANALYZER_HISTORY_LENGTH];
+    float driveLowSaturation[FWAK_ANALYZER_HISTORY_LENGTH];
+    float driveMidSaturation[FWAK_ANALYZER_HISTORY_LENGTH];
+    float driveHighSaturation[FWAK_ANALYZER_HISTORY_LENGTH];
     uint32_t writeIndex;
 } FwakAnalyzerSnapshot;
 
@@ -67,11 +75,15 @@ typedef struct {
     float* upsampledInputStorage[FWAK_PLUGIN_NUM_INPUTS];
     float* upsampledOutputStorage[FWAK_PLUGIN_NUM_OUTPUTS];
     float* monoOutputScratch;
+    float* analyzerZones[3];
     _Atomic float analyzerInputMin[FWAK_ANALYZER_HISTORY_LENGTH];
     _Atomic float analyzerInputMax[FWAK_ANALYZER_HISTORY_LENGTH];
     _Atomic float analyzerOutputMin[FWAK_ANALYZER_HISTORY_LENGTH];
     _Atomic float analyzerOutputMax[FWAK_ANALYZER_HISTORY_LENGTH];
     _Atomic float analyzerGainReductionDb[FWAK_ANALYZER_HISTORY_LENGTH];
+    _Atomic float analyzerDriveLowSaturation[FWAK_ANALYZER_HISTORY_LENGTH];
+    _Atomic float analyzerDriveMidSaturation[FWAK_ANALYZER_HISTORY_LENGTH];
+    _Atomic float analyzerDriveHighSaturation[FWAK_ANALYZER_HISTORY_LENGTH];
     _Atomic uint32_t analyzerWriteIndex;
 } FwakPlugin;
 

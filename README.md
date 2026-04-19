@@ -78,6 +78,19 @@ What they do:
 - `npm run preview`
   Starts the schema-driven preview server. Use `/` for `Limiter Lab` and `/?project=pulse_pad` for `Pulse Pad`.
 
+## Testing
+
+The repo now has a small test pyramid that matches how the project is built:
+
+- `npm test`
+  Re-exports the default limiter plus `Pulse Pad`, runs schema contract tests with Node's built-in test runner, then runs Playwright smoke tests against the preview server.
+- `npm run test:contracts`
+  Validates generated `ui_schema.json` files against the current manifests and Faust metadata.
+- `npm run test:preview`
+  Exercises the browser preview for `/` and `/?project=pulse_pad` so parallel UI work collides in one place before shipping.
+- `npm run test:native`
+  Runs the AU validation path. Keep this as the host-dependent top of the pyramid rather than the default local/CI path.
+
 ## Current local outputs
 
 After `npm run build:native`, the default project produces:

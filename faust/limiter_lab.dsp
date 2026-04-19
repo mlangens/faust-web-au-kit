@@ -17,6 +17,10 @@ bypass = checkbox("Bypass");
 
 tubeDrivePct = hslider("Tube Drive [unit:%]", 0.0, 0.0, 100.0, 1.0);
 transformerTonePct = hslider("Transformer Tone [unit:%]", 0.0, 0.0, 100.0, 1.0);
+driveTarget = hslider("Drive Target", 0.0, 0.0, 2.0, 1.0);
+driveFocus = hslider("Drive Focus", 0.0, 0.0, 3.0, 1.0);
+rawDriveLowSplitHz = hslider("Drive Low Split [unit:Hz][scale:log]", 220.0, 60.0, 4000.0, 1.0);
+rawDriveHighSplitHz = hslider("Drive High Split [unit:Hz][scale:log]", 3000.0, 800.0, 18000.0, 1.0);
 inputGainDb = hslider("Input Gain [unit:dB]", 0.0, -18.0, 18.0, 0.1);
 ceilingDb = hslider("Ceiling [unit:dB]", -1.0, -12.0, 0.0, 0.1);
 attackMs = hslider("Attack [unit:ms][scale:log]", 0.35, 0.05, 25.0, 0.01);
@@ -31,6 +35,22 @@ outputTrim = db2lin(outputTrimDb);
 ceiling = db2lin(ceilingDb);
 tubeAmount = tubeDrivePct / 100.0;
 transformerAmount = transformerTonePct / 100.0;
+driveHighSplit = min(20000.0, max(rawDriveHighSplitHz, rawDriveLowSplitHz + 40.0));
+driveLowSplit = max(40.0, min(rawDriveLowSplitHz, driveHighSplit - 40.0));
+
+driveBoth = driveTarget == 0.0;
+driveMidOnly = driveTarget == 1.0;
+driveSideOnly = driveTarget == 2.0;
+driveMidMask = driveBoth + driveMidOnly;
+driveSideMask = driveBoth + driveSideOnly;
+
+driveFullBand = driveFocus == 0.0;
+driveLowBand = driveFocus == 1.0;
+driveMidBand = driveFocus == 2.0;
+driveHighBand = driveFocus == 3.0;
+focusLowMask = driveFullBand + driveLowBand;
+focusMidMask = driveFullBand + driveMidBand;
+focusHighMask = driveFullBand + driveHighBand;
 
 modernAttack = toSeconds(attackMs);
 modernHold = toSeconds(holdMs);
@@ -64,13 +84,51 @@ transformerShape(amount, x) =
 
 applyTube(amount, x) = mix(x, tubeShape(amount, x), amount);
 applyTransformer(amount, x) = mix(x, transformerShape(amount, x), amount);
+driveColor(x) = x : applyTube(tubeAmount) : applyTransformer(transformerAmount);
+processDriveBand(mask, x) = mix(x, driveColor(x), mask);
+
+focusedDrive(lowMask, midMask, highMask) =
+    fi.crossover3LR4(driveLowSplit, driveHighSplit)
+    : processDriveBand(lowMask), processDriveBand(midMask), processDriveBand(highMask)
+    :> _;
+
+measureDriveDelta(lowMask, midMask, highMask) =
+    _ <: _, focusedDrive(lowMask, midMask, highMask)
+    : -
+    : abs;
+
+processDriveComponent(targetMask) =
+    focusedDrive(targetMask * focusLowMask, targetMask * focusMidMask, targetMask * focusHighMask);
+
+measureDriveComponent(targetMask) =
+    measureDriveDelta(targetMask * focusLowMask, targetMask * focusMidMask, targetMask * focusHighMask);
+
+driveBandHeatView =
+    fi.crossover3LR4(driveLowSplit, driveHighSplit)
+    : bandHeatLow, bandHeatMid, bandHeatHigh
+    :> _
+with {
+    bandHeatLow = an.rms_envelope_rect(0.05) : min(1.0) : hbargraph("Drive Low Saturation", 0.0, 1.0);
+    bandHeatMid = an.rms_envelope_rect(0.05) : min(1.0) : hbargraph("Drive Mid Saturation", 0.0, 1.0);
+    bandHeatHigh = an.rms_envelope_rect(0.05) : min(1.0) : hbargraph("Drive High Saturation", 0.0, 1.0);
+};
 
 effect(x, y) =
-    x * responseDrive,
-    y * responseDrive
+    attach(preLimitLeft, driveBandHeatView(driveDeltaSignal)),
+    preLimitRight
     : co.limiter_lad_stereo(lookaheadSeconds, responseCeiling, responseAttack, responseHold, responseRelease)
-    : applyTube(tubeAmount), applyTube(tubeAmount)
-    : applyTransformer(transformerAmount), applyTransformer(transformerAmount)
-    : *(responseOutputTrim / max(responseDrive, ma.EPSILON)), *(responseOutputTrim / max(responseDrive, ma.EPSILON));
+    : *(responseOutputTrim / max(responseDrive, ma.EPSILON)), *(responseOutputTrim / max(responseDrive, ma.EPSILON))
+with {
+    drivenLeft = x * responseDrive;
+    drivenRight = y * responseDrive;
+    drivenMid = (drivenLeft + drivenRight) * 0.5 : processDriveComponent(driveMidMask);
+    drivenSide = (drivenLeft - drivenRight) * 0.5 : processDriveComponent(driveSideMask);
+    preLimitLeft = drivenMid + drivenSide;
+    preLimitRight = drivenMid - drivenSide;
+    driveDeltaSignal =
+        0.5 *
+        (((drivenLeft + drivenRight) * 0.5 : measureDriveComponent(driveMidMask)) +
+         ((drivenLeft - drivenRight) * 0.5 : measureDriveComponent(driveSideMask)));
+};
 
 process = _,_ : ba.bypass2(bypass, effect);
