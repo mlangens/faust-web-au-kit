@@ -1,6 +1,6 @@
 {
   "name": "faust-web-au-kit",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": false,
   "description": "A target-agnostic Faust framework proof of concept with an oversampled AU limiter and cross-target benchmarks.",
   "type": "module",

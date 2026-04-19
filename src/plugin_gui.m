@@ -29,6 +29,9 @@
 
 @end
 
+@interface FwakAuv2ViewFactory : NSObject <AUCocoaUIBase>
+@end
+
 static NSTextField* FwakMakeLabel(NSString* text, CGFloat fontSize, NSFontWeight weight)
 {
     NSTextField* label = [[NSTextField alloc] initWithFrame:NSZeroRect];
@@ -309,6 +312,48 @@ static double FwakMeterValueForId(const FwakPlugin* plugin, const char* meterId)
         [_meterViews[meterIndex] setDoubleValue:fmin(manifest->maxValue, meterValue)];
         [_meterValues[meterIndex] setStringValue:[NSString stringWithFormat:@"%.1f dB", rawValue]];
     }
+}
+
+@end
+
+@implementation FwakAuv2ViewFactory
+
+- (unsigned)interfaceVersion
+{
+    return 0;
+}
+
+- (NSString*)description
+{
+    return [NSString stringWithString:@"Limiter Lab View"];
+}
+
+- (NSView*)uiViewForAudioUnit:(AudioUnit)inAudioUnit withSize:(NSSize)inPreferredSize
+{
+    UInt64 userPluginValue = 0;
+    UInt32 dataSize = (UInt32)sizeof(userPluginValue);
+    OSStatus status =
+        AudioUnitGetProperty(inAudioUnit, kAudioUnitProperty_UserPlugin, kAudioUnitScope_Global, 0, &userPluginValue, &dataSize);
+    if (status != noErr || userPluginValue == 0) {
+        return nil;
+    }
+
+    FwakPluginView* view = (FwakPluginView*)cplug_createGUI((void*)(uintptr_t)userPluginValue);
+    if (!view) {
+        return nil;
+    }
+
+    uint32_t width = 0;
+    uint32_t height = 0;
+    cplug_getSize(view, &width, &height);
+
+    if (inPreferredSize.width > 0.0 && inPreferredSize.height > 0.0) {
+        width = (uint32_t)lrint(fmax((double)width, inPreferredSize.width));
+        height = (uint32_t)lrint(fmax((double)height, inPreferredSize.height));
+    }
+
+    cplug_setSize(view, width, height);
+    return [view autorelease];
 }
 
 @end

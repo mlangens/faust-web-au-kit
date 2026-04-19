@@ -5,14 +5,18 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 ARTIFACT_STEM="$(node -e 'const fs=require("fs"); const p=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(p.artifactStem);' "$ROOT_DIR/project.json")"
 PROJECT_VERSION="$(node -e 'const fs=require("fs"); const p=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(p.version);' "$ROOT_DIR/project.json")"
 PACKAGE_ID="$(node -e 'const fs=require("fs"); const p=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(`${p.bundleId}.installer`);' "$ROOT_DIR/project.json")"
-STAGE_DIR="$ROOT_DIR/dist/pkgroot"
 DIST_DIR="$ROOT_DIR/dist"
 PKG_PATH="$DIST_DIR/${ARTIFACT_STEM}-${PROJECT_VERSION}.pkg"
+STAGE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/${ARTIFACT_STEM}.pkgroot.XXXXXX")"
+
+cleanup() {
+  rm -rf "$STAGE_DIR"
+}
+trap cleanup EXIT
 
 cd "$ROOT_DIR"
 ./scripts/build-native.sh >/dev/null
 
-rm -rf "$STAGE_DIR"
 mkdir -p "$STAGE_DIR/Library/Audio/Plug-Ins/Components"
 mkdir -p "$STAGE_DIR/Library/Audio/Plug-Ins/VST3"
 mkdir -p "$STAGE_DIR/Library/Audio/Plug-Ins/CLAP"

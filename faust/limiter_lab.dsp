@@ -2,7 +2,7 @@ import("stdfaust.lib");
 
 declare name "Limiter Lab";
 declare author "Max Langensiepen + OpenAI Codex";
-declare version "0.1.1";
+declare version "0.1.2";
 declare description "Oversampled limiter proof of concept with modern and vintage characteristics.";
 declare license "MIT";
 

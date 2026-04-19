@@ -89,7 +89,7 @@ After `npm run build:native`, the default project produces:
 
 After `npm run package:installer`, the installer artifact is:
 
-- `dist/LimiterLab-0.1.1.pkg`
+- `dist/LimiterLab-0.1.2.pkg`
 
 If Logic sees the plugin but hangs while instantiating it, run `npm run doctor:au` first. A stale `/Library` AU bundle plus a newer `~/Library` AU bundle can make Logic validate one copy and try to open another.
 

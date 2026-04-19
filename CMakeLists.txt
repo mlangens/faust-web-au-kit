@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(faust_web_au_kit VERSION 0.1.1 DESCRIPTION "Native-target Faust framework proof of concept")
+project(faust_web_au_kit VERSION 0.1.2 DESCRIPTION "Native-target Faust framework proof of concept")
 
 if(NOT APPLE)
   message(FATAL_ERROR "The current native adapter layer builds on macOS only.")
