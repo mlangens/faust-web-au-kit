@@ -1,0 +1,368 @@
+{
+	"name": "Atlas Curve",
+	"filename": "main.dsp",
+	"version": "2.85.5",
+	"compile_options": "-lang cpp -fpga-mem-th 4 -ct 1 -cn AtlasCurveDSP -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0",
+	"library_list": ["/opt/homebrew/Cellar/faust/2.85.5/share/faust/maxmsp.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/stdfaust.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/filters.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/maths.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/platform.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/analyzers.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/basics.lib"],
+	"include_pathnames": ["/opt/homebrew/Cellar/faust/2.85.5/share/faust","/usr/local/share/faust","/usr/share/faust","/Users/mlangens/dev/faust-web-au-kit/apps/atlas-curve/dsp","/Users/mlangens/dev/faust-web-au-kit/apps/atlas-curve/dsp"],
+	"size": 262636,
+	"inputs": 2,
+	"outputs": 2,
+	"meta": [ 
+		{ "analyzers.lib/ms_envelope_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "analyzers.lib/ms_envelope_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo        <sanfilippo.dario@gmail.com> and         2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "analyzers.lib/ms_envelope_rect:license": "MIT-style STK-4.3 license" },
+		{ "analyzers.lib/name": "Faust Analyzer Library" },
+		{ "analyzers.lib/rms_envelope_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "analyzers.lib/rms_envelope_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo        <sanfilippo.dario@gmail.com> and         2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "analyzers.lib/rms_envelope_rect:license": "MIT-style STK-4.3 license" },
+		{ "analyzers.lib/version": "1.3.0" },
+		{ "author": "Max Langensiepen + OpenAI Codex" },
+		{ "basics.lib/name": "Faust Basic Element Library" },
+		{ "basics.lib/version": "1.22.0" },
+		{ "compile_options": "-lang cpp -fpga-mem-th 4 -ct 1 -cn AtlasCurveDSP -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0" },
+		{ "description": "Flagship equalizer with selectable cut slope, dual sculpting bands, adaptive guidance, analyzer focus routing, and neutral Northline chrome." },
+		{ "filename": "main.dsp" },
+		{ "filters.lib/avg_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "filters.lib/avg_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo       <sanfilippo.dario@gmail.com> and        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/avg_rect:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/fir:author": "Julius O. Smith III" },
+		{ "filters.lib/fir:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/fir:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/highpass:author": "Julius O. Smith III" },
+		{ "filters.lib/highpass:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/iir:author": "Julius O. Smith III" },
+		{ "filters.lib/iir:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/iir:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/integrator:author": "Julius O. Smith III" },
+		{ "filters.lib/integrator:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/integrator:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/lowpass0_highpass1": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/lowpass0_highpass1:author": "Julius O. Smith III" },
+		{ "filters.lib/lowpass:author": "Julius O. Smith III" },
+		{ "filters.lib/lowpass:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/lowpass:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/name": "Faust Filters Library" },
+		{ "filters.lib/tf2:author": "Julius O. Smith III" },
+		{ "filters.lib/tf2:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/tf2:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/tf2s:author": "Julius O. Smith III" },
+		{ "filters.lib/tf2s:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/tf2s:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/version": "1.7.1" },
+		{ "license": "MIT" },
+		{ "maths.lib/author": "GRAME" },
+		{ "maths.lib/copyright": "GRAME" },
+		{ "maths.lib/license": "LGPL with exception" },
+		{ "maths.lib/name": "Faust Math Library" },
+		{ "maths.lib/version": "2.9.0" },
+		{ "maxmsp.lib/author": "GRAME" },
+		{ "maxmsp.lib/copyright": "GRAME" },
+		{ "maxmsp.lib/license": "LGPL with exception" },
+		{ "maxmsp.lib/name": "MaxMSP compatibility Library" },
+		{ "maxmsp.lib/version": "1.1.0" },
+		{ "name": "Atlas Curve" },
+		{ "platform.lib/name": "Generic Platform Library" },
+		{ "platform.lib/version": "1.3.0" },
+		{ "version": "0.1.0" }
+	],
+	"ui": [ 
+		{
+			"type": "vgroup",
+			"label": "Atlas Curve",
+			"items": [ 
+				{
+					"type": "hslider",
+					"label": "Air",
+					"varname": "fHslider12",
+					"shortname": "Air",
+					"address": "/Atlas_Curve/Air",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 15,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Analyzer",
+					"varname": "fHslider0",
+					"shortname": "Analyzer",
+					"address": "/Atlas_Curve/Analyzer",
+					"init": 0,
+					"min": 0,
+					"max": 3,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Band Focus",
+					"varname": "fHslider3",
+					"shortname": "Band_Focus",
+					"address": "/Atlas_Curve/Band_Focus",
+					"init": 1,
+					"min": 0,
+					"max": 3,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Bell Freq",
+					"varname": "fHslider6",
+					"shortname": "Bell_Freq",
+					"address": "/Atlas_Curve/Bell_Freq",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "Hz" }
+					],
+					"init": 780,
+					"min": 120,
+					"max": 4000,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Bell Gain",
+					"varname": "fHslider8",
+					"shortname": "Bell_Gain",
+					"address": "/Atlas_Curve/Bell_Gain",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": 0,
+					"min": -12,
+					"max": 12,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Bell Q",
+					"varname": "fHslider17",
+					"shortname": "Bell_Q",
+					"address": "/Atlas_Curve/Bell_Q",
+					"init": 1.2,
+					"min": 0.25,
+					"max": 8,
+					"step": 0.01
+				},
+				{
+					"type": "checkbox",
+					"label": "Bypass",
+					"varname": "fCheckbox0",
+					"shortname": "Bypass",
+					"address": "/Atlas_Curve/Bypass"
+				},
+				{
+					"type": "hslider",
+					"label": "Cut Slope",
+					"varname": "fHslider16",
+					"shortname": "Cut_Slope",
+					"address": "/Atlas_Curve/Cut_Slope",
+					"init": 1,
+					"min": 0,
+					"max": 2,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Dynamic",
+					"varname": "fHslider9",
+					"shortname": "Dynamic",
+					"address": "/Atlas_Curve/Dynamic",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 25,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Guide Drive",
+					"varname": "fHbargraph1",
+					"shortname": "Guide_Drive",
+					"address": "/Atlas_Curve/Guide_Drive",
+					"min": 0,
+					"max": 12
+				},
+				{
+					"type": "hbargraph",
+					"label": "Guide Focus",
+					"varname": "fHbargraph0",
+					"shortname": "Guide_Focus",
+					"address": "/Atlas_Curve/Guide_Focus",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hslider",
+					"label": "Guide",
+					"varname": "fHslider5",
+					"shortname": "Guide",
+					"address": "/Atlas_Curve/Guide",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 35,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "High Shelf",
+					"varname": "fHslider14",
+					"shortname": "High_Shelf",
+					"address": "/Atlas_Curve/High_Shelf",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": 0,
+					"min": -12,
+					"max": 12,
+					"step": 0.1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Input Peak",
+					"varname": "fHbargraph2",
+					"shortname": "Input_Peak",
+					"address": "/Atlas_Curve/Input_Peak",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hslider",
+					"label": "Low Cut",
+					"varname": "fHslider2",
+					"shortname": "Low_Cut",
+					"address": "/Atlas_Curve/Low_Cut",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "Hz" }
+					],
+					"init": 28,
+					"min": 18,
+					"max": 240,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Low Shelf",
+					"varname": "fHslider15",
+					"shortname": "Low_Shelf",
+					"address": "/Atlas_Curve/Low_Shelf",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": 0,
+					"min": -12,
+					"max": 12,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Mode",
+					"varname": "fHslider1",
+					"shortname": "Mode",
+					"address": "/Atlas_Curve/Mode",
+					"init": 1,
+					"min": 0,
+					"max": 3,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Output Peak",
+					"varname": "fHbargraph3",
+					"shortname": "Output_Peak",
+					"address": "/Atlas_Curve/Output_Peak",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hslider",
+					"label": "Output Trim",
+					"varname": "fHslider11",
+					"shortname": "Output_Trim",
+					"address": "/Atlas_Curve/Output_Trim",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": 0,
+					"min": -18,
+					"max": 18,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Presence Freq",
+					"varname": "fHslider4",
+					"shortname": "Presence_Freq",
+					"address": "/Atlas_Curve/Presence_Freq",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "Hz" }
+					],
+					"init": 3600,
+					"min": 1000,
+					"max": 12000,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Presence Gain",
+					"varname": "fHslider10",
+					"shortname": "Presence_Gain",
+					"address": "/Atlas_Curve/Presence_Gain",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": 0,
+					"min": -12,
+					"max": 12,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Presence Q",
+					"varname": "fHslider18",
+					"shortname": "Presence_Q",
+					"address": "/Atlas_Curve/Presence_Q",
+					"init": 1,
+					"min": 0.3,
+					"max": 10,
+					"step": 0.01
+				},
+				{
+					"type": "hslider",
+					"label": "Style",
+					"varname": "fHslider7",
+					"shortname": "Style",
+					"address": "/Atlas_Curve/Style",
+					"init": 0,
+					"min": 0,
+					"max": 3,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Tilt",
+					"varname": "fHslider13",
+					"shortname": "Tilt",
+					"address": "/Atlas_Curve/Tilt",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": 0,
+					"min": -6,
+					"max": 6,
+					"step": 0.1
+				}
+			]
+		}
+	]
+}

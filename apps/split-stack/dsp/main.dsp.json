@@ -1,0 +1,476 @@
+{
+	"name": "Split Stack",
+	"filename": "main.dsp",
+	"version": "2.85.5",
+	"compile_options": "-lang cpp -fpga-mem-th 4 -ct 1 -cn SplitStackDSP -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0",
+	"library_list": ["/opt/homebrew/Cellar/faust/2.85.5/share/faust/stdfaust.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/basics.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/routes.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/signals.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/maths.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/platform.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/filters.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/analyzers.lib"],
+	"include_pathnames": ["/opt/homebrew/Cellar/faust/2.85.5/share/faust","/usr/local/share/faust","/usr/share/faust","/Users/mlangens/dev/faust-web-au-kit/apps/split-stack/dsp","/Users/mlangens/dev/faust-web-au-kit/apps/split-stack/dsp"],
+	"size": 459500,
+	"inputs": 2,
+	"outputs": 2,
+	"meta": [ 
+		{ "analyzers.lib/amp_follower_ar:author": "Jonatan Liljedahl, revised by Romain Michon" },
+		{ "analyzers.lib/ms_envelope_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "analyzers.lib/ms_envelope_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo        <sanfilippo.dario@gmail.com> and         2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "analyzers.lib/ms_envelope_rect:license": "MIT-style STK-4.3 license" },
+		{ "analyzers.lib/name": "Faust Analyzer Library" },
+		{ "analyzers.lib/rms_envelope_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "analyzers.lib/rms_envelope_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo        <sanfilippo.dario@gmail.com> and         2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "analyzers.lib/rms_envelope_rect:license": "MIT-style STK-4.3 license" },
+		{ "analyzers.lib/version": "1.3.0" },
+		{ "author": "Max Langensiepen + OpenAI Codex" },
+		{ "basics.lib/bypass2:author": "Julius Smith" },
+		{ "basics.lib/name": "Faust Basic Element Library" },
+		{ "basics.lib/version": "1.22.0" },
+		{ "compile_options": "-lang cpp -fpga-mem-th 4 -ct 1 -cn SplitStackDSP -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0" },
+		{ "description": "Character multiband dynamics tool with deeper crossover, linking, monitor routing, and richer band metering." },
+		{ "filename": "main.dsp" },
+		{ "filters.lib/avg_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "filters.lib/avg_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo       <sanfilippo.dario@gmail.com> and        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/avg_rect:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/highpass:author": "Julius O. Smith III" },
+		{ "filters.lib/highpass:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/highpassLR4:author": "Dario Sanfilippo" },
+		{ "filters.lib/highpassLR4:copyright": "Copyright (C) 2022 Dario Sanfilippo <sanfilippo.dario@gmail.com>" },
+		{ "filters.lib/highpassLR4:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/integrator:author": "Julius O. Smith III" },
+		{ "filters.lib/integrator:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/integrator:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/lowpass0_highpass1": "MIT-style STK-4.3 license" },
+		{ "filters.lib/lowpass0_highpass1:author": "Julius O. Smith III" },
+		{ "filters.lib/lowpass:author": "Julius O. Smith III" },
+		{ "filters.lib/lowpass:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/lowpass:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/lowpassLR4:author": "Dario Sanfilippo" },
+		{ "filters.lib/lowpassLR4:copyright": "Copyright (C) 2022 Dario Sanfilippo <sanfilippo.dario@gmail.com>" },
+		{ "filters.lib/lowpassLR4:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/name": "Faust Filters Library" },
+		{ "filters.lib/svf:author": "Oleg Nesterov" },
+		{ "filters.lib/svf:copyright": "Copyright (C) 2020 Oleg Nesterov <oleg@redhat.com>" },
+		{ "filters.lib/svf:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/tf1:author": "Julius O. Smith III" },
+		{ "filters.lib/tf1:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/tf1:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/tf1s:author": "Julius O. Smith III" },
+		{ "filters.lib/tf1s:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/tf1s:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/version": "1.7.1" },
+		{ "license": "MIT" },
+		{ "maths.lib/author": "GRAME" },
+		{ "maths.lib/copyright": "GRAME" },
+		{ "maths.lib/license": "LGPL with exception" },
+		{ "maths.lib/name": "Faust Math Library" },
+		{ "maths.lib/version": "2.9.0" },
+		{ "name": "Split Stack" },
+		{ "platform.lib/name": "Generic Platform Library" },
+		{ "platform.lib/version": "1.3.0" },
+		{ "routes.lib/name": "Faust Signal Routing Library" },
+		{ "routes.lib/version": "1.3.0" },
+		{ "signals.lib/name": "Faust Routing Library" },
+		{ "signals.lib/onePoleSwitching:author": "Jonatan Liljedahl, revised by Dario Sanfilippo" },
+		{ "signals.lib/onePoleSwitching:licence": "STK-4.3" },
+		{ "signals.lib/version": "1.6.0" },
+		{ "version": "0.2.0" }
+	],
+	"ui": [ 
+		{
+			"type": "vgroup",
+			"label": "Split Stack",
+			"items": [ 
+				{
+					"type": "hslider",
+					"label": "Attack",
+					"varname": "fHslider8",
+					"shortname": "Attack",
+					"address": "/Split_Stack/Attack",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "ms" }
+					],
+					"init": 24,
+					"min": 0.1,
+					"max": 250,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Band Link",
+					"varname": "fHslider10",
+					"shortname": "Band_Link",
+					"address": "/Split_Stack/Band_Link",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 24,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "checkbox",
+					"label": "Bypass",
+					"varname": "fCheckbox0",
+					"shortname": "Bypass",
+					"address": "/Split_Stack/Bypass"
+				},
+				{
+					"type": "hslider",
+					"label": "Character",
+					"varname": "fHslider2",
+					"shortname": "Character",
+					"address": "/Split_Stack/Character",
+					"init": 1,
+					"min": 0,
+					"max": 2,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Detector Mode",
+					"varname": "fHslider3",
+					"shortname": "Detector_Mode",
+					"address": "/Split_Stack/Detector_Mode",
+					"init": 1,
+					"min": 0,
+					"max": 2,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "High Amount",
+					"varname": "fHslider21",
+					"shortname": "High_Amount",
+					"address": "/Split_Stack/High_Amount",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 42,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "High Crossover",
+					"varname": "fHslider5",
+					"shortname": "High_Crossover",
+					"address": "/Split_Stack/High_Crossover",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "Hz" }
+					],
+					"init": 2600,
+					"min": 700,
+					"max": 16000,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "High Energy",
+					"varname": "fHbargraph7",
+					"shortname": "High_Energy",
+					"address": "/Split_Stack/High_Energy",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hslider",
+					"label": "High Lift",
+					"varname": "fHslider22",
+					"shortname": "High_Lift",
+					"address": "/Split_Stack/High_Lift",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": 0,
+					"min": -12,
+					"max": 12,
+					"step": 0.1
+				},
+				{
+					"type": "hbargraph",
+					"label": "High Reduction",
+					"varname": "fHbargraph5",
+					"shortname": "High_Reduction",
+					"address": "/Split_Stack/High_Reduction",
+					"min": 0,
+					"max": 30
+				},
+				{
+					"type": "hslider",
+					"label": "High Threshold",
+					"varname": "fHslider20",
+					"shortname": "High_Threshold",
+					"address": "/Split_Stack/High_Threshold",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": -20,
+					"min": -54,
+					"max": 0,
+					"step": 0.1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Input Peak",
+					"varname": "fHbargraph3",
+					"shortname": "Input_Peak",
+					"address": "/Split_Stack/Input_Peak",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hslider",
+					"label": "Low Amount",
+					"varname": "fHslider12",
+					"shortname": "Low_Amount",
+					"address": "/Split_Stack/Low_Amount",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 48,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Low Crossover",
+					"varname": "fHslider4",
+					"shortname": "Low_Crossover",
+					"address": "/Split_Stack/Low_Crossover",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "Hz" }
+					],
+					"init": 180,
+					"min": 60,
+					"max": 1200,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Low Energy",
+					"varname": "fHbargraph2",
+					"shortname": "Low_Energy",
+					"address": "/Split_Stack/Low_Energy",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hslider",
+					"label": "Low Lift",
+					"varname": "fHslider16",
+					"shortname": "Low_Lift",
+					"address": "/Split_Stack/Low_Lift",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": 0,
+					"min": -12,
+					"max": 12,
+					"step": 0.1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Low Reduction",
+					"varname": "fHbargraph0",
+					"shortname": "Low_Reduction",
+					"address": "/Split_Stack/Low_Reduction",
+					"min": 0,
+					"max": 30
+				},
+				{
+					"type": "hslider",
+					"label": "Low Threshold",
+					"varname": "fHslider11",
+					"shortname": "Low_Threshold",
+					"address": "/Split_Stack/Low_Threshold",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": -24,
+					"min": -54,
+					"max": 0,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Mid Amount",
+					"varname": "fHslider18",
+					"shortname": "Mid_Amount",
+					"address": "/Split_Stack/Mid_Amount",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 54,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Mid Energy",
+					"varname": "fHbargraph1",
+					"shortname": "Mid_Energy",
+					"address": "/Split_Stack/Mid_Energy",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hslider",
+					"label": "Mid Lift",
+					"varname": "fHslider19",
+					"shortname": "Mid_Lift",
+					"address": "/Split_Stack/Mid_Lift",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": 0,
+					"min": -12,
+					"max": 12,
+					"step": 0.1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Mid Reduction",
+					"varname": "fHbargraph6",
+					"shortname": "Mid_Reduction",
+					"address": "/Split_Stack/Mid_Reduction",
+					"min": 0,
+					"max": 30
+				},
+				{
+					"type": "hslider",
+					"label": "Mid Threshold",
+					"varname": "fHslider17",
+					"shortname": "Mid_Threshold",
+					"address": "/Split_Stack/Mid_Threshold",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": -22,
+					"min": -54,
+					"max": 0,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Mix",
+					"varname": "fHslider15",
+					"shortname": "Mix",
+					"address": "/Split_Stack/Mix",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 100,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Mode",
+					"varname": "fHslider0",
+					"shortname": "Mode",
+					"address": "/Split_Stack/Mode",
+					"init": 1,
+					"min": 0,
+					"max": 2,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Monitor",
+					"varname": "fHslider14",
+					"shortname": "Monitor",
+					"address": "/Split_Stack/Monitor",
+					"init": 0,
+					"min": 0,
+					"max": 4,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Output Peak",
+					"varname": "fHbargraph4",
+					"shortname": "Output_Peak",
+					"address": "/Split_Stack/Output_Peak",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hslider",
+					"label": "Output",
+					"varname": "fHslider13",
+					"shortname": "Output",
+					"address": "/Split_Stack/Output",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": 0,
+					"min": -18,
+					"max": 18,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Range",
+					"varname": "fHslider1",
+					"shortname": "Range",
+					"address": "/Split_Stack/Range",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": 18,
+					"min": 0,
+					"max": 30,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Release",
+					"varname": "fHslider6",
+					"shortname": "Release",
+					"address": "/Split_Stack/Release",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "ms" }
+					],
+					"init": 180,
+					"min": 10,
+					"max": 1600,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Stereo Link",
+					"varname": "fHslider9",
+					"shortname": "Stereo_Link",
+					"address": "/Split_Stack/Stereo_Link",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 78,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Timing Spread",
+					"varname": "fHslider7",
+					"shortname": "Timing_Spread",
+					"address": "/Split_Stack/Timing_Spread",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 35,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				}
+			]
+		}
+	]
+}

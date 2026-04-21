@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { resolveProjectUi } from "./ui-family-tools.mjs";
+
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
 const defaultWorkspaceFile = path.resolve(root, "fwak.workspace.json");
 
@@ -127,7 +129,12 @@ function loadProjectRuntime(argv = process.argv.slice(2)) {
   const workspaceRuntime = loadWorkspaceRuntime(argv);
   const appEntry = resolveWorkspaceApp(workspaceRuntime);
   const projectFile = appEntry.manifestPath;
-  const project = JSON.parse(fs.readFileSync(projectFile, "utf8"));
+  const rawProject = JSON.parse(fs.readFileSync(projectFile, "utf8"));
+  const uiRuntime = resolveProjectUi(rawProject.ui, { root });
+  const project = { ...rawProject };
+  if (uiRuntime.hasProjectUi) {
+    project.ui = uiRuntime.resolved;
+  }
   const appDir = path.dirname(projectFile);
   const sourceFile = path.resolve(appDir, project.faust.source);
   const sourceBase = path.parse(sourceFile).name;
@@ -152,6 +159,10 @@ function loadProjectRuntime(argv = process.argv.slice(2)) {
     appDir,
     projectFile,
     project,
+    rawProject,
+    projectManifest: rawProject,
+    uiRuntime,
+    ui: uiRuntime.resolved,
     sourceFile,
     sourceBase,
     outputDir,

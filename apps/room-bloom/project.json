@@ -1,0 +1,254 @@
+{
+  "name": "room-bloom",
+  "version": "0.2.0",
+  "owner": "mlangens",
+  "companyName": "Max Langensiepen",
+  "companyTag": "Mlng",
+  "productName": "Room Bloom",
+  "artifactStem": "RoomBloom",
+  "bundleId": "io.github.mlangens.faust-web-au-kit.room-bloom",
+  "description": "Stereo ambience processor with layered room voicing, tail shaping, ducking, and freeze-aware bloom controls.",
+  "license": "MIT",
+  "plugin": {
+    "kind": "effect",
+    "inputs": 2,
+    "outputs": 2,
+    "midiInput": false,
+    "latencySeconds": 0.0,
+    "gui": {
+      "native": true,
+      "webPreview": true,
+      "resizable": true
+    }
+  },
+  "targets": {
+    "native": [
+      "auv2",
+      "clap",
+      "vst3",
+      "standalone"
+    ],
+    "active": []
+  },
+  "oversampling": {
+    "factor": 1
+  },
+  "faust": {
+    "source": "./dsp/main.dsp",
+    "className": "RoomBloomDSP"
+  },
+  "ui": {
+    "family": "northline-core",
+    "familyVersion": 1,
+    "variant": "space-reverb",
+    "catalog": {
+      "productId": "room-bloom",
+      "prototypeRole": "fidelity-wave-pass-1"
+    },
+    "overrides": {
+      "surfacePresetIds": [
+        "reverb-space",
+        "meter-stack",
+        "output-popover"
+      ],
+      "layoutProfile": "macro-row-plus-canvas"
+    },
+    "shell": {
+      "hero": {
+        "status": "Stereo ambience surface with layered room voicing, bloom shaping, ducking, and freeze-aware tail control."
+      },
+      "sections": {
+        "controls": {
+          "title": "Ambience Surface",
+          "description": "Room Bloom now exposes a richer reusable reverb vocabulary with room selection, character voicing, width, tone shaping, and duck timing controls."
+        },
+        "meters": {
+          "title": "Tail Response",
+          "description": "The meter contract now separates early activity, late tail energy, stereo spread, ducking, and output level for more informative preview behavior."
+        }
+      }
+    },
+    "display": {
+      "enumLabels": {
+        "Space": [
+          "Room",
+          "Chamber",
+          "Hall",
+          "Vast"
+        ],
+        "Character": [
+          "Clear",
+          "Warm",
+          "Dense",
+          "Air"
+        ]
+      }
+    },
+    "statusText": "Layered ambience processor with space/character selection, bloom shaping, stereo width, frequency shaping, duck timing, and freeze-aware tail control.",
+    "controlOrder": [
+      "Space",
+      "Character",
+      "Size",
+      "Pre-Delay",
+      "Decay",
+      "Diffusion",
+      "Width",
+      "Bloom",
+      "Low Cut",
+      "High Cut",
+      "Ducking",
+      "Duck Release",
+      "Mix",
+      "Output",
+      "Freeze",
+      "Bypass"
+    ],
+    "meters": [
+      {
+        "id": "inputPeak",
+        "label": "Input Peak",
+        "max": 78,
+        "mode": "peak",
+        "unit": "dB",
+        "description": "Pre-effect stereo input level."
+      },
+      {
+        "id": "earlyEnergy",
+        "label": "Early Energy",
+        "max": 78,
+        "mode": "peak",
+        "unit": "dB",
+        "description": "Energy in the short early-reflection cluster."
+      },
+      {
+        "id": "tailEnergy",
+        "label": "Tail Energy",
+        "max": 78,
+        "mode": "peak",
+        "unit": "dB",
+        "description": "Sustained late bloom level after the tail tanks."
+      },
+      {
+        "id": "stereoSpread",
+        "label": "Stereo Spread",
+        "max": 100,
+        "mode": "peak",
+        "unit": "%",
+        "description": "Relative wet-side energy after width shaping."
+      },
+      {
+        "id": "duckReduction",
+        "label": "Duck Reduction",
+        "max": 24,
+        "mode": "gr",
+        "unit": "dB",
+        "description": "Approximate attenuation applied to the wet path by the ducking detector."
+      },
+      {
+        "id": "outputPeak",
+        "label": "Output Peak",
+        "max": 78,
+        "mode": "peak",
+        "unit": "dB",
+        "description": "Post-mix stereo output level."
+      }
+    ]
+  },
+  "au": {
+    "type": "aufx",
+    "subtype": "Rblm",
+    "manufacturer": "Mlng",
+    "tags": [
+      "Effects",
+      "Reverb"
+    ]
+  },
+  "clap": {
+    "id": "io.github.mlangens.faust-web-au-kit.room-bloom",
+    "description": "Stereo ambience processor with layered room voicing, bloom shaping, duck timing, and freeze-aware tails.",
+    "features": [
+      "audio-effect",
+      "mixing",
+      "stereo",
+      "utility"
+    ]
+  },
+  "vst3": {
+    "categories": [
+      "Fx",
+      "Reverb",
+      "Stereo"
+    ],
+    "componentTuid": [
+      "Mlng",
+      "Comp",
+      "Rblm",
+      0
+    ],
+    "controllerTuid": [
+      "Mlng",
+      "Edit",
+      "Rblm",
+      0
+    ]
+  },
+  "standalone": {
+    "bundleId": "io.github.mlangens.faust-web-au-kit.room-bloom.app"
+  },
+  "benchmark": {
+    "sampleRate": 48000,
+    "blockSize": 256,
+    "seconds": 6,
+    "initialControls": [
+      {
+        "label": "Space",
+        "value": 2
+      },
+      {
+        "label": "Character",
+        "value": 1
+      },
+      {
+        "label": "Size",
+        "value": 64
+      },
+      {
+        "label": "Pre-Delay",
+        "value": 18
+      },
+      {
+        "label": "Decay",
+        "value": 3.6
+      },
+      {
+        "label": "Diffusion",
+        "value": 66
+      },
+      {
+        "label": "Width",
+        "value": 62
+      },
+      {
+        "label": "Bloom",
+        "value": 58
+      },
+      {
+        "label": "Ducking",
+        "value": 28
+      },
+      {
+        "label": "Mix",
+        "value": 32
+      }
+    ],
+    "nativeTargets": [
+      "c",
+      "cpp",
+      "wasm"
+    ],
+    "exportOnlyTargets": [
+      "cmajor",
+      "rust"
+    ]
+  }
+}

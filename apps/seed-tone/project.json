@@ -1,0 +1,217 @@
+{
+  "name": "seed-tone",
+  "version": "0.1.0",
+  "owner": "mlangens",
+  "companyName": "Max Langensiepen",
+  "companyTag": "Mlng",
+  "productName": "Seed Tone",
+  "artifactStem": "SeedTone",
+  "bundleId": "io.github.mlangens.faust-web-au-kit.seed-tone",
+  "description": "Best-effort simple synth scaffold with a primary oscillator, cutoff/resonance shaping, color/sub/noise layers, and shared Northline family metadata.",
+  "license": "MIT",
+  "plugin": {
+    "kind": "instrument",
+    "inputs": 0,
+    "outputs": 2,
+    "midiInput": true,
+    "latencySeconds": 0.0,
+    "gui": {
+      "native": true,
+      "webPreview": true,
+      "resizable": true
+    }
+  },
+  "targets": {
+    "native": [
+      "clap",
+      "vst3",
+      "auv2",
+      "standalone"
+    ],
+    "active": []
+  },
+  "oversampling": {
+    "factor": 1
+  },
+  "faust": {
+    "source": "./dsp/main.dsp",
+    "className": "SeedToneDSP"
+  },
+  "ui": {
+    "family": "northline-core",
+    "familyVersion": 1,
+    "variant": "simple-synth",
+    "catalog": {
+      "productId": "seed-tone",
+      "prototypeRole": "parallel-wave-scaffold"
+    },
+    "shell": {
+      "hero": {
+        "status": "Seed Tone is a simple synth scaffold with a primary oscillator, filter motion, color/sub/noise layers, and shared family chrome."
+      },
+      "sections": {
+        "controls": {
+          "title": "Synth Surface",
+          "description": "Seed Tone exposes a compact synth layout mapped through the shared Northline preview."
+        },
+        "meters": {
+          "title": "Response Preview",
+          "description": "Meter motion stays schematic for now, but the synth architecture and family metadata are real."
+        }
+      }
+    },
+    "display": {
+      "enumLabels": {
+        "Wave": [
+          "Sine",
+          "Triangle",
+          "Saw",
+          "Pulse"
+        ],
+        "Motion": [
+          "Still",
+          "Drift",
+          "Bloom",
+          "Pulse"
+        ]
+      }
+    },
+    "statusText": "MIDI-ready simple synth scaffold with one oscillator core, cutoff/resonance shaping, contour motion, color/sub/noise layers, drive, and envelope shaping.",
+    "controlOrder": [
+      "Wave",
+      "Cutoff",
+      "Resonance",
+      "Color",
+      "Sub",
+      "Noise",
+      "Motion",
+      "Drive",
+      "Stereo Width",
+      "Attack",
+      "Release",
+      "Output Trim"
+    ],
+    "meters": [
+      {
+        "id": "voiceLevel",
+        "label": "Voice Level",
+        "max": 78,
+        "mode": "peak"
+      },
+      {
+        "id": "motionLevel",
+        "label": "Motion Level",
+        "max": 78,
+        "mode": "peak"
+      },
+      {
+        "id": "outputPeak",
+        "label": "Output Peak",
+        "max": 78,
+        "mode": "peak"
+      }
+    ]
+  },
+  "au": {
+    "type": "aumu",
+    "subtype": "SdTo",
+    "manufacturer": "Mlng",
+    "tags": [
+      "Synthesizer"
+    ]
+  },
+  "clap": {
+    "id": "io.github.mlangens.faust-web-au-kit.seed-tone",
+    "description": "Simple MIDI synth scaffold with shared framework-native preview metadata.",
+    "features": [
+      "instrument",
+      "synthesizer",
+      "stereo"
+    ]
+  },
+  "vst3": {
+    "categories": [
+      "Instrument",
+      "Synth"
+    ],
+    "componentTuid": [
+      "Mlng",
+      "Comp",
+      "SdTo",
+      0
+    ],
+    "controllerTuid": [
+      "Mlng",
+      "Edit",
+      "SdTo",
+      0
+    ]
+  },
+  "standalone": {
+    "bundleId": "io.github.mlangens.faust-web-au-kit.seed-tone.app"
+  },
+  "benchmark": {
+    "sampleRate": 48000,
+    "blockSize": 256,
+    "seconds": 6,
+    "initialControls": [
+      {
+        "label": "Wave",
+        "value": 0
+      },
+      {
+        "label": "Cutoff",
+        "value": 1200.0
+      },
+      {
+        "label": "Resonance",
+        "value": 0.32
+      },
+      {
+        "label": "Color",
+        "value": 0.53
+      },
+      {
+        "label": "Sub",
+        "value": 0.2
+      },
+      {
+        "label": "Noise",
+        "value": 0.08
+      },
+      {
+        "label": "Motion",
+        "value": 0.34
+      },
+      {
+        "label": "Drive",
+        "value": 2.0
+      },
+      {
+        "label": "Stereo Width",
+        "value": 0.58
+      },
+      {
+        "label": "Attack",
+        "value": 0.012
+      },
+      {
+        "label": "Release",
+        "value": 0.34
+      },
+      {
+        "label": "Output Trim",
+        "value": 0.0
+      }
+    ],
+    "nativeTargets": [
+      "c",
+      "cpp",
+      "wasm"
+    ],
+    "exportOnlyTargets": [
+      "cmajor",
+      "rust"
+    ]
+  }
+}

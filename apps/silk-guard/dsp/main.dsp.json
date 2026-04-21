@@ -1,0 +1,337 @@
+{
+	"name": "Silk Guard",
+	"filename": "main.dsp",
+	"version": "2.85.5",
+	"compile_options": "-lang cpp -fpga-mem-th 4 -ct 1 -cn SilkGuardDSP -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0",
+	"library_list": ["/opt/homebrew/Cellar/faust/2.85.5/share/faust/stdfaust.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/basics.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/routes.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/filters.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/signals.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/maths.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/platform.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/analyzers.lib"],
+	"include_pathnames": ["/opt/homebrew/Cellar/faust/2.85.5/share/faust","/usr/local/share/faust","/usr/share/faust","/Users/mlangens/dev/faust-web-au-kit/apps/silk-guard/dsp","/Users/mlangens/dev/faust-web-au-kit/apps/silk-guard/dsp"],
+	"size": 131520,
+	"inputs": 2,
+	"outputs": 2,
+	"meta": [ 
+		{ "analyzers.lib/amp_follower_ar:author": "Jonatan Liljedahl, revised by Romain Michon" },
+		{ "analyzers.lib/ms_envelope_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "analyzers.lib/ms_envelope_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo        <sanfilippo.dario@gmail.com> and         2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "analyzers.lib/ms_envelope_rect:license": "MIT-style STK-4.3 license" },
+		{ "analyzers.lib/name": "Faust Analyzer Library" },
+		{ "analyzers.lib/rms_envelope_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "analyzers.lib/rms_envelope_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo        <sanfilippo.dario@gmail.com> and         2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "analyzers.lib/rms_envelope_rect:license": "MIT-style STK-4.3 license" },
+		{ "analyzers.lib/version": "1.3.0" },
+		{ "author": "Max Langensiepen + OpenAI Codex" },
+		{ "basics.lib/bypass2:author": "Julius Smith" },
+		{ "basics.lib/name": "Faust Basic Element Library" },
+		{ "basics.lib/version": "1.22.0" },
+		{ "compile_options": "-lang cpp -fpga-mem-th 4 -ct 1 -cn SilkGuardDSP -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0" },
+		{ "description": "Precision de-esser with richer detector styling, focus control, monitor paths, stereo linking, and split-depth handling." },
+		{ "filename": "main.dsp" },
+		{ "filters.lib/avg_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "filters.lib/avg_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo       <sanfilippo.dario@gmail.com> and        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/avg_rect:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/fir:author": "Julius O. Smith III" },
+		{ "filters.lib/fir:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/fir:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/highpass:author": "Julius O. Smith III" },
+		{ "filters.lib/highpass:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/iir:author": "Julius O. Smith III" },
+		{ "filters.lib/iir:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/iir:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/integrator:author": "Julius O. Smith III" },
+		{ "filters.lib/integrator:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/integrator:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/lowpass0_highpass1": "MIT-style STK-4.3 license" },
+		{ "filters.lib/lowpass0_highpass1:author": "Julius O. Smith III" },
+		{ "filters.lib/lowpass:author": "Julius O. Smith III" },
+		{ "filters.lib/lowpass:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/lowpass:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/name": "Faust Filters Library" },
+		{ "filters.lib/tf2:author": "Julius O. Smith III" },
+		{ "filters.lib/tf2:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/tf2:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/tf2s:author": "Julius O. Smith III" },
+		{ "filters.lib/tf2s:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/tf2s:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/version": "1.7.1" },
+		{ "license": "MIT" },
+		{ "maths.lib/author": "GRAME" },
+		{ "maths.lib/copyright": "GRAME" },
+		{ "maths.lib/license": "LGPL with exception" },
+		{ "maths.lib/name": "Faust Math Library" },
+		{ "maths.lib/version": "2.9.0" },
+		{ "name": "Silk Guard" },
+		{ "platform.lib/name": "Generic Platform Library" },
+		{ "platform.lib/version": "1.3.0" },
+		{ "routes.lib/name": "Faust Signal Routing Library" },
+		{ "routes.lib/version": "1.3.0" },
+		{ "signals.lib/name": "Faust Routing Library" },
+		{ "signals.lib/onePoleSwitching:author": "Jonatan Liljedahl, revised by Dario Sanfilippo" },
+		{ "signals.lib/onePoleSwitching:licence": "STK-4.3" },
+		{ "signals.lib/version": "1.6.0" },
+		{ "version": "0.2.0" }
+	],
+	"ui": [ 
+		{
+			"type": "vgroup",
+			"label": "Silk Guard",
+			"items": [ 
+				{
+					"type": "hslider",
+					"label": "Attack",
+					"varname": "fHslider7",
+					"shortname": "Attack",
+					"address": "/Silk_Guard/Attack",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "ms" }
+					],
+					"init": 3.5,
+					"min": 0.1,
+					"max": 60,
+					"step": 0.1
+				},
+				{
+					"type": "checkbox",
+					"label": "Bypass",
+					"varname": "fCheckbox0",
+					"shortname": "Bypass",
+					"address": "/Silk_Guard/Bypass"
+				},
+				{
+					"type": "hslider",
+					"label": "Center Frequency",
+					"varname": "fHslider4",
+					"shortname": "Center_Frequency",
+					"address": "/Silk_Guard/Center_Frequency",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "Hz" }
+					],
+					"init": 6800,
+					"min": 1800,
+					"max": 12000,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Detection Focus",
+					"varname": "fHslider3",
+					"shortname": "Detection_Focus",
+					"address": "/Silk_Guard/Detection_Focus",
+					"init": 1,
+					"min": 0,
+					"max": 2,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Detection Style",
+					"varname": "fHslider0",
+					"shortname": "Detection_Style",
+					"address": "/Silk_Guard/Detection_Style",
+					"init": 1,
+					"min": 0,
+					"max": 2,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Detector Drive",
+					"varname": "fHbargraph1",
+					"shortname": "Detector_Drive",
+					"address": "/Silk_Guard/Detector_Drive",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hbargraph",
+					"label": "Focus Energy",
+					"varname": "fHbargraph4",
+					"shortname": "Focus_Energy",
+					"address": "/Silk_Guard/Focus_Energy",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hslider",
+					"label": "Focus Width",
+					"varname": "fHslider5",
+					"shortname": "Focus_Width",
+					"address": "/Silk_Guard/Focus_Width",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 42,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Gain Reduction",
+					"varname": "fHbargraph0",
+					"shortname": "Gain_Reduction",
+					"address": "/Silk_Guard/Gain_Reduction",
+					"min": 0,
+					"max": 24
+				},
+				{
+					"type": "hbargraph",
+					"label": "Input Peak",
+					"varname": "fHbargraph2",
+					"shortname": "Input_Peak",
+					"address": "/Silk_Guard/Input_Peak",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hslider",
+					"label": "Lookahead",
+					"varname": "fHslider2",
+					"shortname": "Lookahead",
+					"address": "/Silk_Guard/Lookahead",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "ms" }
+					],
+					"init": 1.5,
+					"min": 0.1,
+					"max": 12,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Mix",
+					"varname": "fHslider13",
+					"shortname": "Mix",
+					"address": "/Silk_Guard/Mix",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 100,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Monitor",
+					"varname": "fHslider12",
+					"shortname": "Monitor",
+					"address": "/Silk_Guard/Monitor",
+					"init": 0,
+					"min": 0,
+					"max": 2,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Output Peak",
+					"varname": "fHbargraph3",
+					"shortname": "Output_Peak",
+					"address": "/Silk_Guard/Output_Peak",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hslider",
+					"label": "Output",
+					"varname": "fHslider11",
+					"shortname": "Output",
+					"address": "/Silk_Guard/Output",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": 0,
+					"min": -18,
+					"max": 18,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Range",
+					"varname": "fHslider1",
+					"shortname": "Range",
+					"address": "/Silk_Guard/Range",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": 10,
+					"min": 0,
+					"max": 24,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Release",
+					"varname": "fHslider6",
+					"shortname": "Release",
+					"address": "/Silk_Guard/Release",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "ms" }
+					],
+					"init": 120,
+					"min": 10,
+					"max": 1500,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Sensitivity",
+					"varname": "fHslider9",
+					"shortname": "Sensitivity",
+					"address": "/Silk_Guard/Sensitivity",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 56,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Split Depth",
+					"varname": "fHslider14",
+					"shortname": "Split_Depth",
+					"address": "/Silk_Guard/Split_Depth",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 86,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Stereo Link",
+					"varname": "fHslider8",
+					"shortname": "Stereo_Link",
+					"address": "/Silk_Guard/Stereo_Link",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 78,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Threshold",
+					"varname": "fHslider10",
+					"shortname": "Threshold",
+					"address": "/Silk_Guard/Threshold",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": -30,
+					"min": -48,
+					"max": 0,
+					"step": 0.1
+				}
+			]
+		}
+	]
+}

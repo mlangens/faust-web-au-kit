@@ -1,0 +1,238 @@
+{
+  "name": "mirror-field",
+  "version": "0.2.0",
+  "owner": "mlangens",
+  "companyName": "Max Langensiepen",
+  "companyTag": "Mlng",
+  "productName": "Mirror Field",
+  "artifactStem": "MirrorField",
+  "bundleId": "io.github.mlangens.faust-web-au-kit.mirror-field",
+  "description": "Modular synth with richer voice modes, filter voicing, motion behavior, and a denser Northline instrument surface.",
+  "license": "MIT",
+  "plugin": {
+    "kind": "instrument",
+    "inputs": 0,
+    "outputs": 2,
+    "midiInput": true,
+    "latencySeconds": 0.0,
+    "gui": {
+      "native": true,
+      "webPreview": true,
+      "resizable": true
+    }
+  },
+  "targets": {
+    "native": [
+      "auv2",
+      "clap",
+      "vst3",
+      "standalone"
+    ],
+    "active": []
+  },
+  "oversampling": {
+    "factor": 1
+  },
+  "faust": {
+    "source": "./dsp/main.dsp",
+    "className": "MirrorFieldDSP"
+  },
+  "ui": {
+    "family": "northline-core",
+    "familyVersion": 1,
+    "variant": "modular-synth",
+    "catalog": {
+      "productId": "mirror-field",
+      "prototypeRole": "creative-fidelity-pass"
+    },
+    "shell": {
+      "hero": {
+        "status": "Modular synth fidelity pass with richer voice behavior, filter voicing, motion states, and neutral Northline studio chrome."
+      },
+      "sections": {
+        "controls": {
+          "title": "Synth Surface",
+          "description": "Mirror Field now uses a fuller reusable synth vocabulary: voice mode, waveform blend, filter voicing, motion states, drift, and stereo behavior."
+        },
+        "meters": {
+          "title": "Voice Preview",
+          "description": "The meter contract now separates voice body, filter bloom, stereo spread, and output so the instrument preview reads more intentionally."
+        }
+      }
+    },
+    "display": {
+      "enumLabels": {
+        "Voice Mode": [
+          "Mono",
+          "Duo",
+          "Wide",
+          "Stack"
+        ],
+        "Blend": [
+          "Sine",
+          "Triangle",
+          "Saw",
+          "Square"
+        ],
+        "Filter Mode": [
+          "Soft",
+          "Focus",
+          "Glass"
+        ],
+        "Motion": [
+          "Still",
+          "Wander",
+          "Pulse",
+          "Orbit"
+        ]
+      }
+    },
+    "statusText": "MIDI-ready modular synth with voice modes, waveform blend, filter voicing, motion states, drift, drive, stereo width, and envelope shaping.",
+    "controlOrder": [
+      "Voice Mode",
+      "Blend",
+      "Shape",
+      "Tone",
+      "Filter Mode",
+      "Contour",
+      "Motion",
+      "Mod Amount",
+      "Drift",
+      "Detune",
+      "Sub",
+      "Drive",
+      "Stereo Width",
+      "Attack",
+      "Release",
+      "Bypass"
+    ],
+    "meters": [
+      {
+        "id": "voiceLevel",
+        "label": "Voice Level",
+        "max": 78,
+        "mode": "peak",
+        "unit": "dB"
+      },
+      {
+        "id": "filterBloom",
+        "label": "Filter Bloom",
+        "max": 78,
+        "mode": "peak",
+        "unit": "dB"
+      },
+      {
+        "id": "stereoSpread",
+        "label": "Stereo Spread",
+        "max": 100,
+        "mode": "peak",
+        "unit": "%"
+      },
+      {
+        "id": "outputPeak",
+        "label": "Output Peak",
+        "max": 78,
+        "mode": "peak",
+        "unit": "dB"
+      }
+    ]
+  },
+  "au": {
+    "type": "aumu",
+    "subtype": "MfLd",
+    "manufacturer": "Mlng",
+    "tags": [
+      "Synthesizer"
+    ]
+  },
+  "clap": {
+    "id": "io.github.mlangens.faust-web-au-kit.mirror-field",
+    "description": "Modular synth with richer voice modes, filter voicing, motion states, and shared Northline family metadata.",
+    "features": [
+      "instrument",
+      "synthesizer",
+      "stereo"
+    ]
+  },
+  "vst3": {
+    "categories": [
+      "Instrument",
+      "Synth"
+    ],
+    "componentTuid": [
+      "Mlng",
+      "Comp",
+      "MfLd",
+      0
+    ],
+    "controllerTuid": [
+      "Mlng",
+      "Edit",
+      "MfLd",
+      0
+    ]
+  },
+  "standalone": {
+    "bundleId": "io.github.mlangens.faust-web-au-kit.mirror-field.app"
+  },
+  "benchmark": {
+    "sampleRate": 48000,
+    "blockSize": 256,
+    "seconds": 6,
+    "initialControls": [
+      {
+        "label": "Voice Mode",
+        "value": 2
+      },
+      {
+        "label": "Blend",
+        "value": 1
+      },
+      {
+        "label": "Shape",
+        "value": 0.58
+      },
+      {
+        "label": "Tone",
+        "value": 0.62
+      },
+      {
+        "label": "Filter Mode",
+        "value": 1
+      },
+      {
+        "label": "Contour",
+        "value": 0.54
+      },
+      {
+        "label": "Motion",
+        "value": 2
+      },
+      {
+        "label": "Mod Amount",
+        "value": 0.36
+      },
+      {
+        "label": "Drift",
+        "value": 0.28
+      },
+      {
+        "label": "Detune",
+        "value": 9
+      },
+      {
+        "label": "Drive",
+        "value": 4.5
+      }
+    ],
+    "nativeTargets": [
+      "c",
+      "cpp",
+      "wasm"
+    ],
+    "exportOnlyTargets": [
+      "cmajor",
+      "rust"
+    ]
+  }
+}

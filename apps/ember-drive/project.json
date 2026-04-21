@@ -1,0 +1,255 @@
+{
+  "name": "ember-drive",
+  "version": "0.2.0",
+  "owner": "mlangens",
+  "companyName": "Max Langensiepen",
+  "companyTag": "Mlng",
+  "productName": "Ember Drive",
+  "artifactStem": "EmberDrive",
+  "bundleId": "io.github.mlangens.faust-web-au-kit.ember-drive",
+  "description": "Multiband saturation processor with style-selectable drive shaping, per-band tone and bias control, dynamic glue, stereo width, and output management.",
+  "license": "MIT",
+  "plugin": {
+    "kind": "effect",
+    "inputs": 2,
+    "outputs": 2,
+    "midiInput": false,
+    "latencySeconds": 0.0,
+    "gui": {
+      "native": true,
+      "webPreview": true,
+      "resizable": true
+    }
+  },
+  "targets": {
+    "native": [
+      "auv2",
+      "clap",
+      "vst3",
+      "standalone"
+    ],
+    "active": []
+  },
+  "oversampling": {
+    "factor": 2
+  },
+  "faust": {
+    "source": "./dsp/main.dsp",
+    "className": "EmberDriveDSP"
+  },
+  "ui": {
+    "family": "northline-core",
+    "familyVersion": 1,
+    "variant": "multiband-saturation",
+    "catalog": {
+      "productId": "ember-drive",
+      "prototypeRole": "fidelity-wave-ember-drive"
+    },
+    "shell": {
+      "hero": {
+        "status": "Multiband drive surface with style-selectable saturation, per-band tone and bias behavior, adaptive glue, stereo width, and output shaping."
+      },
+      "sections": {
+        "controls": {
+          "title": "Drive Surface",
+          "description": "Ember Drive now centers on three-band saturation with richer style voicing, per-band tone and bias shaping, dynamic response, glue, width, and global blend control."
+        },
+        "meters": {
+          "title": "Heat Response",
+          "description": "The meter contract now separates band heat, glue reduction, stereo width, and output level so the creative lane reads like a fuller multiband processor."
+        }
+      }
+    },
+    "display": {
+      "enumLabels": {
+        "Style": [
+          "Clean",
+          "Warm",
+          "Edge",
+          "Fold"
+        ]
+      }
+    },
+    "statusText": "Multiband saturation processor with style-selectable drive circuits, per-band tone/bias/mix control, adaptive dynamics, glue, stereo width, parallel blend, and output trim.",
+    "controlOrder": [
+      "Style",
+      "Input Gain",
+      "Low Crossover",
+      "High Crossover",
+      "Low Drive",
+      "Low Tone",
+      "Low Bias",
+      "Low Mix",
+      "Mid Drive",
+      "Mid Tone",
+      "Mid Bias",
+      "Mid Mix",
+      "High Drive",
+      "High Tone",
+      "High Bias",
+      "High Mix",
+      "Dynamics",
+      "Glue",
+      "Band Link",
+      "Width",
+      "Mix",
+      "Output",
+      "Bypass"
+    ],
+    "meters": [
+      {
+        "id": "inputPeak",
+        "label": "Input Peak",
+        "max": 78,
+        "mode": "peak",
+        "unit": "dB",
+        "description": "Pre-drive stereo input level."
+      },
+      {
+        "id": "lowHeat",
+        "label": "Low Heat",
+        "max": 100,
+        "mode": "peak",
+        "unit": "%",
+        "description": "Relative drive activity in the low crossover band."
+      },
+      {
+        "id": "midHeat",
+        "label": "Mid Heat",
+        "max": 100,
+        "mode": "peak",
+        "unit": "%",
+        "description": "Relative drive activity in the mid crossover band."
+      },
+      {
+        "id": "highHeat",
+        "label": "High Heat",
+        "max": 100,
+        "mode": "peak",
+        "unit": "%",
+        "description": "Relative drive activity in the high crossover band."
+      },
+      {
+        "id": "glueReduction",
+        "label": "Glue Reduction",
+        "max": 24,
+        "mode": "gr",
+        "unit": "dB",
+        "description": "Approximate attenuation applied by the global glue stage."
+      },
+      {
+        "id": "stereoWidth",
+        "label": "Stereo Width",
+        "max": 100,
+        "mode": "peak",
+        "unit": "%",
+        "description": "Relative wet-side energy after width shaping."
+      },
+      {
+        "id": "outputPeak",
+        "label": "Output Peak",
+        "max": 78,
+        "mode": "peak",
+        "unit": "dB",
+        "description": "Post-mix stereo output level."
+      }
+    ]
+  },
+  "au": {
+    "type": "aufx",
+    "subtype": "Embr",
+    "manufacturer": "Mlng",
+    "tags": [
+      "Effects",
+      "Distortion"
+    ]
+  },
+  "clap": {
+    "id": "io.github.mlangens.faust-web-au-kit.ember-drive",
+    "description": "Multiband saturation processor with style-selectable drive shaping, per-band tone and bias, adaptive glue, and output control.",
+    "features": [
+      "audio-effect",
+      "mixing",
+      "stereo",
+      "utility"
+    ]
+  },
+  "vst3": {
+    "categories": [
+      "Fx",
+      "Distortion",
+      "Stereo"
+    ],
+    "componentTuid": [
+      "Mlng",
+      "Comp",
+      "Embr",
+      0
+    ],
+    "controllerTuid": [
+      "Mlng",
+      "Edit",
+      "Embr",
+      0
+    ]
+  },
+  "standalone": {
+    "bundleId": "io.github.mlangens.faust-web-au-kit.ember-drive.app"
+  },
+  "benchmark": {
+    "sampleRate": 48000,
+    "blockSize": 256,
+    "seconds": 6,
+    "initialControls": [
+      {
+        "label": "Style",
+        "value": 1
+      },
+      {
+        "label": "Input Gain",
+        "value": 1.5
+      },
+      {
+        "label": "Low Crossover",
+        "value": 160
+      },
+      {
+        "label": "High Crossover",
+        "value": 3400
+      },
+      {
+        "label": "Low Drive",
+        "value": 36
+      },
+      {
+        "label": "Mid Drive",
+        "value": 54
+      },
+      {
+        "label": "High Drive",
+        "value": 58
+      },
+      {
+        "label": "Dynamics",
+        "value": 46
+      },
+      {
+        "label": "Glue",
+        "value": 32
+      },
+      {
+        "label": "Width",
+        "value": 60
+      }
+    ],
+    "nativeTargets": [
+      "c",
+      "cpp",
+      "wasm"
+    ],
+    "exportOnlyTargets": [
+      "cmajor",
+      "rust"
+    ]
+  }
+}

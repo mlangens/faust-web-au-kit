@@ -1,0 +1,273 @@
+{
+  "name": "relay-tape",
+  "version": "0.2.0",
+  "owner": "mlangens",
+  "companyName": "Max Langensiepen",
+  "companyTag": "Mlng",
+  "productName": "Relay Tape",
+  "artifactStem": "RelayTape",
+  "bundleId": "io.github.mlangens.faust-web-au-kit.relay-tape",
+  "description": "Stereo modulation delay with deeper routing, offset timing, age and flutter shaping, diffusion bloom, freeze hold, and a richer preview-oriented meter contract.",
+  "license": "MIT",
+  "plugin": {
+    "kind": "effect",
+    "inputs": 2,
+    "outputs": 2,
+    "midiInput": false,
+    "latencySeconds": 0.0,
+    "gui": {
+      "native": true,
+      "webPreview": true,
+      "resizable": true
+    }
+  },
+  "targets": {
+    "native": [
+      "auv2",
+      "clap",
+      "vst3",
+      "standalone"
+    ],
+    "active": []
+  },
+  "oversampling": {
+    "factor": 1
+  },
+  "faust": {
+    "source": "./dsp/main.dsp",
+    "className": "RelayTapeDSP"
+  },
+  "ui": {
+    "family": "northline-core",
+    "familyVersion": 1,
+    "variant": "mod-delay",
+    "catalog": {
+      "productId": "relay-tape",
+      "prototypeRole": "fidelity-wave-pass-1"
+    },
+    "overrides": {
+      "surfacePresetIds": [
+        "delay-timeline",
+        "modulation-dock",
+        "output-popover"
+      ],
+      "layoutProfile": "timeline-plus-dock"
+    },
+    "shell": {
+      "hero": {
+        "status": "Stereo modulation delay surface with offset timing, age and flutter motion, diffuse bloom, width shaping, and freeze-aware hold behavior."
+      },
+      "sections": {
+        "controls": {
+          "title": "Delay Surface",
+          "description": "Relay Tape now exposes a richer reusable delay vocabulary with bounce or crossfeed routing, stereo offset, age shaping, modulation drift, bloom diffusion, and output width control."
+        },
+        "meters": {
+          "title": "Motion Preview",
+          "description": "The meter contract now separates input drive, modulation activity, diffuse tail energy, stereo spread, freeze hold, and output level for a more informative shared-suite preview."
+        }
+      }
+    },
+    "display": {
+      "enumLabels": {
+        "Mode": [
+          "Clear",
+          "Worn",
+          "Bloom"
+        ],
+        "Routing": [
+          "Stereo",
+          "Bounce",
+          "Mono Sum",
+          "Crossfeed"
+        ]
+      }
+    },
+    "statusText": "Stereo modulation delay with route selection, offset timing, age and flutter shaping, diffuse bloom, freeze hold, width control, and output trim.",
+    "controlOrder": [
+      "Mode",
+      "Routing",
+      "Time",
+      "Offset",
+      "Feedback",
+      "Smear",
+      "Age",
+      "Tone",
+      "Mod Depth",
+      "Mod Rate",
+      "Flutter",
+      "Width",
+      "Freeze",
+      "Mix",
+      "Output",
+      "Bypass"
+    ],
+    "meters": [
+      {
+        "id": "inputPeak",
+        "label": "Input Peak",
+        "max": 78,
+        "mode": "peak",
+        "unit": "dB",
+        "description": "Pre-effect stereo input level."
+      },
+      {
+        "id": "echoDrive",
+        "label": "Echo Drive",
+        "max": 78,
+        "mode": "peak",
+        "unit": "dB",
+        "description": "Level entering the colored delay voice before the bloom taps."
+      },
+      {
+        "id": "motion",
+        "label": "Motion",
+        "max": 100,
+        "mode": "peak",
+        "unit": "%",
+        "description": "Combined wow and flutter activity from the modulation engine."
+      },
+      {
+        "id": "diffuseTail",
+        "label": "Diffuse Tail",
+        "max": 78,
+        "mode": "peak",
+        "unit": "dB",
+        "description": "Energy in the smeared and widened wet tail."
+      },
+      {
+        "id": "stereoSpread",
+        "label": "Stereo Spread",
+        "max": 100,
+        "mode": "peak",
+        "unit": "%",
+        "description": "Relative wet-side energy after routing and width shaping."
+      },
+      {
+        "id": "freezeHold",
+        "label": "Freeze Hold",
+        "max": 100,
+        "mode": "peak",
+        "unit": "%",
+        "description": "Approximate hold intensity when freeze is active and the tail is sustained."
+      },
+      {
+        "id": "outputPeak",
+        "label": "Output Peak",
+        "max": 78,
+        "mode": "peak",
+        "unit": "dB",
+        "description": "Post-mix stereo output level."
+      }
+    ]
+  },
+  "au": {
+    "type": "aufx",
+    "subtype": "Rlyt",
+    "manufacturer": "Mlng",
+    "tags": [
+      "Effects",
+      "Delay"
+    ]
+  },
+  "clap": {
+    "id": "io.github.mlangens.faust-web-au-kit.relay-tape",
+    "description": "Stereo modulation delay with bounce or crossfeed routing, age and flutter shaping, bloom diffusion, and freeze-aware width control.",
+    "features": [
+      "audio-effect",
+      "analyzer",
+      "mixing",
+      "stereo"
+    ]
+  },
+  "vst3": {
+    "categories": [
+      "Fx",
+      "Delay",
+      "Stereo"
+    ],
+    "componentTuid": [
+      "Mlng",
+      "Comp",
+      "Rlyt",
+      0
+    ],
+    "controllerTuid": [
+      "Mlng",
+      "Edit",
+      "Rlyt",
+      0
+    ]
+  },
+  "standalone": {
+    "bundleId": "io.github.mlangens.faust-web-au-kit.relay-tape.app"
+  },
+  "benchmark": {
+    "sampleRate": 48000,
+    "blockSize": 256,
+    "seconds": 6,
+    "initialControls": [
+      {
+        "label": "Mode",
+        "value": 1
+      },
+      {
+        "label": "Routing",
+        "value": 1
+      },
+      {
+        "label": "Time",
+        "value": 380
+      },
+      {
+        "label": "Offset",
+        "value": 34
+      },
+      {
+        "label": "Feedback",
+        "value": 52
+      },
+      {
+        "label": "Smear",
+        "value": 58
+      },
+      {
+        "label": "Age",
+        "value": 46
+      },
+      {
+        "label": "Tone",
+        "value": 54
+      },
+      {
+        "label": "Mod Depth",
+        "value": 9
+      },
+      {
+        "label": "Mod Rate",
+        "value": 0.28
+      },
+      {
+        "label": "Flutter",
+        "value": 32
+      },
+      {
+        "label": "Width",
+        "value": 76
+      },
+      {
+        "label": "Mix",
+        "value": 44
+      }
+    ],
+    "nativeTargets": [
+      "c",
+      "cpp",
+      "wasm"
+    ],
+    "exportOnlyTargets": [
+      "cmajor",
+      "rust"
+    ]
+  }
+}

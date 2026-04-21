@@ -20,6 +20,76 @@
       "key": "pulse-pad",
       "name": "Pulse Pad",
       "manifest": "apps/pulse-pad/project.json"
+    },
+    {
+      "key": "press-deck",
+      "name": "Press Deck",
+      "manifest": "apps/press-deck/project.json"
+    },
+    {
+      "key": "atlas-curve",
+      "name": "Atlas Curve",
+      "manifest": "apps/atlas-curve/project.json"
+    },
+    {
+      "key": "room-bloom",
+      "name": "Room Bloom",
+      "manifest": "apps/room-bloom/project.json"
+    },
+    {
+      "key": "ember-drive",
+      "name": "Ember Drive",
+      "manifest": "apps/ember-drive/project.json"
+    },
+    {
+      "key": "relay-tape",
+      "name": "Relay Tape",
+      "manifest": "apps/relay-tape/project.json"
+    },
+    {
+      "key": "contour-forge",
+      "name": "Contour Forge",
+      "manifest": "apps/contour-forge/project.json"
+    },
+    {
+      "key": "mirror-field",
+      "name": "Mirror Field",
+      "manifest": "apps/mirror-field/project.json"
+    },
+    {
+      "key": "seed-tone",
+      "name": "Seed Tone",
+      "manifest": "apps/seed-tone/project.json"
+    },
+    {
+      "key": "span-pair",
+      "name": "Span Pair",
+      "manifest": "apps/span-pair/project.json"
+    },
+    {
+      "key": "pocket-cut",
+      "name": "Pocket Cut",
+      "manifest": "apps/pocket-cut/project.json"
+    },
+    {
+      "key": "headroom",
+      "name": "Headroom",
+      "manifest": "apps/headroom/project.json"
+    },
+    {
+      "key": "latch-line",
+      "name": "Latch Line",
+      "manifest": "apps/latch-line/project.json"
+    },
+    {
+      "key": "silk-guard",
+      "name": "Silk Guard",
+      "manifest": "apps/silk-guard/project.json"
+    },
+    {
+      "key": "split-stack",
+      "name": "Split Stack",
+      "manifest": "apps/split-stack/project.json"
     }
   ]
 }

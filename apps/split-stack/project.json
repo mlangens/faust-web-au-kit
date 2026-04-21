@@ -1,0 +1,266 @@
+{
+  "name": "split-stack",
+  "version": "0.2.0",
+  "owner": "mlangens",
+  "companyName": "Max Langensiepen",
+  "companyTag": "Mlng",
+  "productName": "Split Stack",
+  "artifactStem": "SplitStack",
+  "bundleId": "io.github.mlangens.faust-web-au-kit.split-stack",
+  "description": "Character multiband dynamics tool with deeper crossover, timing, linking, and monitor control built on the shared Northline family.",
+  "license": "MIT",
+  "plugin": {
+    "kind": "effect",
+    "inputs": 2,
+    "outputs": 2,
+    "midiInput": false,
+    "latencySeconds": 0.0,
+    "gui": {
+      "native": true,
+      "webPreview": true,
+      "resizable": true
+    }
+  },
+  "targets": {
+    "native": [
+      "auv2",
+      "clap",
+      "vst3",
+      "standalone"
+    ],
+    "active": []
+  },
+  "oversampling": {
+    "factor": 2
+  },
+  "faust": {
+    "source": "./dsp/main.dsp",
+    "className": "SplitStackDSP"
+  },
+  "ui": {
+    "family": "northline-core",
+    "familyVersion": 1,
+    "variant": "multiband-dynamics",
+    "catalog": {
+      "productId": "split-stack",
+      "prototypeRole": "fidelity-wave-split-stack"
+    },
+    "shell": {
+      "hero": {
+        "status": "Multiband dynamics fidelity pass with richer crossover behavior, band linking, and neutral Northline studio chrome."
+      },
+      "sections": {
+        "controls": {
+          "title": "Dynamics Surface",
+          "description": "Split Stack now centers on three-band shaping with detector behavior, timing spread, stereo and band linking, lift per band, and monitor routing."
+        },
+        "meters": {
+          "title": "Response Preview",
+          "description": "The meter contract now separates low, mid, and high energy from per-band gain reduction so the surface reads more like a finished multiband tool."
+        }
+      }
+    },
+    "display": {
+      "enumLabels": {
+        "Mode": [
+          "Tight",
+          "Balance",
+          "Open"
+        ],
+        "Character": [
+          "Clean",
+          "Warm",
+          "Bold"
+        ],
+        "Detector Mode": [
+          "Peak",
+          "Blend",
+          "Average"
+        ],
+        "Monitor": [
+          "Program",
+          "Low",
+          "Mid",
+          "High",
+          "Delta"
+        ]
+      }
+    },
+    "statusText": "Character multiband dynamics tool with richer crossover shaping, per-band threshold/amount/lift control, timing spread, stereo and band linking, output management, and monitor utilities.",
+    "controlOrder": [
+      "Mode",
+      "Character",
+      "Detector Mode",
+      "Low Crossover",
+      "High Crossover",
+      "Attack",
+      "Release",
+      "Timing Spread",
+      "Stereo Link",
+      "Band Link",
+      "Range",
+      "Low Threshold",
+      "Low Amount",
+      "Low Lift",
+      "Mid Threshold",
+      "Mid Amount",
+      "Mid Lift",
+      "High Threshold",
+      "High Amount",
+      "High Lift",
+      "Mix",
+      "Output",
+      "Monitor",
+      "Bypass"
+    ],
+    "meters": [
+      {
+        "id": "inputPeak",
+        "label": "Input Peak",
+        "max": 78,
+        "mode": "peak",
+        "style": "thin-trough",
+        "ballistics": "fast-rise-medium-fall"
+      },
+      {
+        "id": "lowEnergy",
+        "label": "Low Energy",
+        "max": 78,
+        "mode": "peak",
+        "style": "thin-trough",
+        "ballistics": "fast-rise-medium-fall"
+      },
+      {
+        "id": "midEnergy",
+        "label": "Mid Energy",
+        "max": 78,
+        "mode": "peak",
+        "style": "thin-trough",
+        "ballistics": "fast-rise-medium-fall"
+      },
+      {
+        "id": "highEnergy",
+        "label": "High Energy",
+        "max": 78,
+        "mode": "peak",
+        "style": "thin-trough",
+        "ballistics": "fast-rise-medium-fall"
+      },
+      {
+        "id": "lowReduction",
+        "label": "Low Reduction",
+        "max": 30,
+        "mode": "gr"
+      },
+      {
+        "id": "midReduction",
+        "label": "Mid Reduction",
+        "max": 30,
+        "mode": "gr"
+      },
+      {
+        "id": "highReduction",
+        "label": "High Reduction",
+        "max": 30,
+        "mode": "gr"
+      },
+      {
+        "id": "outputPeak",
+        "label": "Output Peak",
+        "max": 78,
+        "mode": "peak",
+        "style": "thin-trough",
+        "ballistics": "fast-rise-medium-fall"
+      }
+    ]
+  },
+  "au": {
+    "type": "aufx",
+    "subtype": "Sstk",
+    "manufacturer": "Mlng",
+    "tags": [
+      "Dynamics",
+      "Effects"
+    ]
+  },
+  "clap": {
+    "id": "io.github.mlangens.faust-web-au-kit.split-stack",
+    "description": "Character multiband dynamics tool with deeper crossover control, band linking, and monitor utilities.",
+    "features": [
+      "audio-effect",
+      "compressor",
+      "mixing",
+      "stereo"
+    ]
+  },
+  "vst3": {
+    "categories": [
+      "Fx",
+      "Dynamics",
+      "Stereo"
+    ],
+    "componentTuid": [
+      "Mlng",
+      "Comp",
+      "Sstk",
+      0
+    ],
+    "controllerTuid": [
+      "Mlng",
+      "Edit",
+      "Sstk",
+      0
+    ]
+  },
+  "standalone": {
+    "bundleId": "io.github.mlangens.faust-web-au-kit.split-stack.app"
+  },
+  "benchmark": {
+    "sampleRate": 48000,
+    "blockSize": 256,
+    "seconds": 6,
+    "initialControls": [
+      {
+        "label": "Mode",
+        "value": 1
+      },
+      {
+        "label": "Character",
+        "value": 1
+      },
+      {
+        "label": "Detector Mode",
+        "value": 1
+      },
+      {
+        "label": "Low Crossover",
+        "value": 180
+      },
+      {
+        "label": "High Crossover",
+        "value": 2600
+      },
+      {
+        "label": "Band Link",
+        "value": 24
+      },
+      {
+        "label": "Mid Amount",
+        "value": 58
+      },
+      {
+        "label": "Mix",
+        "value": 85
+      }
+    ],
+    "nativeTargets": [
+      "c",
+      "cpp",
+      "wasm"
+    ],
+    "exportOnlyTargets": [
+      "cmajor",
+      "rust"
+    ]
+  }
+}

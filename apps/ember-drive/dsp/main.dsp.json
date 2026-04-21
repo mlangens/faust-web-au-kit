@@ -1,0 +1,471 @@
+{
+	"name": "Ember Drive",
+	"filename": "main.dsp",
+	"version": "2.85.5",
+	"compile_options": "-lang cpp -fpga-mem-th 4 -ct 1 -cn EmberDriveDSP -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0",
+	"library_list": ["/opt/homebrew/Cellar/faust/2.85.5/share/faust/stdfaust.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/basics.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/routes.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/signals.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/maths.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/platform.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/filters.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/analyzers.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/compressors.lib"],
+	"include_pathnames": ["/opt/homebrew/Cellar/faust/2.85.5/share/faust","/usr/local/share/faust","/usr/share/faust","/Users/mlangens/dev/faust-web-au-kit/apps/ember-drive/dsp","/Users/mlangens/dev/faust-web-au-kit/apps/ember-drive/dsp"],
+	"size": 819964,
+	"inputs": 2,
+	"outputs": 2,
+	"meta": [ 
+		{ "analyzers.lib/amp_follower_ar:author": "Jonatan Liljedahl, revised by Romain Michon" },
+		{ "analyzers.lib/ms_envelope_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "analyzers.lib/ms_envelope_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo        <sanfilippo.dario@gmail.com> and         2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "analyzers.lib/ms_envelope_rect:license": "MIT-style STK-4.3 license" },
+		{ "analyzers.lib/name": "Faust Analyzer Library" },
+		{ "analyzers.lib/rms_envelope_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "analyzers.lib/rms_envelope_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo        <sanfilippo.dario@gmail.com> and         2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "analyzers.lib/rms_envelope_rect:license": "MIT-style STK-4.3 license" },
+		{ "analyzers.lib/version": "1.3.0" },
+		{ "author": "Max Langensiepen + OpenAI Codex" },
+		{ "basics.lib/bypass2:author": "Julius Smith" },
+		{ "basics.lib/name": "Faust Basic Element Library" },
+		{ "basics.lib/version": "1.22.0" },
+		{ "compile_options": "-lang cpp -fpga-mem-th 4 -ct 1 -cn EmberDriveDSP -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0" },
+		{ "compressors.lib/compression_gain_mono:author": "Julius O. Smith III" },
+		{ "compressors.lib/compression_gain_mono:copyright": "Copyright (C) 2014-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "compressors.lib/compression_gain_mono:license": "MIT-style STK-4.3 license" },
+		{ "compressors.lib/compressor_lad_mono:author": "Julius O. Smith III" },
+		{ "compressors.lib/compressor_lad_mono:copyright": "Copyright (C) 2014-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "compressors.lib/compressor_lad_mono:license": "MIT-style STK-4.3 license" },
+		{ "compressors.lib/compressor_mono:author": "Julius O. Smith III" },
+		{ "compressors.lib/compressor_mono:copyright": "Copyright (C) 2014-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "compressors.lib/compressor_mono:license": "MIT-style STK-4.3 license" },
+		{ "compressors.lib/name": "Faust Compressor Effect Library" },
+		{ "compressors.lib/version": "1.6.0" },
+		{ "description": "Multiband saturation processor with style-selectable drive shaping, per-band tone and bias control, dynamic glue, stereo width, and output management." },
+		{ "filename": "main.dsp" },
+		{ "filters.lib/avg_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "filters.lib/avg_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo       <sanfilippo.dario@gmail.com> and        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/avg_rect:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/highpass:author": "Julius O. Smith III" },
+		{ "filters.lib/highpass:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/highpassLR4:author": "Dario Sanfilippo" },
+		{ "filters.lib/highpassLR4:copyright": "Copyright (C) 2022 Dario Sanfilippo <sanfilippo.dario@gmail.com>" },
+		{ "filters.lib/highpassLR4:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/integrator:author": "Julius O. Smith III" },
+		{ "filters.lib/integrator:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/integrator:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/lowpass0_highpass1": "MIT-style STK-4.3 license" },
+		{ "filters.lib/lowpass0_highpass1:author": "Julius O. Smith III" },
+		{ "filters.lib/lowpass:author": "Julius O. Smith III" },
+		{ "filters.lib/lowpass:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/lowpass:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/lowpassLR4:author": "Dario Sanfilippo" },
+		{ "filters.lib/lowpassLR4:copyright": "Copyright (C) 2022 Dario Sanfilippo <sanfilippo.dario@gmail.com>" },
+		{ "filters.lib/lowpassLR4:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/name": "Faust Filters Library" },
+		{ "filters.lib/svf:author": "Oleg Nesterov" },
+		{ "filters.lib/svf:copyright": "Copyright (C) 2020 Oleg Nesterov <oleg@redhat.com>" },
+		{ "filters.lib/svf:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/tf1:author": "Julius O. Smith III" },
+		{ "filters.lib/tf1:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/tf1:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/tf1s:author": "Julius O. Smith III" },
+		{ "filters.lib/tf1s:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/tf1s:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/version": "1.7.1" },
+		{ "license": "MIT" },
+		{ "maths.lib/author": "GRAME" },
+		{ "maths.lib/copyright": "GRAME" },
+		{ "maths.lib/license": "LGPL with exception" },
+		{ "maths.lib/name": "Faust Math Library" },
+		{ "maths.lib/version": "2.9.0" },
+		{ "name": "Ember Drive" },
+		{ "platform.lib/name": "Generic Platform Library" },
+		{ "platform.lib/version": "1.3.0" },
+		{ "routes.lib/name": "Faust Signal Routing Library" },
+		{ "routes.lib/version": "1.3.0" },
+		{ "signals.lib/name": "Faust Routing Library" },
+		{ "signals.lib/onePoleSwitching:author": "Jonatan Liljedahl, revised by Dario Sanfilippo" },
+		{ "signals.lib/onePoleSwitching:licence": "STK-4.3" },
+		{ "signals.lib/version": "1.6.0" },
+		{ "version": "0.2.0" }
+	],
+	"ui": [ 
+		{
+			"type": "vgroup",
+			"label": "Ember Drive",
+			"items": [ 
+				{
+					"type": "hslider",
+					"label": "Band Link",
+					"varname": "fHslider8",
+					"shortname": "Band_Link",
+					"address": "/Ember_Drive/Band_Link",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 24,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "checkbox",
+					"label": "Bypass",
+					"varname": "fCheckbox0",
+					"shortname": "Bypass",
+					"address": "/Ember_Drive/Bypass"
+				},
+				{
+					"type": "hslider",
+					"label": "Dynamics",
+					"varname": "fHslider7",
+					"shortname": "Dynamics",
+					"address": "/Ember_Drive/Dynamics",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 46,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Glue Reduction",
+					"varname": "fHbargraph6",
+					"shortname": "Glue_Reduction",
+					"address": "/Ember_Drive/Glue_Reduction",
+					"min": 0,
+					"max": 24
+				},
+				{
+					"type": "hslider",
+					"label": "Glue",
+					"varname": "fHslider19",
+					"shortname": "Glue",
+					"address": "/Ember_Drive/Glue",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 32,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "High Bias",
+					"varname": "fHslider6",
+					"shortname": "High_Bias",
+					"address": "/Ember_Drive/High_Bias",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 0,
+					"min": -100,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "High Crossover",
+					"varname": "fHslider2",
+					"shortname": "High_Crossover",
+					"address": "/Ember_Drive/High_Crossover",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "Hz" }
+					],
+					"init": 3400,
+					"min": 500,
+					"max": 16000,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "High Drive",
+					"varname": "fHslider11",
+					"shortname": "High_Drive",
+					"address": "/Ember_Drive/High_Drive",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 58,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "High Heat",
+					"varname": "fHbargraph0",
+					"shortname": "High_Heat",
+					"address": "/Ember_Drive/High_Heat",
+					"min": 0,
+					"max": 100
+				},
+				{
+					"type": "hslider",
+					"label": "High Mix",
+					"varname": "fHslider0",
+					"shortname": "High_Mix",
+					"address": "/Ember_Drive/High_Mix",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 100,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "High Tone",
+					"varname": "fHslider5",
+					"shortname": "High_Tone",
+					"address": "/Ember_Drive/High_Tone",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 54,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Input Gain",
+					"varname": "fHslider1",
+					"shortname": "Input_Gain",
+					"address": "/Ember_Drive/Input_Gain",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": 1.5,
+					"min": -18,
+					"max": 18,
+					"step": 0.1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Input Peak",
+					"varname": "fHbargraph3",
+					"shortname": "Input_Peak",
+					"address": "/Ember_Drive/Input_Peak",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hslider",
+					"label": "Low Bias",
+					"varname": "fHslider17",
+					"shortname": "Low_Bias",
+					"address": "/Ember_Drive/Low_Bias",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 0,
+					"min": -100,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Low Crossover",
+					"varname": "fHslider3",
+					"shortname": "Low_Crossover",
+					"address": "/Ember_Drive/Low_Crossover",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "Hz" }
+					],
+					"init": 160,
+					"min": 60,
+					"max": 1200,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Low Drive",
+					"varname": "fHslider9",
+					"shortname": "Low_Drive",
+					"address": "/Ember_Drive/Low_Drive",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 36,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Low Heat",
+					"varname": "fHbargraph2",
+					"shortname": "Low_Heat",
+					"address": "/Ember_Drive/Low_Heat",
+					"min": 0,
+					"max": 100
+				},
+				{
+					"type": "hslider",
+					"label": "Low Mix",
+					"varname": "fHslider15",
+					"shortname": "Low_Mix",
+					"address": "/Ember_Drive/Low_Mix",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 100,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Low Tone",
+					"varname": "fHslider16",
+					"shortname": "Low_Tone",
+					"address": "/Ember_Drive/Low_Tone",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 46,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Mid Bias",
+					"varname": "fHslider14",
+					"shortname": "Mid_Bias",
+					"address": "/Ember_Drive/Mid_Bias",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 0,
+					"min": -100,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Mid Drive",
+					"varname": "fHslider10",
+					"shortname": "Mid_Drive",
+					"address": "/Ember_Drive/Mid_Drive",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 54,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Mid Heat",
+					"varname": "fHbargraph1",
+					"shortname": "Mid_Heat",
+					"address": "/Ember_Drive/Mid_Heat",
+					"min": 0,
+					"max": 100
+				},
+				{
+					"type": "hslider",
+					"label": "Mid Mix",
+					"varname": "fHslider12",
+					"shortname": "Mid_Mix",
+					"address": "/Ember_Drive/Mid_Mix",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 100,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Mid Tone",
+					"varname": "fHslider13",
+					"shortname": "Mid_Tone",
+					"address": "/Ember_Drive/Mid_Tone",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 52,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Mix",
+					"varname": "fHslider18",
+					"shortname": "Mix",
+					"address": "/Ember_Drive/Mix",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 100,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Output Peak",
+					"varname": "fHbargraph4",
+					"shortname": "Output_Peak",
+					"address": "/Ember_Drive/Output_Peak",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hslider",
+					"label": "Output",
+					"varname": "fHslider21",
+					"shortname": "Output",
+					"address": "/Ember_Drive/Output",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": 0,
+					"min": -18,
+					"max": 18,
+					"step": 0.1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Stereo Width",
+					"varname": "fHbargraph5",
+					"shortname": "Stereo_Width",
+					"address": "/Ember_Drive/Stereo_Width",
+					"min": 0,
+					"max": 100
+				},
+				{
+					"type": "hslider",
+					"label": "Style",
+					"varname": "fHslider4",
+					"shortname": "Style",
+					"address": "/Ember_Drive/Style",
+					"init": 1,
+					"min": 0,
+					"max": 3,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Width",
+					"varname": "fHslider20",
+					"shortname": "Width",
+					"address": "/Ember_Drive/Width",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 60,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				}
+			]
+		}
+	]
+}

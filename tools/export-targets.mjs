@@ -18,9 +18,10 @@ const runtime = loadProjectRuntime();
 const { root, project, sourceFile, sourceBase, outputDir, targetDir } = runtime;
 
 const className = project.faust.className;
-const controlOrder = project.ui?.controlOrder ?? [];
-const meters = project.ui?.meters ?? [];
-const statusText = project.ui?.statusText ?? "";
+const resolvedUi = runtime.ui ?? project.ui ?? {};
+const controlOrder = resolvedUi?.controlOrder ?? [];
+const meters = resolvedUi?.meters ?? [];
+const statusText = resolvedUi?.statusText ?? resolvedUi?.shell?.statusText ?? "";
 const outputBaseName = sourceBase;
 const stageDir = createTempDir(path.dirname(outputDir), `.${path.basename(outputDir)}.export-`);
 const stageTargetDir = path.join(stageDir, "targets");
@@ -319,7 +320,29 @@ ${meterLines.join(",\n")}
       kind: project.plugin.kind,
       inputs: project.plugin.inputs,
       outputs: project.plugin.outputs,
-      previewOnly: true
+      previewOnly: true,
+      uiFamily: runtime.uiRuntime?.family ?? null,
+      uiVariant: runtime.uiRuntime?.variant ?? null
+    },
+    ui: {
+      family: runtime.uiRuntime?.family ?? null,
+      variant: runtime.uiRuntime?.variant ?? null,
+      group: resolvedUi?.group ?? null,
+      accentPaletteId: resolvedUi?.accentPaletteId ?? resolvedUi?.presentation?.accentPaletteId ?? null,
+      catalog: resolvedUi?.catalog ?? {},
+      presentation: resolvedUi?.presentation ?? {},
+      visualLanguage: resolvedUi?.visualLanguage ?? {},
+      shell: resolvedUi?.shell ?? {},
+      theme: resolvedUi?.theme ?? {},
+      layout: resolvedUi?.layout ?? {},
+      surfaces: resolvedUi?.surfaces ?? [],
+      surfacePresetIds: resolvedUi?.surfacePresetIds ?? [],
+      analyzerPresetIds: resolvedUi?.analyzerPresetIds ?? [],
+      meterPresetIds: resolvedUi?.meterPresetIds ?? [],
+      controlKindIds: resolvedUi?.controlKindIds ?? [],
+      layoutProfile: resolvedUi?.layoutProfile ?? null,
+      preview: resolvedUi?.preview ?? {},
+      display: resolvedUi?.display ?? {}
     },
     controls: orderedControls.map((control) => ({
       id: control.label,
@@ -333,7 +356,8 @@ ${meterLines.join(",\n")}
       step: control.step ?? 0,
       unit: findMetaValue(control, "unit"),
       scale: findMetaValue(control, "scale"),
-      isToggle: control.type === "checkbox" || control.type === "button"
+      isToggle: control.type === "checkbox" || control.type === "button",
+      enumLabels: resolvedUi?.display?.enumLabels?.[control.label] ?? null
     })),
     meters,
     benchmarkPath: `/generated/apps/${runtime.appKey}/benchmark-results.json`

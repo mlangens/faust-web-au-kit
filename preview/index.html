@@ -9,7 +9,7 @@
   <body>
     <main class="shell">
       <section class="hero">
-        <p class="eyebrow">Web Preview Only</p>
+        <p id="heroEyebrow" class="eyebrow">Web Preview Only</p>
         <h1 id="productTitle">Limiter Lab</h1>
         <p id="projectDescription" class="lede">
           Browser-based visual iteration for a native audio plugin UI. The control schema comes from Faust,
@@ -22,16 +22,16 @@
       <section class="dashboard">
         <div class="panel controls-panel">
           <div class="panel-heading">
-            <h2>Control Surface</h2>
-            <p>Generated from Faust metadata so layout experiments stay tied to the real DSP surface.</p>
+            <h2 id="controlsTitle">Control Surface</h2>
+            <p id="controlsDescription">Generated from Faust metadata so layout experiments stay tied to the real DSP surface.</p>
           </div>
           <div id="controls" class="controls-grid"></div>
         </div>
 
         <div class="panel meters-panel">
           <div class="panel-heading">
-            <h2>Meter Preview</h2>
-            <p>Schema-driven motion for layout tuning only. Runtime metering still lives in the native wrapper.</p>
+            <h2 id="metersTitle">Meter Preview</h2>
+            <p id="metersDescription">Schema-driven motion for layout tuning only. Runtime metering still lives in the native wrapper.</p>
           </div>
           <div id="meters" class="meter-stack"></div>
         </div>
@@ -39,8 +39,8 @@
 
       <section class="panel benchmark-panel">
         <div class="panel-heading">
-          <h2>Compile Target Snapshot</h2>
-          <p>Latest local benchmark data from the generated limiter test harness.</p>
+          <h2 id="benchmarksTitle">Compile Target Snapshot</h2>
+          <p id="benchmarksDescription">Latest local benchmark data from the generated limiter test harness.</p>
         </div>
         <div id="benchmarks" class="benchmark-grid"></div>
       </section>

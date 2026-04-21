@@ -38,6 +38,21 @@
     "className": "PulsePadDSP"
   },
   "ui": {
+    "family": "northline-core",
+    "familyVersion": 1,
+    "variant": "modular-synth",
+    "catalog": {
+      "productId": "mirror-field",
+      "prototypeRole": "current-app"
+    },
+    "overrides": {
+      "surfacePresetIds": [
+        "oscillator-stack",
+        "module-rack",
+        "modulation-dock"
+      ],
+      "layoutProfile": "modules-plus-dock"
+    },
     "statusText": "MIDI-ready synth voice with morphable oscillators, contour sweep, stereo drift, and drive-aware band activity.",
     "controlOrder": [
       "Texture",

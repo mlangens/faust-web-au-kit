@@ -128,22 +128,318 @@ test("pulse pad schema exports the richer synth controls and peak-based meters",
   );
 });
 
+test("press deck schema reserves the compressor-oriented export contract", () => {
+  const { schema } = loadGeneratedProject("press-deck");
+  const controlLabels = new Set(schema.controls.map((control) => control.label));
+
+  assert.equal(schema.project.key, "press-deck");
+  assert.equal(schema.project.name, "Press Deck");
+  assert.equal(schema.project.kind, "effect");
+  assert.equal(schema.benchmarkPath, "/generated/apps/press-deck/benchmark-results.json");
+  assert.ok(schema.controls.length > 0);
+  assert.ok(schema.meters.length > 0);
+  assert.ok(
+    ["Threshold", "Ratio", "Attack", "Release", "Knee", "Mix"].some((label) => controlLabels.has(label)),
+    "Press Deck should expose at least one compressor-style control"
+  );
+});
+
+test("atlas curve schema reserves the spectral-eq export contract", () => {
+  const { schema } = loadGeneratedProject("atlas-curve");
+  const controlLabels = new Set(schema.controls.map((control) => control.label));
+
+  assert.equal(schema.project.key, "atlas-curve");
+  assert.equal(schema.project.name, "Atlas Curve");
+  assert.equal(schema.project.kind, "effect");
+  assert.equal(schema.benchmarkPath, "/generated/apps/atlas-curve/benchmark-results.json");
+  assert.ok(schema.controls.length > 0);
+  assert.ok(schema.meters.length > 0);
+  assert.ok(
+    ["Low Cut", "Low Shelf", "Bell Freq", "Bell Gain", "Bell Q", "High Shelf", "Analyzer"].some((label) => controlLabels.has(label)),
+    "Atlas Curve should expose at least one EQ-style control"
+  );
+});
+
+test("room bloom schema reserves the reverb export contract", () => {
+  const { schema } = loadGeneratedProject("room-bloom");
+  const controlLabels = new Set(schema.controls.map((control) => control.label));
+
+  assert.equal(schema.project.key, "room-bloom");
+  assert.equal(schema.project.name, "Room Bloom");
+  assert.equal(schema.project.kind, "effect");
+  assert.equal(schema.benchmarkPath, "/generated/apps/room-bloom/benchmark-results.json");
+  assert.ok(schema.controls.length > 0);
+  assert.ok(schema.meters.length > 0);
+  assert.ok(
+    ["Space", "Size", "Pre-Delay", "Decay", "Diffusion", "Mix"].some((label) => controlLabels.has(label)),
+    "Room Bloom should expose at least one reverb-style control"
+  );
+});
+
+test("ember drive schema reserves the multiband-saturation export contract", () => {
+  const { schema } = loadGeneratedProject("ember-drive");
+  const controlLabels = new Set(schema.controls.map((control) => control.label));
+
+  assert.equal(schema.project.key, "ember-drive");
+  assert.equal(schema.project.name, "Ember Drive");
+  assert.equal(schema.project.kind, "effect");
+  assert.equal(schema.benchmarkPath, "/generated/apps/ember-drive/benchmark-results.json");
+  assert.ok(schema.controls.length > 0);
+  assert.ok(schema.meters.length > 0);
+  assert.ok(
+    ["Low Drive", "Mid Drive", "High Drive", "Glue", "Output Trim"].some((label) => controlLabels.has(label)),
+    "Ember Drive should expose at least one multiband-saturation-style control"
+  );
+});
+
+test("relay tape schema reserves the mod-delay export contract", () => {
+  const { schema } = loadGeneratedProject("relay-tape");
+  const controlLabels = new Set(schema.controls.map((control) => control.label));
+
+  assert.equal(schema.project.key, "relay-tape");
+  assert.equal(schema.project.name, "Relay Tape");
+  assert.equal(schema.project.kind, "effect");
+  assert.equal(schema.benchmarkPath, "/generated/apps/relay-tape/benchmark-results.json");
+  assert.ok(schema.controls.length > 0);
+  assert.ok(schema.meters.length > 0);
+  assert.ok(
+    ["Time", "Feedback", "Smear", "Mod Depth", "Mod Rate", "Freeze"].some((label) => controlLabels.has(label)),
+    "Relay Tape should expose at least one mod-delay-style control"
+  );
+});
+
+test("contour forge schema reserves the routable-filter export contract", () => {
+  const { schema } = loadGeneratedProject("contour-forge");
+  const controlLabels = new Set(schema.controls.map((control) => control.label));
+
+  assert.equal(schema.project.key, "contour-forge");
+  assert.equal(schema.project.name, "Contour Forge");
+  assert.equal(schema.project.kind, "effect");
+  assert.equal(schema.benchmarkPath, "/generated/apps/contour-forge/benchmark-results.json");
+  assert.ok(schema.controls.length > 0);
+  assert.ok(schema.meters.length > 0);
+  assert.ok(
+    ["Mode", "Cutoff", "Resonance", "Drive", "Env Amount", "LFO Depth", "Routing"].some((label) => controlLabels.has(label)),
+    "Contour Forge should expose at least one routable-filter-style control"
+  );
+});
+
+test("mirror field schema reserves the modular-synth export contract", () => {
+  const { schema } = loadGeneratedProject("mirror-field");
+  const controlLabels = new Set(schema.controls.map((control) => control.label));
+
+  assert.equal(schema.project.key, "mirror-field");
+  assert.equal(schema.project.name, "Mirror Field");
+  assert.equal(schema.project.kind, "instrument");
+  assert.equal(schema.benchmarkPath, "/generated/apps/mirror-field/benchmark-results.json");
+  assert.ok(schema.controls.length > 0);
+  assert.ok(schema.meters.length > 0);
+  assert.ok(
+    ["Blend", "Shape", "Tone", "Contour", "Motion", "Mod Amount", "Detune"].some((label) => controlLabels.has(label)),
+    "Mirror Field should expose at least one modular-synth-style control"
+  );
+});
+
+test("seed tone schema reserves the simple-synth export contract", () => {
+  const { schema } = loadGeneratedProject("seed-tone");
+  const controlLabels = new Set(schema.controls.map((control) => control.label));
+
+  assert.equal(schema.project.key, "seed-tone");
+  assert.equal(schema.project.name, "Seed Tone");
+  assert.equal(schema.project.kind, "instrument");
+  assert.equal(schema.benchmarkPath, "/generated/apps/seed-tone/benchmark-results.json");
+  assert.ok(schema.controls.length > 0);
+  assert.ok(schema.meters.length > 0);
+  assert.ok(
+    ["Wave", "Cutoff", "Resonance", "Color", "Sub", "Noise", "Motion"].some((label) => controlLabels.has(label)),
+    "Seed Tone should expose at least one simple-synth-style control"
+  );
+});
+
+test("span pair schema reserves the dual-filter export contract", () => {
+  const { schema } = loadGeneratedProject("span-pair");
+  const controlLabels = new Set(schema.controls.map((control) => control.label));
+
+  assert.equal(schema.project.key, "span-pair");
+  assert.equal(schema.project.name, "Span Pair");
+  assert.equal(schema.project.kind, "effect");
+  assert.equal(schema.benchmarkPath, "/generated/apps/span-pair/benchmark-results.json");
+  assert.ok(schema.controls.length > 0);
+  assert.ok(schema.meters.length > 0);
+  assert.ok(
+    ["Mode", "Routing", "Filter A Cutoff", "Filter B Cutoff", "Spacing", "Link", "Drive"].some((label) => controlLabels.has(label)),
+    "Span Pair should expose at least one dual-filter-style control"
+  );
+});
+
+test("pocket cut schema reserves the mini-filter export contract", () => {
+  const { schema } = loadGeneratedProject("pocket-cut");
+  const controlLabels = new Set(schema.controls.map((control) => control.label));
+
+  assert.equal(schema.project.key, "pocket-cut");
+  assert.equal(schema.project.name, "Pocket Cut");
+  assert.equal(schema.project.kind, "effect");
+  assert.equal(schema.benchmarkPath, "/generated/apps/pocket-cut/benchmark-results.json");
+  assert.ok(schema.controls.length > 0);
+  assert.ok(schema.meters.length > 0);
+  assert.ok(
+    ["Mode", "Cutoff", "Resonance", "Envelope Follow", "Drive", "Mix"].some((label) => controlLabels.has(label)),
+    "Pocket Cut should expose at least one mini-filter-style control"
+  );
+});
+
+test("headroom schema reserves the mastering-limiter export contract", () => {
+  const { schema } = loadGeneratedProject("headroom");
+  const controlLabels = new Set(schema.controls.map((control) => control.label));
+
+  assert.equal(schema.project.key, "headroom");
+  assert.equal(schema.project.name, "Headroom");
+  assert.equal(schema.project.kind, "effect");
+  assert.equal(schema.benchmarkPath, "/generated/apps/headroom/benchmark-results.json");
+  assert.ok(schema.controls.length > 0);
+  assert.ok(schema.meters.length > 0);
+  assert.ok(
+    ["Ceiling", "Transient", "Lookahead", "Release", "Audition"].some((label) => controlLabels.has(label)),
+    "Headroom should expose at least one mastering-limiter-style control"
+  );
+});
+
+test("latch line schema reserves the gate-expander export contract", () => {
+  const { schema } = loadGeneratedProject("latch-line");
+  const controlLabels = new Set(schema.controls.map((control) => control.label));
+
+  assert.equal(schema.project.key, "latch-line");
+  assert.equal(schema.project.name, "Latch Line");
+  assert.equal(schema.project.kind, "effect");
+  assert.equal(schema.benchmarkPath, "/generated/apps/latch-line/benchmark-results.json");
+  assert.ok(schema.controls.length > 0);
+  assert.ok(schema.meters.length > 0);
+  assert.ok(
+    ["Threshold", "Range", "Hold", "Hysteresis", "Detector HP", "Detector LP"].some((label) => controlLabels.has(label)),
+    "Latch Line should expose at least one gate-or-expander-style control"
+  );
+});
+
+test("silk guard schema reserves the de-esser export contract", () => {
+  const { schema } = loadGeneratedProject("silk-guard");
+  const controlLabels = new Set(schema.controls.map((control) => control.label));
+
+  assert.equal(schema.project.key, "silk-guard");
+  assert.equal(schema.project.name, "Silk Guard");
+  assert.equal(schema.project.kind, "effect");
+  assert.equal(schema.benchmarkPath, "/generated/apps/silk-guard/benchmark-results.json");
+  assert.ok(schema.controls.length > 0);
+  assert.ok(schema.meters.length > 0);
+  assert.ok(
+    ["Threshold", "Range", "Band Frequency", "Lookahead", "Split/Wide"].some((label) => controlLabels.has(label)),
+    "Silk Guard should expose at least one de-esser-style control"
+  );
+});
+
+test("split stack schema reserves the multiband-dynamics export contract", () => {
+  const { schema } = loadGeneratedProject("split-stack");
+  const controlLabels = new Set(schema.controls.map((control) => control.label));
+
+  assert.equal(schema.project.key, "split-stack");
+  assert.equal(schema.project.name, "Split Stack");
+  assert.equal(schema.project.kind, "effect");
+  assert.equal(schema.benchmarkPath, "/generated/apps/split-stack/benchmark-results.json");
+  assert.ok(schema.controls.length > 0);
+  assert.ok(schema.meters.length > 0);
+  assert.ok(
+    ["Low Crossover", "High Crossover", "Low Threshold", "Mid Threshold", "High Threshold", "Mix"].some((label) => controlLabels.has(label)),
+    "Split Stack should expose at least one multiband-dynamics-style control"
+  );
+});
+
 test("workspace manifest exposes the app suite through stable monorepo conventions", () => {
   const workspace = loadGeneratedWorkspace();
 
   assert.equal(workspace.defaultApp, "limiter-lab");
   assert.deepEqual(
-    workspace.apps.map((app) => ({ key: app.key, previewPath: app.previewPath, schemaPath: app.schemaPath })),
+    [...workspace.apps]
+      .map((app) => ({ key: app.key, previewPath: app.previewPath, schemaPath: app.schemaPath }))
+      .sort((left, right) => left.key.localeCompare(right.key)),
     [
+      {
+        key: "atlas-curve",
+        previewPath: "/?app=atlas-curve",
+        schemaPath: "/generated/apps/atlas-curve/ui_schema.json"
+      },
+      {
+        key: "contour-forge",
+        previewPath: "/?app=contour-forge",
+        schemaPath: "/generated/apps/contour-forge/ui_schema.json"
+      },
+      {
+        key: "ember-drive",
+        previewPath: "/?app=ember-drive",
+        schemaPath: "/generated/apps/ember-drive/ui_schema.json"
+      },
+      {
+        key: "headroom",
+        previewPath: "/?app=headroom",
+        schemaPath: "/generated/apps/headroom/ui_schema.json"
+      },
+      {
+        key: "latch-line",
+        previewPath: "/?app=latch-line",
+        schemaPath: "/generated/apps/latch-line/ui_schema.json"
+      },
       {
         key: "limiter-lab",
         previewPath: "/",
         schemaPath: "/generated/apps/limiter-lab/ui_schema.json"
       },
       {
+        key: "mirror-field",
+        previewPath: "/?app=mirror-field",
+        schemaPath: "/generated/apps/mirror-field/ui_schema.json"
+      },
+      {
+        key: "pocket-cut",
+        previewPath: "/?app=pocket-cut",
+        schemaPath: "/generated/apps/pocket-cut/ui_schema.json"
+      },
+      {
+        key: "press-deck",
+        previewPath: "/?app=press-deck",
+        schemaPath: "/generated/apps/press-deck/ui_schema.json"
+      },
+      {
         key: "pulse-pad",
         previewPath: "/?app=pulse-pad",
         schemaPath: "/generated/apps/pulse-pad/ui_schema.json"
+      },
+      {
+        key: "relay-tape",
+        previewPath: "/?app=relay-tape",
+        schemaPath: "/generated/apps/relay-tape/ui_schema.json"
+      },
+      {
+        key: "room-bloom",
+        previewPath: "/?app=room-bloom",
+        schemaPath: "/generated/apps/room-bloom/ui_schema.json"
+      },
+      {
+        key: "seed-tone",
+        previewPath: "/?app=seed-tone",
+        schemaPath: "/generated/apps/seed-tone/ui_schema.json"
+      },
+      {
+        key: "silk-guard",
+        previewPath: "/?app=silk-guard",
+        schemaPath: "/generated/apps/silk-guard/ui_schema.json"
+      },
+      {
+        key: "span-pair",
+        previewPath: "/?app=span-pair",
+        schemaPath: "/generated/apps/span-pair/ui_schema.json"
+      },
+      {
+        key: "split-stack",
+        previewPath: "/?app=split-stack",
+        schemaPath: "/generated/apps/split-stack/ui_schema.json"
       }
     ]
   );

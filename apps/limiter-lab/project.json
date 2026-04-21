@@ -40,6 +40,21 @@
     "className": "LimiterLabDSP"
   },
   "ui": {
+    "family": "northline-core",
+    "familyVersion": 1,
+    "variant": "mastering-limiter",
+    "catalog": {
+      "productId": "headroom",
+      "prototypeRole": "current-app"
+    },
+    "overrides": {
+      "surfacePresetIds": [
+        "history-trace",
+        "meter-stack",
+        "output-popover"
+      ],
+      "layoutProfile": "slider-plus-meter-column"
+    },
     "statusText": "4x oversampled native runtime with shared schema for AppKit and web preview.",
     "controlOrder": [
       "Input Gain",

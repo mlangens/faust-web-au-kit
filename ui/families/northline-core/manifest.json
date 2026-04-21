@@ -1,0 +1,879 @@
+{
+  "$schemaVersion": 1,
+  "id": "northline-core",
+  "displayName": "Studio Workbench Core",
+  "description": "Shared metadata for analyzer-led, meter-rich, modulation-capable audio plug-ins built from a common shell.",
+  "catalog": {
+    "suite": "northline-suite"
+  },
+  "presentation": {
+    "style": "studio-neutral-industrial",
+    "cloneDistance": "feature-first"
+  },
+  "shell": {
+    "eyebrow": "Northline Prototype"
+  },
+  "positioning": {
+    "intent": "Preserve the functional clarity and composable surface model of the research set while steering the future suite toward a more generic studio-industrial presentation.",
+    "visualDirection": "studio-neutral-industrial",
+    "designRules": [
+      "Use rounded-rectangle buttons, restrained dials, and neutral panels instead of direct brand-signature control silhouettes.",
+      "Keep the shell consistent across products and let the central editor surface communicate product identity.",
+      "Favor muted metal, parchment, and glassy accent combinations over glow-heavy, clone-faithful color blocking.",
+      "Treat animations as informative instrumentation, not decorative theater."
+    ],
+    "antiGoals": [
+      "Do not copy product-faithful button chrome, exact halo treatments, or signature panel gradients.",
+      "Do not depend on a single accent color family for the entire suite.",
+      "Do not encode product layout assumptions into the shell when they belong to a reusable surface preset."
+    ]
+  },
+  "visualLanguage": {
+    "shapeTokens": {
+      "panelRadius": 16,
+      "controlRadius": 12,
+      "microRadius": 8,
+      "dialRingWidth": 6,
+      "dividerWeight": 1,
+      "meterWidth": 10,
+      "focusHaloBlur": 14
+    },
+    "palette": {
+      "canvas": "#171a1e",
+      "panel": "#20252b",
+      "panelElevated": "#272d35",
+      "panelInset": "#14171b",
+      "line": "#39414c",
+      "lineSoft": "#2d333c",
+      "textStrong": "#ebe6dc",
+      "textMuted": "#98a2ad",
+      "textDim": "#69727d",
+      "focus": "#d9a64a",
+      "info": "#63b7c8",
+      "positive": "#72bf78",
+      "warning": "#d38a54",
+      "danger": "#dc6b63"
+    },
+    "accentPalettes": {
+      "amber-slate": {
+        "primary": "#d7a24e",
+        "secondary": "#7cc3c6",
+        "surfaceTint": "#2b2a25"
+      },
+      "teal-sand": {
+        "primary": "#69b6b7",
+        "secondary": "#d4b17a",
+        "surfaceTint": "#242a29"
+      },
+      "copper-sky": {
+        "primary": "#cf8759",
+        "secondary": "#79b4d1",
+        "surfaceTint": "#2b2522"
+      },
+      "sea-ember": {
+        "primary": "#68b1c5",
+        "secondary": "#d98a5d",
+        "surfaceTint": "#22292a"
+      },
+      "moss-brass": {
+        "primary": "#8ea85f",
+        "secondary": "#caa356",
+        "surfaceTint": "#252922"
+      },
+      "sand-mint": {
+        "primary": "#d6c198",
+        "secondary": "#80bda3",
+        "surfaceTint": "#2b2924"
+      }
+    },
+    "typography": {
+      "primaryFamily": "Satoshi, General Sans, Avenir Next, sans-serif",
+      "secondaryFamily": "IBM Plex Sans Condensed, sans-serif",
+      "caseStyle": "sentence-case labels with uppercase micro-labels only for meters and transport-sized affordances",
+      "figureStyle": "tabular values for meters, curves, and typed entry"
+    },
+    "motion": {
+      "easing": "fast-out-slow-in",
+      "hoverDurationMs": 90,
+      "popoverDurationMs": 120,
+      "meterSmoothing": "restrained",
+      "animationBias": "instrument-first"
+    },
+    "chrome": {
+      "buttonStyle": "capsule",
+      "toggleStyle": "segmented-inset",
+      "dialStyle": "matte-pointer-arc",
+      "meterStyle": "thin-trough",
+      "gridStyle": "soft-crosshair",
+      "surfaceStyle": "matte-workbench"
+    }
+  },
+  "sharedPrimitives": {
+    "shell": [
+      "preset-header",
+      "ab-compare",
+      "undo-redo",
+      "help-entry",
+      "resize-handle",
+      "full-screen-toggle",
+      "status-strip"
+    ],
+    "controls": [
+      "dial",
+      "mini-dial",
+      "segmented-toggle",
+      "capsule-button",
+      "vertical-slider",
+      "range-slider",
+      "band-handle",
+      "slot-chip",
+      "xy-pad",
+      "virtual-keyboard"
+    ],
+    "surfaces": [
+      "graph-canvas",
+      "history-trace",
+      "multiband-editor",
+      "meter-stack",
+      "routing-matrix",
+      "module-rack",
+      "delay-timeline",
+      "keyboard-strip"
+    ],
+    "overlays": [
+      "popover-panel",
+      "value-bubble",
+      "selection-rectangle",
+      "audition-overlay",
+      "modulation-target-highlight",
+      "instance-list"
+    ]
+  },
+  "interactionGrammar": {
+    "knobs": [
+      "Vertical drag is the default gesture.",
+      "Shift enables fine adjustment.",
+      "Mouse wheel increments the current value when available.",
+      "Double-click opens typed entry when a renderer supports it.",
+      "Reset should prefer modifier-click over dedicated chrome where possible."
+    ],
+    "canvases": [
+      "Primary displays should accept direct manipulation for creation, drag, resize, and multi-selection.",
+      "Rectangle selection is preferred for band, node, and region surfaces.",
+      "Alt-modified gestures can toggle bypass or linked movement, but visual hints should stay generic rather than brand-mimetic.",
+      "Popovers should anchor near the selected entity and never obscure the full editor unnecessarily."
+    ],
+    "popovers": [
+      "Hover may reveal read-only context; click makes advanced panels sticky.",
+      "Output or options popovers should open from the footer or meter edge, not from hidden hot zones alone.",
+      "Transient overlays should fade quickly and avoid theatrical scale animations."
+    ],
+    "modulation": [
+      "Drag sources to targets to create routings.",
+      "Source and target highlighting should prioritize contrast over glow volume.",
+      "Slot editors should be compact cards with clear invert, amount, bypass, and remove actions.",
+      "The modulation language should be identical across synth, filter, delay, and saturation products."
+    ]
+  },
+  "controlKinds": {
+    "dial": {
+      "shape": "generic-dial",
+      "supports": [
+        "drag",
+        "mouse-wheel",
+        "fine-adjust",
+        "typed-entry",
+        "reset"
+      ]
+    },
+    "mini-dial": {
+      "shape": "compact-dial",
+      "supports": [
+        "drag",
+        "mouse-wheel",
+        "fine-adjust"
+      ]
+    },
+    "segmented-toggle": {
+      "shape": "inset-segmented",
+      "supports": [
+        "single-select",
+        "mode-switch"
+      ]
+    },
+    "capsule-button": {
+      "shape": "rounded-rectangle",
+      "supports": [
+        "toggle",
+        "momentary-hold",
+        "sticky-open"
+      ]
+    },
+    "vertical-slider": {
+      "shape": "fader-slot",
+      "supports": [
+        "drag",
+        "typed-entry",
+        "linked-adjust"
+      ]
+    },
+    "band-handle": {
+      "shape": "node-with-ring",
+      "supports": [
+        "drag",
+        "resize",
+        "bypass",
+        "multi-select"
+      ]
+    },
+    "band-region": {
+      "shape": "range-block",
+      "supports": [
+        "drag",
+        "resize",
+        "snap",
+        "solo",
+        "mute"
+      ]
+    },
+    "slot-chip": {
+      "shape": "compact-card",
+      "supports": [
+        "drag",
+        "reassign",
+        "invert",
+        "delete"
+      ]
+    },
+    "xy-pad": {
+      "shape": "square-pad",
+      "supports": [
+        "drag",
+        "axis-lock",
+        "reset"
+      ]
+    },
+    "virtual-keyboard": {
+      "shape": "piano-strip",
+      "supports": [
+        "note-entry",
+        "note-quantize",
+        "preview"
+      ]
+    }
+  },
+  "formatters": {
+    "percent": {
+      "unit": "%",
+      "precision": 0
+    },
+    "decibels": {
+      "unit": "dB",
+      "precision": 1
+    },
+    "decibels-short": {
+      "unit": "dB",
+      "precision": 0
+    },
+    "milliseconds": {
+      "unit": "ms",
+      "precision": 2
+    },
+    "seconds": {
+      "unit": "s",
+      "precision": 2
+    },
+    "hertz": {
+      "unit": "Hz",
+      "precision": 0
+    },
+    "kilohertz": {
+      "unit": "kHz",
+      "precision": 2
+    },
+    "ratio": {
+      "unit": ":1",
+      "precision": 2
+    },
+    "semitones": {
+      "unit": "st",
+      "precision": 0
+    },
+    "voices": {
+      "unit": "voices",
+      "precision": 0
+    },
+    "note-value": {
+      "unit": "note",
+      "precision": 0
+    }
+  },
+  "meterPresets": {
+    "peak": {
+      "mode": "peak",
+      "style": "thin-trough",
+      "ballistics": "fast-rise-medium-fall"
+    },
+    "gain-reduction": {
+      "mode": "gr",
+      "style": "thin-trough",
+      "ballistics": "fast-rise-slow-fall"
+    },
+    "true-peak": {
+      "mode": "tp",
+      "style": "alert-peak",
+      "ballistics": "fast-rise-medium-fall"
+    },
+    "loudness-short-term": {
+      "mode": "lufs-short-term",
+      "style": "numeric-plus-bar",
+      "ballistics": "slow-average"
+    },
+    "loudness-integrated": {
+      "mode": "lufs-integrated",
+      "style": "numeric-emphasis",
+      "ballistics": "program-average"
+    },
+    "synth-energy": {
+      "mode": "peak",
+      "style": "wide-energy",
+      "ballistics": "musical"
+    },
+    "modulation-depth": {
+      "mode": "depth",
+      "style": "lane-meter",
+      "ballistics": "responsive"
+    }
+  },
+  "analyzerPresets": {
+    "spectrum": {
+      "curve": "frequency",
+      "overlay": "filled-line",
+      "grid": "log-frequency"
+    },
+    "gain-history": {
+      "curve": "level-history",
+      "overlay": "reduction-trace",
+      "grid": "time-amplitude"
+    },
+    "decay-field": {
+      "curve": "decay-heat",
+      "overlay": "eq-curves",
+      "grid": "time-frequency"
+    },
+    "tap-activity": {
+      "curve": "timeline-bars",
+      "overlay": "feedback-lanes",
+      "grid": "musical-time"
+    },
+    "modulation-lanes": {
+      "curve": "source-lanes",
+      "overlay": "target-strength",
+      "grid": "assignment"
+    }
+  },
+  "surfacePresets": {
+    "eq-canvas": {
+      "kind": "graph-canvas",
+      "supports": [
+        "band-create",
+        "band-drag",
+        "band-shape",
+        "multi-select",
+        "analyzer-overlay"
+      ]
+    },
+    "history-trace": {
+      "kind": "history-trace",
+      "supports": [
+        "level-history",
+        "gain-reduction-overlay",
+        "floating-readouts"
+      ]
+    },
+    "meter-stack": {
+      "kind": "meter-stack",
+      "supports": [
+        "peak",
+        "gain-reduction",
+        "loudness",
+        "stereo-balance"
+      ]
+    },
+    "sidechain-editor": {
+      "kind": "graph-canvas",
+      "supports": [
+        "filter-bands",
+        "audition",
+        "mid-side-targeting"
+      ]
+    },
+    "advanced-drawer": {
+      "kind": "slide-panel",
+      "supports": [
+        "mode-switches",
+        "oversampling",
+        "linking",
+        "dither"
+      ]
+    },
+    "reverb-space": {
+      "kind": "hybrid-canvas",
+      "supports": [
+        "space-control",
+        "decay-rate-eq",
+        "post-eq",
+        "piano-quantize"
+      ]
+    },
+    "multiband-editor": {
+      "kind": "region-editor",
+      "supports": [
+        "band-create",
+        "split",
+        "snap",
+        "per-band-inspectors"
+      ]
+    },
+    "band-inspector": {
+      "kind": "linked-strip",
+      "supports": [
+        "selection-linked-controls",
+        "solo",
+        "mute",
+        "bypass"
+      ]
+    },
+    "detector-filter": {
+      "kind": "hybrid-strip",
+      "supports": [
+        "threshold-meter",
+        "detector-range",
+        "audition"
+      ]
+    },
+    "transfer-curve": {
+      "kind": "hybrid-canvas",
+      "supports": [
+        "transfer-display",
+        "time-controls",
+        "meter-overlay"
+      ]
+    },
+    "delay-timeline": {
+      "kind": "timeline-editor",
+      "supports": [
+        "tap-edit",
+        "feedback-lanes",
+        "time-sync",
+        "freeze"
+      ]
+    },
+    "filter-canvas": {
+      "kind": "graph-canvas",
+      "supports": [
+        "filter-create",
+        "routing-overlay",
+        "piano-overlay",
+        "modulation-overlay"
+      ]
+    },
+    "routing-matrix": {
+      "kind": "routing-control",
+      "supports": [
+        "serial-parallel",
+        "channel-mode",
+        "pan-or-placement"
+      ]
+    },
+    "modulation-dock": {
+      "kind": "modulation-dock",
+      "supports": [
+        "source-rail",
+        "slot-panel",
+        "assignment-highlights",
+        "source-editors"
+      ]
+    },
+    "module-rack": {
+      "kind": "card-rack",
+      "supports": [
+        "effect-cards",
+        "oscillator-cards",
+        "module-popouts"
+      ]
+    },
+    "keyboard-strip": {
+      "kind": "keyboard-strip",
+      "supports": [
+        "note-preview",
+        "note-quantize",
+        "input-display"
+      ]
+    },
+    "oscillator-stack": {
+      "kind": "card-stack",
+      "supports": [
+        "waveform-preview",
+        "voice-layering",
+        "per-module-controls"
+      ]
+    },
+    "section-grid": {
+      "kind": "section-grid",
+      "supports": [
+        "panel-groups",
+        "simple-routing",
+        "compact-toggles"
+      ]
+    },
+    "instance-strip": {
+      "kind": "list-strip",
+      "supports": [
+        "instance-awareness",
+        "mini-analyzers",
+        "jump-to-track"
+      ]
+    },
+    "output-popover": {
+      "kind": "popover-panel",
+      "supports": [
+        "input-output-trim",
+        "stereo-options",
+        "render-quality"
+      ]
+    }
+  },
+  "variants": {
+    "spectral-eq": {
+      "group": "mix",
+      "accentPaletteId": "copper-sky",
+      "surfacePresetIds": [
+        "eq-canvas",
+        "instance-strip",
+        "output-popover"
+      ],
+      "analyzerPresetIds": [
+        "spectrum"
+      ],
+      "meterPresetIds": [
+        "peak"
+      ],
+      "controlKindIds": [
+        "band-handle",
+        "dial",
+        "capsule-button",
+        "segmented-toggle"
+      ],
+      "layoutProfile": "hero-canvas"
+    },
+    "character-compressor": {
+      "group": "mix",
+      "accentPaletteId": "amber-slate",
+      "surfacePresetIds": [
+        "history-trace",
+        "sidechain-editor",
+        "meter-stack",
+        "output-popover"
+      ],
+      "analyzerPresetIds": [
+        "gain-history",
+        "spectrum"
+      ],
+      "meterPresetIds": [
+        "peak",
+        "gain-reduction"
+      ],
+      "controlKindIds": [
+        "dial",
+        "capsule-button",
+        "segmented-toggle"
+      ],
+      "layoutProfile": "hero-display-with-footer"
+    },
+    "mastering-limiter": {
+      "group": "mastering",
+      "accentPaletteId": "amber-slate",
+      "surfacePresetIds": [
+        "history-trace",
+        "advanced-drawer",
+        "meter-stack",
+        "output-popover"
+      ],
+      "analyzerPresetIds": [
+        "gain-history"
+      ],
+      "meterPresetIds": [
+        "peak",
+        "gain-reduction",
+        "true-peak",
+        "loudness-short-term",
+        "loudness-integrated"
+      ],
+      "controlKindIds": [
+        "vertical-slider",
+        "dial",
+        "capsule-button",
+        "segmented-toggle"
+      ],
+      "layoutProfile": "slider-plus-meter-column"
+    },
+    "space-reverb": {
+      "group": "space",
+      "accentPaletteId": "sea-ember",
+      "surfacePresetIds": [
+        "reverb-space",
+        "meter-stack",
+        "output-popover"
+      ],
+      "analyzerPresetIds": [
+        "decay-field"
+      ],
+      "meterPresetIds": [
+        "peak"
+      ],
+      "controlKindIds": [
+        "dial",
+        "band-handle",
+        "capsule-button",
+        "segmented-toggle"
+      ],
+      "layoutProfile": "macro-row-plus-canvas"
+    },
+    "multiband-dynamics": {
+      "group": "mix",
+      "accentPaletteId": "copper-sky",
+      "surfacePresetIds": [
+        "multiband-editor",
+        "band-inspector",
+        "meter-stack",
+        "output-popover"
+      ],
+      "analyzerPresetIds": [
+        "spectrum"
+      ],
+      "meterPresetIds": [
+        "peak",
+        "gain-reduction"
+      ],
+      "controlKindIds": [
+        "band-region",
+        "dial",
+        "capsule-button",
+        "segmented-toggle"
+      ],
+      "layoutProfile": "editor-plus-inspector"
+    },
+    "precision-de-esser": {
+      "group": "mix",
+      "accentPaletteId": "sea-ember",
+      "surfacePresetIds": [
+        "history-trace",
+        "detector-filter",
+        "meter-stack",
+        "output-popover"
+      ],
+      "analyzerPresetIds": [
+        "spectrum",
+        "gain-history"
+      ],
+      "meterPresetIds": [
+        "peak",
+        "gain-reduction"
+      ],
+      "controlKindIds": [
+        "dial",
+        "capsule-button",
+        "segmented-toggle"
+      ],
+      "layoutProfile": "detector-led"
+    },
+    "gate-expander": {
+      "group": "mix",
+      "accentPaletteId": "amber-slate",
+      "surfacePresetIds": [
+        "transfer-curve",
+        "sidechain-editor",
+        "meter-stack",
+        "output-popover"
+      ],
+      "analyzerPresetIds": [
+        "gain-history"
+      ],
+      "meterPresetIds": [
+        "peak",
+        "gain-reduction"
+      ],
+      "controlKindIds": [
+        "dial",
+        "capsule-button",
+        "segmented-toggle"
+      ],
+      "layoutProfile": "curve-led"
+    },
+    "multiband-saturation": {
+      "group": "creative-effect",
+      "accentPaletteId": "copper-sky",
+      "surfacePresetIds": [
+        "multiband-editor",
+        "band-inspector",
+        "modulation-dock",
+        "output-popover"
+      ],
+      "analyzerPresetIds": [
+        "spectrum",
+        "modulation-lanes"
+      ],
+      "meterPresetIds": [
+        "peak",
+        "modulation-depth"
+      ],
+      "controlKindIds": [
+        "band-region",
+        "dial",
+        "slot-chip",
+        "capsule-button",
+        "segmented-toggle"
+      ],
+      "layoutProfile": "editor-plus-dock"
+    },
+    "mod-delay": {
+      "group": "creative-effect",
+      "accentPaletteId": "teal-sand",
+      "surfacePresetIds": [
+        "delay-timeline",
+        "filter-canvas",
+        "modulation-dock",
+        "output-popover"
+      ],
+      "analyzerPresetIds": [
+        "tap-activity",
+        "modulation-lanes"
+      ],
+      "meterPresetIds": [
+        "peak",
+        "modulation-depth"
+      ],
+      "controlKindIds": [
+        "dial",
+        "band-handle",
+        "slot-chip",
+        "capsule-button",
+        "segmented-toggle"
+      ],
+      "layoutProfile": "timeline-plus-dock"
+    },
+    "routable-filter": {
+      "group": "creative-effect",
+      "accentPaletteId": "moss-brass",
+      "surfacePresetIds": [
+        "filter-canvas",
+        "routing-matrix",
+        "modulation-dock",
+        "output-popover"
+      ],
+      "analyzerPresetIds": [
+        "spectrum",
+        "modulation-lanes"
+      ],
+      "meterPresetIds": [
+        "peak",
+        "modulation-depth"
+      ],
+      "controlKindIds": [
+        "band-handle",
+        "dial",
+        "slot-chip",
+        "capsule-button",
+        "segmented-toggle"
+      ],
+      "layoutProfile": "canvas-plus-routing"
+    },
+    "modular-synth": {
+      "group": "instrument",
+      "accentPaletteId": "teal-sand",
+      "surfacePresetIds": [
+        "oscillator-stack",
+        "filter-canvas",
+        "module-rack",
+        "modulation-dock",
+        "keyboard-strip"
+      ],
+      "analyzerPresetIds": [
+        "modulation-lanes"
+      ],
+      "meterPresetIds": [
+        "synth-energy",
+        "modulation-depth"
+      ],
+      "controlKindIds": [
+        "dial",
+        "slot-chip",
+        "xy-pad",
+        "capsule-button",
+        "virtual-keyboard"
+      ],
+      "layoutProfile": "modules-plus-dock"
+    },
+    "simple-synth": {
+      "group": "instrument",
+      "accentPaletteId": "sea-ember",
+      "surfacePresetIds": [
+        "section-grid",
+        "meter-stack"
+      ],
+      "analyzerPresetIds": [],
+      "meterPresetIds": [
+        "synth-energy"
+      ],
+      "controlKindIds": [
+        "dial",
+        "capsule-button",
+        "segmented-toggle"
+      ],
+      "layoutProfile": "single-panel-grid"
+    },
+    "dual-filter": {
+      "group": "utility-effect",
+      "accentPaletteId": "sand-mint",
+      "surfacePresetIds": [
+        "filter-canvas",
+        "routing-matrix",
+        "output-popover"
+      ],
+      "analyzerPresetIds": [
+        "spectrum"
+      ],
+      "meterPresetIds": [
+        "peak"
+      ],
+      "controlKindIds": [
+        "band-handle",
+        "dial",
+        "capsule-button",
+        "segmented-toggle"
+      ],
+      "layoutProfile": "paired-surface"
+    },
+    "mini-filter": {
+      "group": "utility-effect",
+      "accentPaletteId": "sand-mint",
+      "surfacePresetIds": [
+        "filter-canvas",
+        "output-popover"
+      ],
+      "analyzerPresetIds": [
+        "spectrum"
+      ],
+      "meterPresetIds": [
+        "peak"
+      ],
+      "controlKindIds": [
+        "band-handle",
+        "dial",
+        "capsule-button"
+      ],
+      "layoutProfile": "compact-surface"
+    }
+  }
+}

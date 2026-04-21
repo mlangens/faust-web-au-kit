@@ -1,0 +1,258 @@
+{
+  "$schemaVersion": 1,
+  "id": "northline-suite",
+  "displayName": "Northline Audio",
+  "family": "northline-core",
+  "description": "Feature-inspired product catalog for a shared family manifest.",
+  "namingTone": [
+    "Prefer short, self-contained names that hint at the workflow instead of the original product letter-number cadence.",
+    "Keep the names plausible enough to ship on their own, with a light nod to the inspiration only for people who know what they are looking at.",
+    "Use the family manifest for shared styling so the names can stay calm and product-facing."
+  ],
+  "visualPolicy": {
+    "cloneDistance": "feature-first",
+    "buttonLanguage": "capsule and inset toggles instead of product-faithful circular chrome",
+    "panelLanguage": "neutral graphite workbench panels with subtle accent tinting",
+    "graphLanguage": "clean instrumentation grids, direct manipulation, restrained haloing"
+  },
+  "products": [
+    {
+      "id": "atlas-curve",
+      "displayName": "Atlas Curve",
+      "referenceProduct": "Reference Pro-Q 4",
+      "variant": "spectral-eq",
+      "category": "equalizer",
+      "status": "planned",
+      "implementationOrder": 1,
+      "tagline": "Precision equalizer with dynamic and spectral band editing.",
+      "accentPaletteId": "copper-sky",
+      "featureAnchors": [
+        "up to 24 bands",
+        "dynamic and spectral band workflows",
+        "instance-aware analysis",
+        "direct graph sketching"
+      ]
+    },
+    {
+      "id": "press-deck",
+      "displayName": "Press Deck",
+      "referenceProduct": "Reference Pro-C 3",
+      "variant": "character-compressor",
+      "category": "dynamics",
+      "status": "planned",
+      "implementationOrder": 2,
+      "tagline": "Character compressor with multiple styles, sidechain shaping, and display-led feedback.",
+      "accentPaletteId": "amber-slate",
+      "featureAnchors": [
+        "multiple compression styles",
+        "sidechain EQ editing",
+        "auto-threshold and auto-release helpers",
+        "animated level display"
+      ]
+    },
+    {
+      "id": "headroom",
+      "displayName": "Headroom",
+      "referenceProduct": "Reference Pro-L 2",
+      "variant": "mastering-limiter",
+      "category": "mastering",
+      "status": "planned",
+      "implementationOrder": 2,
+      "tagline": "True-peak limiter with loudness metering, audition tools, and mastering utilities.",
+      "accentPaletteId": "amber-slate",
+      "featureAnchors": [
+        "multiple limiting algorithms",
+        "true-peak limiting",
+        "integrated loudness views",
+        "oversampling and dithering controls"
+      ]
+    },
+    {
+      "id": "room-bloom",
+      "displayName": "Room Bloom",
+      "referenceProduct": "Reference Pro-R 2",
+      "variant": "space-reverb",
+      "category": "reverb",
+      "status": "planned",
+      "implementationOrder": 2,
+      "tagline": "Musical reverb with macro room shaping, decay contouring, and post-EQ.",
+      "accentPaletteId": "sea-ember",
+      "featureAnchors": [
+        "macro room controls",
+        "decay-rate EQ",
+        "post EQ",
+        "freeze and gating behaviors"
+      ]
+    },
+    {
+      "id": "split-stack",
+      "displayName": "Split Stack",
+      "referenceProduct": "Reference Pro-MB",
+      "variant": "multiband-dynamics",
+      "category": "multiband-dynamics",
+      "status": "planned",
+      "implementationOrder": 3,
+      "tagline": "Freely placed multiband dynamics with compression, expansion, and crossover-aware editing.",
+      "accentPaletteId": "copper-sky",
+      "featureAnchors": [
+        "free band placement",
+        "snap and split crossovers",
+        "compression and expansion modes",
+        "dynamic phase style behavior"
+      ]
+    },
+    {
+      "id": "silk-guard",
+      "displayName": "Silk Guard",
+      "referenceProduct": "Reference Pro-DS",
+      "variant": "precision-de-esser",
+      "category": "de-esser",
+      "status": "planned",
+      "implementationOrder": 2,
+      "tagline": "Focused de-esser with detector auditioning and wide-vs-split handling.",
+      "accentPaletteId": "sea-ember",
+      "featureAnchors": [
+        "single-vocal and allround detection",
+        "detector band focus",
+        "wide or split band processing",
+        "lookahead and linking controls"
+      ]
+    },
+    {
+      "id": "latch-line",
+      "displayName": "Latch Line",
+      "referenceProduct": "Reference Pro-G",
+      "variant": "gate-expander",
+      "category": "gate-expander",
+      "status": "planned",
+      "implementationOrder": 2,
+      "tagline": "Gate and expander with transfer display, expert sidechain shaping, and ducking modes.",
+      "accentPaletteId": "amber-slate",
+      "featureAnchors": [
+        "multiple gate and expansion styles",
+        "transfer curve display",
+        "expert sidechain filter controls",
+        "ducking and upward workflows"
+      ]
+    },
+    {
+      "id": "ember-drive",
+      "displayName": "Ember Drive",
+      "referenceProduct": "Reference Saturn 2",
+      "variant": "multiband-saturation",
+      "category": "saturation",
+      "status": "planned",
+      "implementationOrder": 4,
+      "tagline": "Multiband saturation workstation with modulation, crossover editing, and deep per-band tone shaping.",
+      "accentPaletteId": "copper-sky",
+      "featureAnchors": [
+        "up to 6 bands",
+        "style-per-band distortion",
+        "drag-and-drop modulation",
+        "linear phase and quality modes"
+      ]
+    },
+    {
+      "id": "relay-tape",
+      "displayName": "Relay Tape",
+      "referenceProduct": "Reference Timeless 3",
+      "variant": "mod-delay",
+      "category": "delay",
+      "status": "planned",
+      "implementationOrder": 5,
+      "tagline": "Delay workstation with tap editing, filter feedback sculpting, and modulation sources.",
+      "accentPaletteId": "teal-sand",
+      "featureAnchors": [
+        "tap editing",
+        "feedback effects",
+        "multi-filter routing",
+        "tape and stretch timing modes"
+      ]
+    },
+    {
+      "id": "contour-forge",
+      "displayName": "Contour Forge",
+      "referenceProduct": "Reference Volcano 3",
+      "variant": "routable-filter",
+      "category": "filter",
+      "status": "planned",
+      "implementationOrder": 5,
+      "tagline": "Routing-focused filter lab with four filters, modulation, and channel-aware control.",
+      "accentPaletteId": "moss-brass",
+      "featureAnchors": [
+        "multi-filter routing",
+        "drive and style per filter",
+        "drag-and-drop modulation",
+        "stereo, left-right, and mid-side modes"
+      ]
+    },
+    {
+      "id": "mirror-field",
+      "displayName": "Mirror Field",
+      "referenceProduct": "Reference Twin 3",
+      "variant": "modular-synth",
+      "category": "synthesizer",
+      "status": "planned",
+      "implementationOrder": 5,
+      "tagline": "Modular synth with layered oscillators, flexible filters, effects, and visible modulation routing.",
+      "accentPaletteId": "teal-sand",
+      "featureAnchors": [
+        "multi-oscillator voice design",
+        "interactive filter canvas",
+        "modulation matrix and source rail",
+        "effect rack and performance controls"
+      ]
+    },
+    {
+      "id": "seed-tone",
+      "displayName": "Seed Tone",
+      "referenceProduct": "Reference One",
+      "variant": "simple-synth",
+      "category": "synthesizer",
+      "status": "planned",
+      "implementationOrder": 6,
+      "tagline": "Compact subtractive synth with one oscillator, one filter, and a clean performance panel.",
+      "accentPaletteId": "sea-ember",
+      "featureAnchors": [
+        "single oscillator",
+        "basic low-pass filter",
+        "tempo-synced modulation generator",
+        "simple mono-poly performance controls"
+      ]
+    },
+    {
+      "id": "span-pair",
+      "displayName": "Span Pair",
+      "referenceProduct": "Reference Simplon",
+      "variant": "dual-filter",
+      "category": "filter",
+      "status": "planned",
+      "implementationOrder": 6,
+      "tagline": "Two-filter utility with paired editing, serial-parallel routing, and minimal chrome.",
+      "accentPaletteId": "sand-mint",
+      "featureAnchors": [
+        "dual filters",
+        "serial and parallel routing",
+        "linked handle moves",
+        "character and slope controls"
+      ]
+    },
+    {
+      "id": "pocket-cut",
+      "displayName": "Pocket Cut",
+      "referenceProduct": "Reference Micro",
+      "variant": "mini-filter",
+      "category": "filter",
+      "status": "planned",
+      "implementationOrder": 6,
+      "tagline": "Mini filter utility with envelope-following movement and a single focused canvas.",
+      "accentPaletteId": "sand-mint",
+      "featureAnchors": [
+        "single filter node",
+        "low-pass and high-pass modes",
+        "envelope follower controls",
+        "minimalist utility layout"
+      ]
+    }
+  ]
+}

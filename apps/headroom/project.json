@@ -1,0 +1,255 @@
+{
+  "name": "headroom",
+  "version": "0.2.0",
+  "owner": "mlangens",
+  "companyName": "Max Langensiepen",
+  "companyTag": "Mlng",
+  "productName": "Headroom",
+  "artifactStem": "Headroom",
+  "bundleId": "io.github.mlangens.faust-web-au-kit.headroom",
+  "description": "Adaptive mastering limiter with richer algorithm/detail voicing, linked clamp behavior, and a fuller Northline dynamics surface.",
+  "license": "MIT",
+  "plugin": {
+    "kind": "effect",
+    "inputs": 2,
+    "outputs": 2,
+    "midiInput": false,
+    "latencySeconds": 0.0025,
+    "gui": {
+      "native": true,
+      "webPreview": true,
+      "resizable": true
+    }
+  },
+  "targets": {
+    "native": [
+      "auv2",
+      "clap",
+      "vst3",
+      "standalone"
+    ],
+    "active": []
+  },
+  "oversampling": {
+    "factor": 4
+  },
+  "faust": {
+    "source": "./dsp/main.dsp",
+    "className": "HeadroomDSP"
+  },
+  "ui": {
+    "family": "northline-core",
+    "familyVersion": 1,
+    "variant": "mastering-limiter",
+    "catalog": {
+      "productId": "headroom",
+      "prototypeRole": "fidelity-wave-headroom"
+    },
+    "overrides": {
+      "surfacePresetIds": [
+        "history-trace",
+        "meter-stack",
+        "output-popover"
+      ],
+      "layoutProfile": "slider-plus-meter-column"
+    },
+    "shell": {
+      "hero": {
+        "status": "Mastering limiter fidelity pass with deeper clamp voicing, detail-aware detection, and neutral Northline studio chrome."
+      },
+      "sections": {
+        "controls": {
+          "title": "Limiter Surface",
+          "description": "Headroom now centers on algorithm voicing, detail-aware clamp behavior, stereo linking, ceiling shaping, and matched-output auditioning."
+        },
+        "meters": {
+          "title": "Response Preview",
+          "description": "The limiter contract now tracks input, drive, gain reduction, ceiling activity, and output so the mastering lane reads more like a finished tool."
+        }
+      }
+    },
+    "display": {
+      "enumLabels": {
+        "Algorithm": [
+          "Clear",
+          "Adaptive",
+          "Firm",
+          "Lift"
+        ],
+        "Style": [
+          "Open",
+          "Focused",
+          "Dense"
+        ],
+        "Detail": [
+          "Broad",
+          "Balanced",
+          "Edge"
+        ],
+        "Audition": [
+          "Program",
+          "Delta",
+          "Clamp"
+        ]
+      }
+    },
+    "statusText": "Adaptive mastering limiter with algorithm voicing, detail-sensitive detection, stereo linking, ceiling shaping, and audition utilities.",
+    "controlOrder": [
+      "Algorithm",
+      "Style",
+      "Detail",
+      "Input Gain",
+      "Drive",
+      "Ceiling",
+      "Lookahead",
+      "Release",
+      "Stereo Link",
+      "Transient Preserve",
+      "Low Guard",
+      "Ceiling Shape",
+      "Output Trim",
+      "Loudness Match",
+      "Audition",
+      "Bypass"
+    ],
+    "meters": [
+      {
+        "id": "inputPeak",
+        "label": "Input Peak",
+        "max": 78,
+        "mode": "peak",
+        "style": "thin-trough",
+        "ballistics": "fast-rise-medium-fall"
+      },
+      {
+        "id": "detectorDrive",
+        "label": "Drive Level",
+        "max": 78,
+        "mode": "peak",
+        "style": "thin-trough",
+        "ballistics": "fast-rise-medium-fall"
+      },
+      {
+        "id": "gainReduction",
+        "label": "Gain Reduction",
+        "max": 30,
+        "mode": "gr",
+        "style": "thin-trough",
+        "ballistics": "fast-rise-slow-fall"
+      },
+      {
+        "id": "ceilingActivity",
+        "label": "Ceiling Activity",
+        "max": 78,
+        "mode": "peak",
+        "style": "thin-trough",
+        "ballistics": "fast-rise-slow-fall"
+      },
+      {
+        "id": "outputPeak",
+        "label": "Output Peak",
+        "max": 78,
+        "mode": "peak",
+        "style": "thin-trough",
+        "ballistics": "fast-rise-medium-fall"
+      }
+    ]
+  },
+  "au": {
+    "type": "aufx",
+    "subtype": "Hdrm",
+    "manufacturer": "Mlng",
+    "tags": [
+      "Dynamics",
+      "Effects"
+    ]
+  },
+  "clap": {
+    "id": "io.github.mlangens.faust-web-au-kit.headroom",
+    "description": "Adaptive mastering limiter with richer voicing, linked clamp behavior, and audition utilities.",
+    "features": [
+      "audio-effect",
+      "limiter",
+      "mastering",
+      "stereo"
+    ]
+  },
+  "vst3": {
+    "categories": [
+      "Fx",
+      "Dynamics",
+      "Stereo"
+    ],
+    "componentTuid": [
+      "Mlng",
+      "Comp",
+      "Hdrm",
+      0
+    ],
+    "controllerTuid": [
+      "Mlng",
+      "Edit",
+      "Hdrm",
+      0
+    ]
+  },
+  "standalone": {
+    "bundleId": "io.github.mlangens.faust-web-au-kit.headroom.app"
+  },
+  "benchmark": {
+    "sampleRate": 48000,
+    "blockSize": 256,
+    "seconds": 6,
+    "initialControls": [
+      {
+        "label": "Algorithm",
+        "value": 1
+      },
+      {
+        "label": "Style",
+        "value": 1
+      },
+      {
+        "label": "Detail",
+        "value": 1
+      },
+      {
+        "label": "Input Gain",
+        "value": 2.5
+      },
+      {
+        "label": "Drive",
+        "value": 4.5
+      },
+      {
+        "label": "Ceiling",
+        "value": -0.8
+      },
+      {
+        "label": "Lookahead",
+        "value": 2.5
+      },
+      {
+        "label": "Release",
+        "value": 180
+      },
+      {
+        "label": "Low Guard",
+        "value": 48
+      },
+      {
+        "label": "Ceiling Shape",
+        "value": 34
+      }
+    ],
+    "nativeTargets": [
+      "c",
+      "cpp",
+      "wasm"
+    ],
+    "exportOnlyTargets": [
+      "cmajor",
+      "rust"
+    ]
+  }
+}

@@ -1,0 +1,271 @@
+{
+  "name": "atlas-curve",
+  "version": "0.1.0",
+  "owner": "mlangens",
+  "companyName": "Max Langensiepen",
+  "companyTag": "Mlng",
+  "productName": "Atlas Curve",
+  "artifactStem": "AtlasCurve",
+  "bundleId": "io.github.mlangens.faust-web-au-kit.atlas-curve",
+  "description": "Flagship Northline EQ pass with dual sculpting bands, selectable cut slope, adaptive curve guidance, and analyzer-focused helper modes.",
+  "license": "MIT",
+  "plugin": {
+    "kind": "effect",
+    "inputs": 2,
+    "outputs": 2,
+    "midiInput": false,
+    "latencySeconds": 0.0,
+    "gui": {
+      "native": true,
+      "webPreview": true,
+      "resizable": true
+    }
+  },
+  "targets": {
+    "native": [
+      "auv2",
+      "clap",
+      "vst3",
+      "standalone"
+    ],
+    "active": []
+  },
+  "oversampling": {
+    "factor": 1
+  },
+  "faust": {
+    "source": "./dsp/main.dsp",
+    "className": "AtlasCurveDSP"
+  },
+  "ui": {
+    "family": "northline-core",
+    "familyVersion": 1,
+    "variant": "spectral-eq",
+    "catalog": {
+      "productId": "atlas-curve",
+      "prototypeRole": "flagship-fidelity-pass"
+    },
+    "shell": {
+      "hero": {
+        "status": "Flagship equalizer pass with dual sculpting bands, adaptive guidance, and analyzer-aware helper states in neutral studio chrome."
+      },
+      "sections": {
+        "controls": {
+          "title": "Flagship EQ Surface",
+          "description": "Atlas Curve now carries a richer Northline control contract: selectable cut slope, dual mid-band sculpting, tilt and air shaping, plus guide and focus helpers."
+        },
+        "meters": {
+          "title": "Curve Activity",
+          "description": "Preview metering stays schematic, but the surface is now aligned with the richer adaptive and analyzer-aware Atlas Curve DSP pass."
+        }
+      }
+    },
+    "display": {
+      "enumLabels": {
+        "Mode": [
+          "Open",
+          "Sculpt",
+          "Contour",
+          "Polish"
+        ],
+        "Style": [
+          "Neutral",
+          "Warm",
+          "Forward",
+          "Open"
+        ],
+        "Cut Slope": [
+          "12 dB",
+          "24 dB",
+          "36 dB"
+        ],
+        "Band Focus": [
+          "Broad",
+          "Balanced",
+          "Tight",
+          "Split"
+        ],
+        "Analyzer": [
+          "Program",
+          "Low Focus",
+          "Mid Focus",
+          "Air Focus"
+        ]
+      }
+    },
+    "statusText": "Flagship EQ pass with selectable cut slope, dual sculpting bands, tilt and air shaping, adaptive guide behavior, analyzer focus modes, and output trim.",
+    "controlOrder": [
+      "Mode",
+      "Style",
+      "Cut Slope",
+      "Low Cut",
+      "Low Shelf",
+      "Bell Freq",
+      "Bell Gain",
+      "Bell Q",
+      "Presence Freq",
+      "Presence Gain",
+      "Presence Q",
+      "High Shelf",
+      "Air",
+      "Tilt",
+      "Band Focus",
+      "Guide",
+      "Dynamic",
+      "Analyzer",
+      "Output Trim",
+      "Bypass"
+    ],
+    "meters": [
+      {
+        "id": "inputPeak",
+        "label": "Input Peak",
+        "max": 78,
+        "mode": "peak"
+      },
+      {
+        "id": "guideDrive",
+        "label": "Guide Drive",
+        "max": 78,
+        "mode": "peak"
+      },
+      {
+        "id": "outputPeak",
+        "label": "Output Peak",
+        "max": 78,
+        "mode": "peak"
+      }
+    ]
+  },
+  "au": {
+    "type": "aufx",
+    "subtype": "AtCv",
+    "manufacturer": "Mlng",
+    "tags": [
+      "EQ",
+      "Effects"
+    ]
+  },
+  "clap": {
+    "id": "io.github.mlangens.faust-web-au-kit.atlas-curve",
+    "description": "Flagship EQ pass with dual sculpting bands, adaptive guidance, and analyzer-focused helper modes.",
+    "features": [
+      "audio-effect",
+      "mastering",
+      "mixing",
+      "stereo",
+      "analyzer"
+    ]
+  },
+  "vst3": {
+    "categories": [
+      "Fx",
+      "EQ",
+      "Mastering",
+      "Stereo"
+    ],
+    "componentTuid": [
+      "Mlng",
+      "EqFx",
+      "AtCv",
+      0
+    ],
+    "controllerTuid": [
+      "Mlng",
+      "Edit",
+      "AtCv",
+      0
+    ]
+  },
+  "standalone": {
+    "bundleId": "io.github.mlangens.faust-web-au-kit.atlas-curve.app"
+  },
+  "benchmark": {
+    "sampleRate": 48000,
+    "blockSize": 256,
+    "seconds": 6,
+    "initialControls": [
+      {
+        "label": "Mode",
+        "value": 2
+      },
+      {
+        "label": "Style",
+        "value": 2
+      },
+      {
+        "label": "Cut Slope",
+        "value": 1
+      },
+      {
+        "label": "Low Cut",
+        "value": 30
+      },
+      {
+        "label": "Low Shelf",
+        "value": 1.6
+      },
+      {
+        "label": "Bell Freq",
+        "value": 820
+      },
+      {
+        "label": "Bell Gain",
+        "value": -1.8
+      },
+      {
+        "label": "Bell Q",
+        "value": 1.4
+      },
+      {
+        "label": "Presence Freq",
+        "value": 4200
+      },
+      {
+        "label": "Presence Gain",
+        "value": 2.2
+      },
+      {
+        "label": "Presence Q",
+        "value": 1.1
+      },
+      {
+        "label": "High Shelf",
+        "value": 0.9
+      },
+      {
+        "label": "Tilt",
+        "value": 0.6
+      },
+      {
+        "label": "Band Focus",
+        "value": 2
+      },
+      {
+        "label": "Guide",
+        "value": 46
+      },
+      {
+        "label": "Dynamic",
+        "value": 38
+      },
+      {
+        "label": "Analyzer",
+        "value": 2
+      },
+      {
+        "label": "Output Trim",
+        "value": -0.5
+      }
+    ],
+    "nativeTargets": [
+      "c",
+      "cpp",
+      "wasm"
+    ],
+    "exportOnlyTargets": [
+      "cmajor",
+      "rust"
+    ]
+  }
+}

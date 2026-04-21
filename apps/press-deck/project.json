@@ -1,0 +1,235 @@
+{
+  "name": "press-deck",
+  "version": "0.2.0",
+  "owner": "mlangens",
+  "companyName": "Max Langensiepen",
+  "companyTag": "Mlng",
+  "productName": "Press Deck",
+  "artifactStem": "PressDeck",
+  "bundleId": "io.github.mlangens.faust-web-au-kit.press-deck",
+  "description": "Character compressor with richer detector options, audition paths, and a denser dynamics surface built on the shared Northline family.",
+  "license": "MIT",
+  "plugin": {
+    "kind": "effect",
+    "inputs": 2,
+    "outputs": 2,
+    "midiInput": false,
+    "latencySeconds": 0.0,
+    "gui": {
+      "native": true,
+      "webPreview": true,
+      "resizable": true
+    }
+  },
+  "targets": {
+    "native": [
+      "auv2",
+      "clap",
+      "vst3",
+      "standalone"
+    ],
+    "active": []
+  },
+  "oversampling": {
+    "factor": 2
+  },
+  "faust": {
+    "source": "./dsp/main.dsp",
+    "className": "PressDeckDSP"
+  },
+  "ui": {
+    "family": "northline-core",
+    "familyVersion": 1,
+    "variant": "character-compressor",
+    "catalog": {
+      "productId": "press-deck",
+      "prototypeRole": "fidelity-wave-press-deck"
+    },
+    "shell": {
+      "hero": {
+        "status": "Character compressor fidelity pass with richer detector routing, denser timing control, and neutral Northline studio chrome."
+      },
+      "sections": {
+        "controls": {
+          "title": "Dynamics Surface",
+          "description": "Press Deck now centers on mode-driven compression, detector shaping, stereo linking, parallel blend, and output management."
+        },
+        "meters": {
+          "title": "Response Preview",
+          "description": "The surface contract now tracks input, detector drive, gain reduction, and output so the dynamics lane reads more like a finished tool."
+        }
+      }
+    },
+    "display": {
+      "enumLabels": {
+        "Mode": [
+          "Punch",
+          "Glue",
+          "Lift",
+          "Crush"
+        ],
+        "Character": [
+          "Clean",
+          "Warm",
+          "Bold"
+        ],
+        "Detector Mode": [
+          "Peak",
+          "Blend",
+          "Average"
+        ],
+        "Detector Focus": [
+          "Full",
+          "Body",
+          "Air"
+        ],
+        "Audition": [
+          "Program",
+          "Delta",
+          "Detector"
+        ]
+      }
+    },
+    "statusText": "Character compressor with mode-specific timing, selectable detector behavior, stereo link shaping, parallel mix, output trim, and audition utilities.",
+    "controlOrder": [
+      "Mode",
+      "Character",
+      "Detector Mode",
+      "Input Gain",
+      "Threshold",
+      "Ratio",
+      "Knee",
+      "Attack",
+      "Release",
+      "Range",
+      "Stereo Link",
+      "Detector HP",
+      "Detector Tilt",
+      "Detector Focus",
+      "Mix",
+      "Output",
+      "Auto Trim",
+      "Audition",
+      "Bypass"
+    ],
+    "meters": [
+      {
+        "id": "inputPeak",
+        "label": "Input Peak",
+        "max": 78,
+        "mode": "peak",
+        "style": "thin-trough",
+        "ballistics": "fast-rise-medium-fall"
+      },
+      {
+        "id": "detectorDrive",
+        "label": "Detector Drive",
+        "max": 78,
+        "mode": "peak",
+        "style": "thin-trough",
+        "ballistics": "fast-rise-medium-fall"
+      },
+      {
+        "id": "outputPeak",
+        "label": "Output Peak",
+        "max": 78,
+        "mode": "peak",
+        "style": "thin-trough",
+        "ballistics": "fast-rise-medium-fall"
+      },
+      {
+        "id": "gainReduction",
+        "label": "Gain Reduction",
+        "max": 30,
+        "mode": "gr",
+        "style": "thin-trough",
+        "ballistics": "fast-rise-slow-fall"
+      }
+    ]
+  },
+  "au": {
+    "type": "aufx",
+    "subtype": "Prdk",
+    "manufacturer": "Mlng",
+    "tags": [
+      "Dynamics",
+      "Effects"
+    ]
+  },
+  "clap": {
+    "id": "io.github.mlangens.faust-web-au-kit.press-deck",
+    "description": "Character compressor with richer detector options, audition routing, and shared family metadata.",
+    "features": [
+      "audio-effect",
+      "compressor",
+      "mixing",
+      "stereo"
+    ]
+  },
+  "vst3": {
+    "categories": [
+      "Fx",
+      "Dynamics",
+      "Stereo"
+    ],
+    "componentTuid": [
+      "Mlng",
+      "Comp",
+      "Prdk",
+      0
+    ],
+    "controllerTuid": [
+      "Mlng",
+      "Edit",
+      "Prdk",
+      0
+    ]
+  },
+  "standalone": {
+    "bundleId": "io.github.mlangens.faust-web-au-kit.press-deck.app"
+  },
+  "benchmark": {
+    "sampleRate": 48000,
+    "blockSize": 256,
+    "seconds": 6,
+    "initialControls": [
+      {
+        "label": "Mode",
+        "value": 1
+      },
+      {
+        "label": "Character",
+        "value": 1
+      },
+      {
+        "label": "Detector Mode",
+        "value": 1
+      },
+      {
+        "label": "Threshold",
+        "value": -24
+      },
+      {
+        "label": "Ratio",
+        "value": 4.5
+      },
+      {
+        "label": "Range",
+        "value": 18
+      },
+      {
+        "label": "Detector Focus",
+        "value": 0
+      }
+    ],
+    "nativeTargets": [
+      "c",
+      "cpp",
+      "wasm"
+    ],
+    "exportOnlyTargets": [
+      "cmajor",
+      "rust"
+    ]
+  }
+}

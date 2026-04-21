@@ -1,0 +1,350 @@
+{
+	"name": "Relay Tape",
+	"filename": "main.dsp",
+	"version": "2.85.5",
+	"compile_options": "-lang cpp -fpga-mem-th 4 -ct 1 -cn RelayTapeDSP -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0",
+	"library_list": ["/opt/homebrew/Cellar/faust/2.85.5/share/faust/stdfaust.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/basics.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/routes.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/signals.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/maths.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/platform.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/oscillators.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/filters.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/delays.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/analyzers.lib"],
+	"include_pathnames": ["/opt/homebrew/Cellar/faust/2.85.5/share/faust","/usr/local/share/faust","/usr/share/faust","/Users/mlangens/dev/faust-web-au-kit/apps/relay-tape/dsp","/Users/mlangens/dev/faust-web-au-kit/apps/relay-tape/dsp"],
+	"size": 1442264,
+	"inputs": 2,
+	"outputs": 2,
+	"meta": [ 
+		{ "analyzers.lib/ms_envelope_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "analyzers.lib/ms_envelope_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo        <sanfilippo.dario@gmail.com> and         2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "analyzers.lib/ms_envelope_rect:license": "MIT-style STK-4.3 license" },
+		{ "analyzers.lib/name": "Faust Analyzer Library" },
+		{ "analyzers.lib/rms_envelope_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "analyzers.lib/rms_envelope_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo        <sanfilippo.dario@gmail.com> and         2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "analyzers.lib/rms_envelope_rect:license": "MIT-style STK-4.3 license" },
+		{ "analyzers.lib/version": "1.3.0" },
+		{ "author": "Max Langensiepen + OpenAI Codex" },
+		{ "basics.lib/bypass2:author": "Julius Smith" },
+		{ "basics.lib/name": "Faust Basic Element Library" },
+		{ "basics.lib/version": "1.22.0" },
+		{ "compile_options": "-lang cpp -fpga-mem-th 4 -ct 1 -cn RelayTapeDSP -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0" },
+		{ "delays.lib/name": "Faust Delay Library" },
+		{ "delays.lib/version": "1.2.0" },
+		{ "description": "Stereo modulation delay with deeper routing, offset timing, age and flutter shaping, diffusion bloom, freeze hold, and a richer meter contract." },
+		{ "filename": "main.dsp" },
+		{ "filters.lib/allpass_fcomb:author": "Julius O. Smith III" },
+		{ "filters.lib/allpass_fcomb:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/allpass_fcomb:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/avg_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "filters.lib/avg_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo       <sanfilippo.dario@gmail.com> and        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/avg_rect:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/ffbcombfilter:author": "Julius O. Smith III" },
+		{ "filters.lib/ffbcombfilter:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/ffbcombfilter:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/highpass:author": "Julius O. Smith III" },
+		{ "filters.lib/highpass:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/integrator:author": "Julius O. Smith III" },
+		{ "filters.lib/integrator:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/integrator:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/lowpass0_highpass1": "MIT-style STK-4.3 license" },
+		{ "filters.lib/lowpass0_highpass1:author": "Julius O. Smith III" },
+		{ "filters.lib/lowpass:author": "Julius O. Smith III" },
+		{ "filters.lib/lowpass:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/lowpass:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/name": "Faust Filters Library" },
+		{ "filters.lib/tf1:author": "Julius O. Smith III" },
+		{ "filters.lib/tf1:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/tf1:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/tf1s:author": "Julius O. Smith III" },
+		{ "filters.lib/tf1s:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/tf1s:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/version": "1.7.1" },
+		{ "license": "MIT" },
+		{ "maths.lib/author": "GRAME" },
+		{ "maths.lib/copyright": "GRAME" },
+		{ "maths.lib/license": "LGPL with exception" },
+		{ "maths.lib/name": "Faust Math Library" },
+		{ "maths.lib/version": "2.9.0" },
+		{ "name": "Relay Tape" },
+		{ "oscillators.lib/name": "Faust Oscillator Library" },
+		{ "oscillators.lib/version": "1.7.0" },
+		{ "platform.lib/name": "Generic Platform Library" },
+		{ "platform.lib/version": "1.3.0" },
+		{ "routes.lib/name": "Faust Signal Routing Library" },
+		{ "routes.lib/version": "1.3.0" },
+		{ "signals.lib/name": "Faust Routing Library" },
+		{ "signals.lib/version": "1.6.0" },
+		{ "version": "0.2.0" }
+	],
+	"ui": [ 
+		{
+			"type": "vgroup",
+			"label": "Relay Tape",
+			"items": [ 
+				{
+					"type": "hslider",
+					"label": "Age",
+					"varname": "fHslider3",
+					"shortname": "Age",
+					"address": "/Relay_Tape/Age",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 46,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "checkbox",
+					"label": "Bypass",
+					"varname": "fCheckbox0",
+					"shortname": "Bypass",
+					"address": "/Relay_Tape/Bypass"
+				},
+				{
+					"type": "hbargraph",
+					"label": "Diffuse Tail",
+					"varname": "fHbargraph0",
+					"shortname": "Diffuse_Tail",
+					"address": "/Relay_Tape/Diffuse_Tail",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hbargraph",
+					"label": "Echo Drive",
+					"varname": "fHbargraph2",
+					"shortname": "Echo_Drive",
+					"address": "/Relay_Tape/Echo_Drive",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hslider",
+					"label": "Feedback",
+					"varname": "fHslider5",
+					"shortname": "Feedback",
+					"address": "/Relay_Tape/Feedback",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 52,
+					"min": 0,
+					"max": 98,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Flutter",
+					"varname": "fHslider10",
+					"shortname": "Flutter",
+					"address": "/Relay_Tape/Flutter",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 32,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "checkbox",
+					"label": "Freeze",
+					"varname": "fCheckbox1",
+					"shortname": "Freeze",
+					"address": "/Relay_Tape/Freeze"
+				},
+				{
+					"type": "hbargraph",
+					"label": "Freeze Hold",
+					"varname": "fHbargraph5",
+					"shortname": "Freeze_Hold",
+					"address": "/Relay_Tape/Freeze_Hold",
+					"min": 0,
+					"max": 100
+				},
+				{
+					"type": "hbargraph",
+					"label": "Input Peak",
+					"varname": "fHbargraph3",
+					"shortname": "Input_Peak",
+					"address": "/Relay_Tape/Input_Peak",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hslider",
+					"label": "Mix",
+					"varname": "fHslider11",
+					"shortname": "Mix",
+					"address": "/Relay_Tape/Mix",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 44,
+					"min": 0,
+					"max": 100,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Mod Depth",
+					"varname": "fHslider8",
+					"shortname": "Mod_Depth",
+					"address": "/Relay_Tape/Mod_Depth",
+					"meta": [
+						{ "unit": "ms" }
+					],
+					"init": 9,
+					"min": 0,
+					"max": 35,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Mod Rate",
+					"varname": "fHslider9",
+					"shortname": "Mod_Rate",
+					"address": "/Relay_Tape/Mod_Rate",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "Hz" }
+					],
+					"init": 0.28,
+					"min": 0.03,
+					"max": 8,
+					"step": 0.01
+				},
+				{
+					"type": "hslider",
+					"label": "Mode",
+					"varname": "fHslider0",
+					"shortname": "Mode",
+					"address": "/Relay_Tape/Mode",
+					"init": 1,
+					"min": 0,
+					"max": 2,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Motion",
+					"varname": "fHbargraph1",
+					"shortname": "Motion",
+					"address": "/Relay_Tape/Motion",
+					"min": 0,
+					"max": 100
+				},
+				{
+					"type": "hslider",
+					"label": "Offset",
+					"varname": "fHslider7",
+					"shortname": "Offset",
+					"address": "/Relay_Tape/Offset",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 34,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Output Peak",
+					"varname": "fHbargraph4",
+					"shortname": "Output_Peak",
+					"address": "/Relay_Tape/Output_Peak",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hslider",
+					"label": "Output",
+					"varname": "fHslider13",
+					"shortname": "Output",
+					"address": "/Relay_Tape/Output",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": 0,
+					"min": -18,
+					"max": 18,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Routing",
+					"varname": "fHslider4",
+					"shortname": "Routing",
+					"address": "/Relay_Tape/Routing",
+					"init": 1,
+					"min": 0,
+					"max": 3,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Smear",
+					"varname": "fHslider1",
+					"shortname": "Smear",
+					"address": "/Relay_Tape/Smear",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 58,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Stereo Spread",
+					"varname": "fHbargraph6",
+					"shortname": "Stereo_Spread",
+					"address": "/Relay_Tape/Stereo_Spread",
+					"min": 0,
+					"max": 100
+				},
+				{
+					"type": "hslider",
+					"label": "Time",
+					"varname": "fHslider6",
+					"shortname": "Time",
+					"address": "/Relay_Tape/Time",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "ms" }
+					],
+					"init": 380,
+					"min": 8,
+					"max": 1600,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Tone",
+					"varname": "fHslider2",
+					"shortname": "Tone",
+					"address": "/Relay_Tape/Tone",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 54,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Width",
+					"varname": "fHslider12",
+					"shortname": "Width",
+					"address": "/Relay_Tape/Width",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 76,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				}
+			]
+		}
+	]
+}

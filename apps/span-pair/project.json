@@ -1,0 +1,211 @@
+{
+  "name": "span-pair",
+  "version": "0.1.0",
+  "owner": "mlangens",
+  "companyName": "Max Langensiepen",
+  "companyTag": "Mlng",
+  "productName": "Span Pair",
+  "artifactStem": "SpanPair",
+  "bundleId": "io.github.mlangens.faust-web-au-kit.span-pair",
+  "description": "Best-effort dual-filter utility scaffold with routing, linked cutoff spacing, drive, output trim, and shared Northline suite metadata.",
+  "license": "MIT",
+  "plugin": {
+    "kind": "effect",
+    "inputs": 2,
+    "outputs": 2,
+    "midiInput": false,
+    "latencySeconds": 0.0,
+    "gui": {
+      "native": true,
+      "webPreview": true,
+      "resizable": true
+    }
+  },
+  "targets": {
+    "native": [
+      "auv2",
+      "clap",
+      "vst3",
+      "standalone"
+    ],
+    "active": []
+  },
+  "oversampling": {
+    "factor": 1
+  },
+  "faust": {
+    "source": "./dsp/main.dsp",
+    "className": "SpanPairDSP"
+  },
+  "ui": {
+    "family": "northline-core",
+    "familyVersion": 1,
+    "variant": "dual-filter",
+    "catalog": {
+      "productId": "span-pair",
+      "prototypeRole": "parallel-wave-scaffold"
+    },
+    "shell": {
+      "hero": {
+        "status": "Dual-filter scaffold on the shared family manifest with neutral studio chrome and paired cutoff control."
+      },
+      "sections": {
+        "controls": {
+          "title": "Filter Surface",
+          "description": "Span Pair exposes linked A/B cutoff and resonance controls with routing, spacing, drive, and mix mapped through the shared family-aware preview."
+        },
+        "meters": {
+          "title": "Response Preview",
+          "description": "Meter motion stays schematic for now, but the control surface and family metadata are real."
+        }
+      }
+    },
+    "display": {
+      "enumLabels": {
+        "Mode": [
+          "Series",
+          "Parallel",
+          "Split"
+        ],
+        "Routing": [
+          "Stereo",
+          "Cross",
+          "Mono"
+        ]
+      }
+    },
+    "statusText": "Dual-filter scaffold with A/B cutoff and resonance, spacing/link coupling, routing, drive, mix, output trim, and bypass.",
+    "controlOrder": [
+      "Mode",
+      "Routing",
+      "Filter A Cutoff",
+      "Filter A Resonance",
+      "Filter B Cutoff",
+      "Filter B Resonance",
+      "Spacing",
+      "Link",
+      "Drive",
+      "Mix",
+      "Output",
+      "Bypass"
+    ],
+    "meters": [
+      {
+        "id": "inputPeak",
+        "label": "Input Peak",
+        "max": 78,
+        "mode": "peak"
+      },
+      {
+        "id": "spanGap",
+        "label": "Span Gap",
+        "max": 100,
+        "mode": "peak"
+      },
+      {
+        "id": "outputPeak",
+        "label": "Output Peak",
+        "max": 78,
+        "mode": "peak"
+      }
+    ]
+  },
+  "au": {
+    "type": "aufx",
+    "subtype": "SpPn",
+    "manufacturer": "Mlng",
+    "tags": [
+      "Effects",
+      "Filters"
+    ]
+  },
+  "clap": {
+    "id": "io.github.mlangens.faust-web-au-kit.span-pair",
+    "description": "Dual-filter utility scaffold with routing, linked spacing, drive, mix, and shared family metadata.",
+    "features": [
+      "audio-effect",
+      "analyzer",
+      "mixing",
+      "stereo",
+      "utility"
+    ]
+  },
+  "vst3": {
+    "categories": [
+      "Fx",
+      "Filter",
+      "Stereo"
+    ],
+    "componentTuid": [
+      "Mlng",
+      "Filt",
+      "SpPn",
+      0
+    ],
+    "controllerTuid": [
+      "Mlng",
+      "Edit",
+      "SpPn",
+      0
+    ]
+  },
+  "standalone": {
+    "bundleId": "io.github.mlangens.faust-web-au-kit.span-pair.app"
+  },
+  "benchmark": {
+    "sampleRate": 48000,
+    "blockSize": 256,
+    "seconds": 6,
+    "initialControls": [
+      {
+        "label": "Mode",
+        "value": 0
+      },
+      {
+        "label": "Routing",
+        "value": 0
+      },
+      {
+        "label": "Filter A Cutoff",
+        "value": 320
+      },
+      {
+        "label": "Filter A Resonance",
+        "value": 22
+      },
+      {
+        "label": "Filter B Cutoff",
+        "value": 2200
+      },
+      {
+        "label": "Filter B Resonance",
+        "value": 38
+      },
+      {
+        "label": "Spacing",
+        "value": 58
+      },
+      {
+        "label": "Link",
+        "value": 64
+      },
+      {
+        "label": "Drive",
+        "value": 12
+      },
+      {
+        "label": "Mix",
+        "value": 100
+      }
+    ],
+    "nativeTargets": [
+      "c",
+      "cpp",
+      "wasm"
+    ],
+    "exportOnlyTargets": [
+      "cmajor",
+      "rust"
+    ]
+  }
+}

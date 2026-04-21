@@ -168,3 +168,4 @@ Recommended local flow:
 ## Research Note
 
 A short feasibility summary with source links lives in `docs/feasibility.md`.
+A first-pass Northline suite catalog and shared-component plan lives in `docs/northline-suite-research.md`.

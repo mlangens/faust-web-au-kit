@@ -1,0 +1,241 @@
+{
+  "name": "latch-line",
+  "version": "0.2.0",
+  "owner": "mlangens",
+  "companyName": "Max Langensiepen",
+  "companyTag": "Mlng",
+  "productName": "Latch Line",
+  "artifactStem": "LatchLine",
+  "bundleId": "io.github.mlangens.faust-web-au-kit.latch-line",
+  "description": "Character gate-expander with richer detector routing, closure shaping, and monitor utilities built on the shared Northline family.",
+  "license": "MIT",
+  "plugin": {
+    "kind": "effect",
+    "inputs": 2,
+    "outputs": 2,
+    "midiInput": false,
+    "latencySeconds": 0.0,
+    "gui": {
+      "native": true,
+      "webPreview": true,
+      "resizable": true
+    }
+  },
+  "targets": {
+    "native": [
+      "auv2",
+      "clap",
+      "vst3",
+      "standalone"
+    ],
+    "active": []
+  },
+  "oversampling": {
+    "factor": 1
+  },
+  "faust": {
+    "source": "./dsp/main.dsp",
+    "className": "LatchLineDSP"
+  },
+  "ui": {
+    "family": "northline-core",
+    "familyVersion": 1,
+    "variant": "gate-expander",
+    "catalog": {
+      "productId": "latch-line",
+      "prototypeRole": "fidelity-wave-latch-line"
+    },
+    "shell": {
+      "hero": {
+        "status": "Gate-expander fidelity pass with richer detector routing, closure contour, and neutral Northline studio chrome."
+      },
+      "sections": {
+        "controls": {
+          "title": "Dynamics Surface",
+          "description": "Latch Line now centers on mode-shaped closure, detector voicing, stereo linking, floor control, and monitor routing."
+        },
+        "meters": {
+          "title": "Response Preview",
+          "description": "The meter contract now separates input, detector drive, closure depth, gain reduction, and output so the gate lane reads more like a finished tool."
+        }
+      }
+    },
+    "display": {
+      "enumLabels": {
+        "Mode": [
+          "Gate",
+          "Expand",
+          "Duck"
+        ],
+        "Style": [
+          "Soft",
+          "Balanced",
+          "Tight",
+          "Clamp"
+        ],
+        "Detector Mode": [
+          "Peak",
+          "Contour",
+          "Average"
+        ],
+        "Detector Focus": [
+          "Full",
+          "Body",
+          "Edge"
+        ],
+        "Monitor": [
+          "Program",
+          "Detector",
+          "Difference"
+        ]
+      }
+    },
+    "statusText": "Character gate-expander with mode-shaped closure, selectable detector behavior, hysteresis and floor control, stereo linking, parallel mix, and monitor utilities.",
+    "controlOrder": [
+      "Mode",
+      "Style",
+      "Detector Mode",
+      "Threshold",
+      "Range",
+      "Floor",
+      "Attack",
+      "Hold",
+      "Release",
+      "Hysteresis",
+      "Stereo Link",
+      "Detector HP",
+      "Detector Tilt",
+      "Detector Focus",
+      "Mix",
+      "Output",
+      "Monitor",
+      "Bypass"
+    ],
+    "meters": [
+      {
+        "id": "inputPeak",
+        "label": "Input Peak",
+        "max": 78,
+        "mode": "peak",
+        "style": "thin-trough",
+        "ballistics": "fast-rise-medium-fall"
+      },
+      {
+        "id": "detectorDrive",
+        "label": "Detector Drive",
+        "max": 78,
+        "mode": "peak",
+        "style": "thin-trough",
+        "ballistics": "fast-rise-medium-fall"
+      },
+      {
+        "id": "closureDepth",
+        "label": "Closure Depth",
+        "max": 100,
+        "mode": "depth",
+        "unit": "%",
+        "style": "thin-trough",
+        "ballistics": "fast-rise-medium-fall"
+      },
+      {
+        "id": "gainReduction",
+        "label": "Gain Reduction",
+        "max": 60,
+        "mode": "gr"
+      },
+      {
+        "id": "outputPeak",
+        "label": "Output Peak",
+        "max": 78,
+        "mode": "peak",
+        "style": "thin-trough",
+        "ballistics": "fast-rise-medium-fall"
+      }
+    ]
+  },
+  "au": {
+    "type": "aufx",
+    "subtype": "LtLn",
+    "manufacturer": "Mlng",
+    "tags": [
+      "Dynamics",
+      "Effects"
+    ]
+  },
+  "clap": {
+    "id": "io.github.mlangens.faust-web-au-kit.latch-line",
+    "description": "Character gate-expander with richer detector routing, closure shaping, and monitor utilities.",
+    "features": [
+      "audio-effect",
+      "mixing",
+      "utility",
+      "stereo"
+    ]
+  },
+  "vst3": {
+    "categories": [
+      "Fx",
+      "Dynamics",
+      "Stereo"
+    ],
+    "componentTuid": [
+      "Mlng",
+      "Gate",
+      "LtLn",
+      0
+    ],
+    "controllerTuid": [
+      "Mlng",
+      "Edit",
+      "LtLn",
+      0
+    ]
+  },
+  "standalone": {
+    "bundleId": "io.github.mlangens.faust-web-au-kit.latch-line.app"
+  },
+  "benchmark": {
+    "sampleRate": 48000,
+    "blockSize": 256,
+    "seconds": 6,
+    "initialControls": [
+      {
+        "label": "Mode",
+        "value": 1
+      },
+      {
+        "label": "Style",
+        "value": 2
+      },
+      {
+        "label": "Detector Mode",
+        "value": 1
+      },
+      {
+        "label": "Threshold",
+        "value": -34
+      },
+      {
+        "label": "Range",
+        "value": 30
+      },
+      {
+        "label": "Hysteresis",
+        "value": 6
+      },
+      {
+        "label": "Detector Focus",
+        "value": 0
+      }
+    ],
+    "nativeTargets": [
+      "c",
+      "cpp",
+      "wasm"
+    ],
+    "exportOnlyTargets": [
+      "cmajor",
+      "rust"
+    ]
+  }
+}

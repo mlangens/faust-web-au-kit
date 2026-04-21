@@ -1,0 +1,225 @@
+{
+  "name": "silk-guard",
+  "version": "0.2.0",
+  "owner": "mlangens",
+  "companyName": "Max Langensiepen",
+  "companyTag": "Mlng",
+  "productName": "Silk Guard",
+  "artifactStem": "SilkGuard",
+  "bundleId": "io.github.mlangens.faust-web-au-kit.silk-guard",
+  "description": "Precision de-esser with richer detector styling, focus control, monitoring paths, and split-depth handling built on the shared Northline family.",
+  "license": "MIT",
+  "plugin": {
+    "kind": "effect",
+    "inputs": 2,
+    "outputs": 2,
+    "midiInput": false,
+    "latencySeconds": 0.0,
+    "gui": {
+      "native": true,
+      "webPreview": true,
+      "resizable": true
+    }
+  },
+  "targets": {
+    "native": [
+      "auv2",
+      "clap",
+      "vst3",
+      "standalone"
+    ],
+    "active": []
+  },
+  "oversampling": {
+    "factor": 2
+  },
+  "faust": {
+    "source": "./dsp/main.dsp",
+    "className": "SilkGuardDSP"
+  },
+  "ui": {
+    "family": "northline-core",
+    "familyVersion": 1,
+    "variant": "precision-de-esser",
+    "catalog": {
+      "productId": "silk-guard",
+      "prototypeRole": "fidelity-wave-silk-guard"
+    },
+    "shell": {
+      "hero": {
+        "status": "Precision de-esser fidelity pass with richer detector shaping, monitor routing, and neutral Northline studio chrome."
+      },
+      "sections": {
+        "controls": {
+          "title": "Dynamics Surface",
+          "description": "Silk Guard now centers on detector style, focus width, timing, stereo linking, split-depth control, and reusable monitoring paths."
+        },
+        "meters": {
+          "title": "Response Preview",
+          "description": "The surface contract now tracks input, detector drive, focus energy, gain reduction, and output so the de-essing lane reads more like a finished tool."
+        }
+      }
+    },
+    "display": {
+      "enumLabels": {
+        "Detection Style": [
+          "Smooth",
+          "Split",
+          "Edge"
+        ],
+        "Detection Focus": [
+          "Body",
+          "Presence",
+          "Air"
+        ],
+        "Monitor": [
+          "Program",
+          "Delta",
+          "Detector"
+        ]
+      }
+    },
+    "statusText": "Precision de-esser with selectable detector style, focus-aware timing, stereo-linked split handling, detector monitoring, parallel blend, and output trim.",
+    "controlOrder": [
+      "Detection Style",
+      "Detection Focus",
+      "Threshold",
+      "Range",
+      "Attack",
+      "Release",
+      "Sensitivity",
+      "Center Frequency",
+      "Focus Width",
+      "Lookahead",
+      "Split Depth",
+      "Stereo Link",
+      "Monitor",
+      "Mix",
+      "Output",
+      "Bypass"
+    ],
+    "meters": [
+      {
+        "id": "inputPeak",
+        "label": "Input Peak",
+        "max": 78,
+        "mode": "peak",
+        "style": "thin-trough",
+        "ballistics": "fast-rise-medium-fall"
+      },
+      {
+        "id": "detectorDrive",
+        "label": "Detector Drive",
+        "max": 78,
+        "mode": "peak",
+        "style": "thin-trough",
+        "ballistics": "fast-rise-medium-fall"
+      },
+      {
+        "id": "focusEnergy",
+        "label": "Focus Energy",
+        "max": 78,
+        "mode": "peak",
+        "style": "thin-trough",
+        "ballistics": "fast-rise-medium-fall"
+      },
+      {
+        "id": "gainReduction",
+        "label": "Gain Reduction",
+        "max": 24,
+        "mode": "gr",
+        "style": "thin-trough",
+        "ballistics": "fast-rise-slow-fall"
+      },
+      {
+        "id": "outputPeak",
+        "label": "Output Peak",
+        "max": 78,
+        "mode": "peak",
+        "style": "thin-trough",
+        "ballistics": "fast-rise-medium-fall"
+      }
+    ]
+  },
+  "au": {
+    "type": "aufx",
+    "subtype": "SgGu",
+    "manufacturer": "Mlng",
+    "tags": [
+      "Dynamics",
+      "Effects"
+    ]
+  },
+  "clap": {
+    "id": "io.github.mlangens.faust-web-au-kit.silk-guard",
+    "description": "Precision de-esser with richer detector styling, monitoring paths, and split-depth handling.",
+    "features": [
+      "audio-effect",
+      "mixing",
+      "utility",
+      "stereo"
+    ]
+  },
+  "vst3": {
+    "categories": [
+      "Fx",
+      "Dynamics",
+      "Stereo"
+    ],
+    "componentTuid": [
+      "Mlng",
+      "Comp",
+      "SgGu",
+      0
+    ],
+    "controllerTuid": [
+      "Mlng",
+      "Edit",
+      "SgGu",
+      0
+    ]
+  },
+  "standalone": {
+    "bundleId": "io.github.mlangens.faust-web-au-kit.silk-guard.app"
+  },
+  "benchmark": {
+    "sampleRate": 48000,
+    "blockSize": 256,
+    "seconds": 6,
+    "initialControls": [
+      {
+        "label": "Detection Style",
+        "value": 1
+      },
+      {
+        "label": "Detection Focus",
+        "value": 2
+      },
+      {
+        "label": "Threshold",
+        "value": -30
+      },
+      {
+        "label": "Range",
+        "value": 10
+      },
+      {
+        "label": "Center Frequency",
+        "value": 6800
+      },
+      {
+        "label": "Split Depth",
+        "value": 86
+      }
+    ],
+    "nativeTargets": [
+      "c",
+      "cpp",
+      "wasm"
+    ],
+    "exportOnlyTargets": [
+      "cmajor",
+      "rust"
+    ]
+  }
+}

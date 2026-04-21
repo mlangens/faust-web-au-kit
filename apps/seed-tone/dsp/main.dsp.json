@@ -1,0 +1,313 @@
+{
+	"name": "Seed Tone",
+	"filename": "main.dsp",
+	"version": "2.85.5",
+	"compile_options": "-lang cpp -fpga-mem-th 4 -ct 1 -cn SeedToneDSP -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0",
+	"library_list": ["/opt/homebrew/Cellar/faust/2.85.5/share/faust/stdfaust.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/oscillators.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/platform.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/maths.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/basics.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/analyzers.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/filters.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/noises.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/envelopes.lib"],
+	"include_pathnames": ["/opt/homebrew/Cellar/faust/2.85.5/share/faust","/usr/local/share/faust","/usr/share/faust","/Users/mlangens/dev/faust-web-au-kit/apps/seed-tone/dsp","/Users/mlangens/dev/faust-web-au-kit/apps/seed-tone/dsp"],
+	"size": 197044,
+	"inputs": 0,
+	"outputs": 2,
+	"meta": [ 
+		{ "analyzers.lib/ms_envelope_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "analyzers.lib/ms_envelope_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo        <sanfilippo.dario@gmail.com> and         2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "analyzers.lib/ms_envelope_rect:license": "MIT-style STK-4.3 license" },
+		{ "analyzers.lib/name": "Faust Analyzer Library" },
+		{ "analyzers.lib/rms_envelope_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "analyzers.lib/rms_envelope_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo        <sanfilippo.dario@gmail.com> and         2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "analyzers.lib/rms_envelope_rect:license": "MIT-style STK-4.3 license" },
+		{ "analyzers.lib/version": "1.3.0" },
+		{ "author": "Max Langensiepen + OpenAI Codex" },
+		{ "basics.lib/name": "Faust Basic Element Library" },
+		{ "basics.lib/version": "1.22.0" },
+		{ "compile_options": "-lang cpp -fpga-mem-th 4 -ct 1 -cn SeedToneDSP -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0" },
+		{ "description": "Simple synth scaffold with one primary oscillator, cutoff/resonance shaping, color/sub/noise layers, motion LFO, drive, and envelope control." },
+		{ "envelopes.lib/asr:author": "Yann Orlarey, Stéphane Letz" },
+		{ "envelopes.lib/author": "GRAME" },
+		{ "envelopes.lib/copyright": "GRAME" },
+		{ "envelopes.lib/license": "LGPL with exception" },
+		{ "envelopes.lib/name": "Faust Envelope Library" },
+		{ "envelopes.lib/version": "1.3.0" },
+		{ "filename": "main.dsp" },
+		{ "filters.lib/avg_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "filters.lib/avg_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo       <sanfilippo.dario@gmail.com> and        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/avg_rect:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/fir:author": "Julius O. Smith III" },
+		{ "filters.lib/fir:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/fir:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/highpass:author": "Julius O. Smith III" },
+		{ "filters.lib/highpass:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/iir:author": "Julius O. Smith III" },
+		{ "filters.lib/iir:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/iir:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/integrator:author": "Julius O. Smith III" },
+		{ "filters.lib/integrator:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/integrator:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/lowpass0_highpass1": "MIT-style STK-4.3 license" },
+		{ "filters.lib/lowpass0_highpass1:author": "Julius O. Smith III" },
+		{ "filters.lib/lowpass:author": "Julius O. Smith III" },
+		{ "filters.lib/lowpass:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/lowpass:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/name": "Faust Filters Library" },
+		{ "filters.lib/pole:author": "Julius O. Smith III" },
+		{ "filters.lib/pole:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/pole:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/tf1:author": "Julius O. Smith III" },
+		{ "filters.lib/tf1:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/tf1:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/tf1s:author": "Julius O. Smith III" },
+		{ "filters.lib/tf1s:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/tf1s:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/tf2:author": "Julius O. Smith III" },
+		{ "filters.lib/tf2:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/tf2:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/tf2s:author": "Julius O. Smith III" },
+		{ "filters.lib/tf2s:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/tf2s:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/version": "1.7.1" },
+		{ "license": "MIT" },
+		{ "maths.lib/author": "GRAME" },
+		{ "maths.lib/copyright": "GRAME" },
+		{ "maths.lib/license": "LGPL with exception" },
+		{ "maths.lib/name": "Faust Math Library" },
+		{ "maths.lib/version": "2.9.0" },
+		{ "name": "Seed Tone" },
+		{ "noises.lib/name": "Faust Noise Generator Library" },
+		{ "noises.lib/version": "1.5.0" },
+		{ "options": "[midi:on][nvoices:8]" },
+		{ "oscillators.lib/lf_sawpos:author": "Bart Brouns, revised by Stéphane Letz" },
+		{ "oscillators.lib/lf_sawpos:licence": "STK-4.3" },
+		{ "oscillators.lib/name": "Faust Oscillator Library" },
+		{ "oscillators.lib/saw2ptr:author": "Julius O. Smith III" },
+		{ "oscillators.lib/saw2ptr:license": "STK-4.3" },
+		{ "oscillators.lib/sawN:author": "Julius O. Smith III" },
+		{ "oscillators.lib/sawN:license": "STK-4.3" },
+		{ "oscillators.lib/version": "1.7.0" },
+		{ "platform.lib/name": "Generic Platform Library" },
+		{ "platform.lib/version": "1.3.0" },
+		{ "version": "0.1.0" }
+	],
+	"ui": [ 
+		{
+			"type": "vgroup",
+			"label": "Seed Tone",
+			"items": [ 
+				{
+					"type": "hslider",
+					"label": "Attack",
+					"varname": "fHslider4",
+					"shortname": "Attack",
+					"address": "/Seed_Tone/Attack",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "ms" }
+					],
+					"init": 12,
+					"min": 0.5,
+					"max": 800,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Color",
+					"varname": "fHslider9",
+					"shortname": "Color",
+					"address": "/Seed_Tone/Color",
+					"init": 0.53,
+					"min": 0,
+					"max": 1,
+					"step": 0.01
+				},
+				{
+					"type": "hslider",
+					"label": "Cutoff",
+					"varname": "fHslider12",
+					"shortname": "Cutoff",
+					"address": "/Seed_Tone/Cutoff",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "Hz" }
+					],
+					"init": 1200,
+					"min": 60,
+					"max": 18000,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Drive",
+					"varname": "fHslider3",
+					"shortname": "Drive",
+					"address": "/Seed_Tone/Drive",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": 2,
+					"min": 0,
+					"max": 18,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Motion",
+					"varname": "fHslider0",
+					"shortname": "Motion",
+					"address": "/Seed_Tone/Motion",
+					"init": 0.34,
+					"min": 0,
+					"max": 1,
+					"step": 0.01
+				},
+				{
+					"type": "hbargraph",
+					"label": "Motion Level",
+					"varname": "fHbargraph0",
+					"shortname": "Motion_Level",
+					"address": "/Seed_Tone/Motion_Level",
+					"min": 0,
+					"max": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Noise",
+					"varname": "fHslider10",
+					"shortname": "Noise",
+					"address": "/Seed_Tone/Noise",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 8,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Output Peak",
+					"varname": "fHbargraph2",
+					"shortname": "Output_Peak",
+					"address": "/Seed_Tone/Output_Peak",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hslider",
+					"label": "Output Trim",
+					"varname": "fHslider2",
+					"shortname": "Output_Trim",
+					"address": "/Seed_Tone/Output_Trim",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": 0,
+					"min": -18,
+					"max": 18,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Release",
+					"varname": "fHslider5",
+					"shortname": "Release",
+					"address": "/Seed_Tone/Release",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "ms" }
+					],
+					"init": 340,
+					"min": 10,
+					"max": 5000,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Resonance",
+					"varname": "fHslider13",
+					"shortname": "Resonance",
+					"address": "/Seed_Tone/Resonance",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 30,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Stereo Width",
+					"varname": "fHslider8",
+					"shortname": "Stereo_Width",
+					"address": "/Seed_Tone/Stereo_Width",
+					"init": 0.58,
+					"min": 0,
+					"max": 1,
+					"step": 0.01
+				},
+				{
+					"type": "hslider",
+					"label": "Sub",
+					"varname": "fHslider6",
+					"shortname": "Sub",
+					"address": "/Seed_Tone/Sub",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 20,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Voice Level",
+					"varname": "fHbargraph1",
+					"shortname": "Voice_Level",
+					"address": "/Seed_Tone/Voice_Level",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hslider",
+					"label": "Wave",
+					"varname": "fHslider11",
+					"shortname": "Wave",
+					"address": "/Seed_Tone/Wave",
+					"init": 0,
+					"min": 0,
+					"max": 3,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "freq",
+					"varname": "fHslider7",
+					"shortname": "freq",
+					"address": "/Seed_Tone/freq",
+					"init": 220,
+					"min": 20,
+					"max": 5000,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "gain",
+					"varname": "fHslider1",
+					"shortname": "gain",
+					"address": "/Seed_Tone/gain",
+					"init": 0.28,
+					"min": 0,
+					"max": 1,
+					"step": 0.001
+				},
+				{
+					"type": "button",
+					"label": "gate",
+					"varname": "fButton0",
+					"shortname": "gate",
+					"address": "/Seed_Tone/gate"
+				}
+			]
+		}
+	]
+}

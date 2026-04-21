@@ -1,0 +1,342 @@
+{
+	"name": "Headroom",
+	"filename": "main.dsp",
+	"version": "2.85.5",
+	"compile_options": "-lang cpp -fpga-mem-th 4 -ct 1 -cn HeadroomDSP -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0",
+	"library_list": ["/opt/homebrew/Cellar/faust/2.85.5/share/faust/stdfaust.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/basics.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/routes.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/signals.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/maths.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/platform.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/filters.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/analyzers.lib","/opt/homebrew/Cellar/faust/2.85.5/share/faust/compressors.lib"],
+	"include_pathnames": ["/opt/homebrew/Cellar/faust/2.85.5/share/faust","/usr/local/share/faust","/usr/share/faust","/Users/mlangens/dev/faust-web-au-kit/apps/headroom/dsp","/Users/mlangens/dev/faust-web-au-kit/apps/headroom/dsp"],
+	"size": 205404,
+	"inputs": 2,
+	"outputs": 2,
+	"meta": [ 
+		{ "analyzers.lib/amp_follower_ar:author": "Jonatan Liljedahl, revised by Romain Michon" },
+		{ "analyzers.lib/ms_envelope_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "analyzers.lib/ms_envelope_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo        <sanfilippo.dario@gmail.com> and         2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "analyzers.lib/ms_envelope_rect:license": "MIT-style STK-4.3 license" },
+		{ "analyzers.lib/name": "Faust Analyzer Library" },
+		{ "analyzers.lib/rms_envelope_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "analyzers.lib/rms_envelope_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo        <sanfilippo.dario@gmail.com> and         2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "analyzers.lib/rms_envelope_rect:license": "MIT-style STK-4.3 license" },
+		{ "analyzers.lib/version": "1.3.0" },
+		{ "author": "Max Langensiepen + OpenAI Codex" },
+		{ "basics.lib/bypass2:author": "Julius Smith" },
+		{ "basics.lib/name": "Faust Basic Element Library" },
+		{ "basics.lib/peakholder:author": "Dario Sanfilippo" },
+		{ "basics.lib/peakholder:copyright": "Copyright (C) 2022 Dario Sanfilippo <sanfilippo.dario@gmail.com>" },
+		{ "basics.lib/peakholder:license": "MIT-style STK-4.3 license" },
+		{ "basics.lib/version": "1.22.0" },
+		{ "compile_options": "-lang cpp -fpga-mem-th 4 -ct 1 -cn HeadroomDSP -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0" },
+		{ "compressors.lib/limiter_lad_N:author": "Dario Sanfilippo" },
+		{ "compressors.lib/limiter_lad_N:copyright": "Copyright (C) 2020 Dario Sanfilippo       <sanfilippo.dario@gmail.com>" },
+		{ "compressors.lib/limiter_lad_N:license": "GPLv3 license" },
+		{ "compressors.lib/limiter_lad_mono:author": "Dario Sanfilippo" },
+		{ "compressors.lib/limiter_lad_mono:copyright": "Copyright (C) 2020 Dario Sanfilippo       <sanfilippo.dario@gmail.com>" },
+		{ "compressors.lib/limiter_lad_mono:license": "GPLv3 license" },
+		{ "compressors.lib/name": "Faust Compressor Effect Library" },
+		{ "compressors.lib/version": "1.6.0" },
+		{ "description": "Adaptive mastering limiter with richer voicing, linked clamp behavior, and matched-output audition utilities." },
+		{ "filename": "main.dsp" },
+		{ "filters.lib/avg_rect:author": "Dario Sanfilippo and Julius O. Smith III" },
+		{ "filters.lib/avg_rect:copyright": "Copyright (C) 2020 Dario Sanfilippo       <sanfilippo.dario@gmail.com> and        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/avg_rect:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/fir:author": "Julius O. Smith III" },
+		{ "filters.lib/fir:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/fir:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/highpass:author": "Julius O. Smith III" },
+		{ "filters.lib/highpass:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/iir:author": "Julius O. Smith III" },
+		{ "filters.lib/iir:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/iir:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/integrator:author": "Julius O. Smith III" },
+		{ "filters.lib/integrator:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/integrator:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/lowpass0_highpass1": "MIT-style STK-4.3 license" },
+		{ "filters.lib/lowpass0_highpass1:author": "Julius O. Smith III" },
+		{ "filters.lib/lowpass:author": "Julius O. Smith III" },
+		{ "filters.lib/lowpass:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/lowpass:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/name": "Faust Filters Library" },
+		{ "filters.lib/tf1:author": "Julius O. Smith III" },
+		{ "filters.lib/tf1:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/tf1:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/tf1s:author": "Julius O. Smith III" },
+		{ "filters.lib/tf1s:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/tf1s:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/tf2:author": "Julius O. Smith III" },
+		{ "filters.lib/tf2:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/tf2:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/tf2s:author": "Julius O. Smith III" },
+		{ "filters.lib/tf2s:copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>" },
+		{ "filters.lib/tf2s:license": "MIT-style STK-4.3 license" },
+		{ "filters.lib/version": "1.7.1" },
+		{ "license": "MIT" },
+		{ "maths.lib/author": "GRAME" },
+		{ "maths.lib/copyright": "GRAME" },
+		{ "maths.lib/license": "LGPL with exception" },
+		{ "maths.lib/name": "Faust Math Library" },
+		{ "maths.lib/version": "2.9.0" },
+		{ "name": "Headroom" },
+		{ "platform.lib/name": "Generic Platform Library" },
+		{ "platform.lib/version": "1.3.0" },
+		{ "routes.lib/name": "Faust Signal Routing Library" },
+		{ "routes.lib/version": "1.3.0" },
+		{ "signals.lib/name": "Faust Routing Library" },
+		{ "signals.lib/onePoleSwitching:author": "Jonatan Liljedahl, revised by Dario Sanfilippo" },
+		{ "signals.lib/onePoleSwitching:licence": "STK-4.3" },
+		{ "signals.lib/version": "1.6.0" },
+		{ "version": "0.2.0" }
+	],
+	"ui": [ 
+		{
+			"type": "vgroup",
+			"label": "Headroom",
+			"items": [ 
+				{
+					"type": "hslider",
+					"label": "Algorithm",
+					"varname": "fHslider2",
+					"shortname": "Algorithm",
+					"address": "/Headroom/Algorithm",
+					"init": 1,
+					"min": 0,
+					"max": 3,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Audition",
+					"varname": "fHslider11",
+					"shortname": "Audition",
+					"address": "/Headroom/Audition",
+					"init": 0,
+					"min": 0,
+					"max": 2,
+					"step": 1
+				},
+				{
+					"type": "checkbox",
+					"label": "Bypass",
+					"varname": "fCheckbox0",
+					"shortname": "Bypass",
+					"address": "/Headroom/Bypass"
+				},
+				{
+					"type": "hbargraph",
+					"label": "Ceiling Activity",
+					"varname": "fHbargraph4",
+					"shortname": "Ceiling_Activity",
+					"address": "/Headroom/Ceiling_Activity",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hslider",
+					"label": "Ceiling Shape",
+					"varname": "fHslider12",
+					"shortname": "Ceiling_Shape",
+					"address": "/Headroom/Ceiling_Shape",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 34,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Ceiling",
+					"varname": "fHslider9",
+					"shortname": "Ceiling",
+					"address": "/Headroom/Ceiling",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": -1,
+					"min": -12,
+					"max": 0,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Detail",
+					"varname": "fHslider1",
+					"shortname": "Detail",
+					"address": "/Headroom/Detail",
+					"init": 1,
+					"min": 0,
+					"max": 2,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Drive Level",
+					"varname": "fHbargraph1",
+					"shortname": "Drive_Level",
+					"address": "/Headroom/Drive_Level",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hslider",
+					"label": "Drive",
+					"varname": "fHslider4",
+					"shortname": "Drive",
+					"address": "/Headroom/Drive",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": 4,
+					"min": 0,
+					"max": 18,
+					"step": 0.1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Gain Reduction",
+					"varname": "fHbargraph0",
+					"shortname": "Gain_Reduction",
+					"address": "/Headroom/Gain_Reduction",
+					"min": 0,
+					"max": 30
+				},
+				{
+					"type": "hslider",
+					"label": "Input Gain",
+					"varname": "fHslider3",
+					"shortname": "Input_Gain",
+					"address": "/Headroom/Input_Gain",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": 0,
+					"min": -18,
+					"max": 18,
+					"step": 0.1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Input Peak",
+					"varname": "fHbargraph2",
+					"shortname": "Input_Peak",
+					"address": "/Headroom/Input_Peak",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hslider",
+					"label": "Lookahead",
+					"varname": "fHslider7",
+					"shortname": "Lookahead",
+					"address": "/Headroom/Lookahead",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "ms" }
+					],
+					"init": 2.5,
+					"min": 0.1,
+					"max": 12,
+					"step": 0.01
+				},
+				{
+					"type": "checkbox",
+					"label": "Loudness Match",
+					"varname": "fCheckbox1",
+					"shortname": "Loudness_Match",
+					"address": "/Headroom/Loudness_Match"
+				},
+				{
+					"type": "hslider",
+					"label": "Low Guard",
+					"varname": "fHslider5",
+					"shortname": "Low_Guard",
+					"address": "/Headroom/Low_Guard",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 48,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hbargraph",
+					"label": "Output Peak",
+					"varname": "fHbargraph3",
+					"shortname": "Output_Peak",
+					"address": "/Headroom/Output_Peak",
+					"min": -72,
+					"max": 6
+				},
+				{
+					"type": "hslider",
+					"label": "Output Trim",
+					"varname": "fHslider13",
+					"shortname": "Output_Trim",
+					"address": "/Headroom/Output_Trim",
+					"meta": [
+						{ "unit": "dB" }
+					],
+					"init": 0,
+					"min": -18,
+					"max": 18,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Release",
+					"varname": "fHslider6",
+					"shortname": "Release",
+					"address": "/Headroom/Release",
+					"meta": [
+						{ "scale": "log" },
+						{ "unit": "ms" }
+					],
+					"init": 180,
+					"min": 10,
+					"max": 2000,
+					"step": 0.1
+				},
+				{
+					"type": "hslider",
+					"label": "Stereo Link",
+					"varname": "fHslider8",
+					"shortname": "Stereo_Link",
+					"address": "/Headroom/Stereo_Link",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 82,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Style",
+					"varname": "fHslider0",
+					"shortname": "Style",
+					"address": "/Headroom/Style",
+					"init": 1,
+					"min": 0,
+					"max": 2,
+					"step": 1
+				},
+				{
+					"type": "hslider",
+					"label": "Transient Preserve",
+					"varname": "fHslider10",
+					"shortname": "Transient_Preserve",
+					"address": "/Headroom/Transient_Preserve",
+					"meta": [
+						{ "unit": "%" }
+					],
+					"init": 45,
+					"min": 0,
+					"max": 100,
+					"step": 1
+				}
+			]
+		}
+	]
+}
