@@ -251,6 +251,9 @@ function exportJsonMetadata() {
 }
 
 function shouldExportTarget(target) {
+  if (exportProfile === "preview" || exportProfile === "schema") {
+    return false;
+  }
   if (exportProfile === "native") {
     return target === "c" || target === "cpp";
   }

@@ -17,6 +17,7 @@ const kebabCasePattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 const filenamePattern = /^[a-z0-9]+(?:-[a-z0-9]+)*(?:\.(?:test|spec))?\.(?:js|mjs|json|css|html|md|sh|zsh)$/u;
 const declarationPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*\.d\.ts$/u;
 const appDirPattern = /^apps\/([a-z0-9]+(?:-[a-z0-9]+)*)$/u;
+const indexFilenamePattern = /^index\.(?:js|mjs)$/u;
 
 /**
  * @param {string} filePath
@@ -45,8 +46,9 @@ function isKebabCase(value) {
 /**
  * @param {string[]} errors
  * @param {string} relativeDir
+ * @param {{ recursive?: boolean, allowIndex?: boolean }} [options]
  */
-function checkNamedFiles(errors, relativeDir) {
+function checkNamedFiles(errors, relativeDir, options = {}) {
   const absoluteDir = path.join(root, relativeDir);
   if (!fs.existsSync(absoluteDir)) {
     return;
@@ -62,15 +64,19 @@ function checkNamedFiles(errors, relativeDir) {
       if (!isKebabCase(entry.name) && !appDirPattern.test(normalizedRelative)) {
         errors.push(`Directory "${normalizedRelative}" must use lowercase kebab-case.`);
       }
+      if (options.recursive) {
+        checkNamedFiles(errors, normalizedRelative, options);
+      }
       continue;
     }
 
-    if (!filenamePattern.test(entry.name) && !declarationPattern.test(entry.name)) {
+    const allowIndex = Boolean(options.allowIndex) && relativeDir.includes("/") && indexFilenamePattern.test(entry.name);
+    if (!allowIndex && !filenamePattern.test(entry.name) && !declarationPattern.test(entry.name)) {
       errors.push(`File "${normalizedRelative}" must use lowercase kebab-case naming.`);
     }
 
     const basename = entry.name.replace(/\.[^.]+$/u, "");
-    if (genericBasenames.has(basename)) {
+    if (!allowIndex && genericBasenames.has(basename)) {
       errors.push(`File "${normalizedRelative}" uses a generic basename that the framework forbids.`);
     }
   }
@@ -154,7 +160,13 @@ for (const catalogName of fs.readdirSync(path.join(root, "ui", "catalog"))) {
   "tools",
   "tools/lib",
   "types"
-].forEach((relativeDir) => checkNamedFiles(errors, relativeDir));
+].forEach((relativeDir) => checkNamedFiles(
+  errors,
+  relativeDir,
+  ["preview/lib", "tests/contracts", "tests/integration", "tests/playwright", "tests/support", "tests/unit", "tools", "tools/lib"].includes(relativeDir)
+    ? { recursive: true, allowIndex: true }
+    : {}
+));
 
 if (errors.length) {
   console.error("Framework structure check failed:");

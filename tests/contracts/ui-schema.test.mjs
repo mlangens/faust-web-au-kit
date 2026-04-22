@@ -159,6 +159,27 @@ test("pulse pad schema exports the richer synth controls and peak-based meters",
   );
 });
 
+test("pulse pad schema reserves the shared modular-synth parity contract", () => {
+  const { schema } = loadGeneratedProject("pulse-pad");
+
+  assert.equal(schema.ui.catalog?.productId, "pulse-pad");
+  assert.ok(schema.ui.shell?.hero?.status);
+  assert.equal(schema.ui.shell?.sections?.controls?.title, "Morph Surface");
+  assert.equal(schema.ui.shell?.sections?.meters?.title, "Voice Preview");
+  assert.equal(schema.ui.display?.controls?.gate?.onLabel, "Held");
+  assert.equal(schema.ui.display?.controls?.gate?.offLabel, "Idle");
+  assert.deepEqual(
+    schema.ui.surfacePresetIds,
+    ["oscillator-stack", "filter-canvas", "module-rack", "modulation-dock", "keyboard-strip"]
+  );
+  assert.equal(schema.ui.layoutProfile, "modules-plus-dock");
+  assert.equal(schema.ui.preview?.surfaces?.["oscillator-stack"]?.modules?.length, 3);
+  assert.equal(schema.ui.preview?.surfaces?.["filter-canvas"]?.bands?.length, 4);
+  assert.equal(schema.ui.preview?.surfaces?.["module-rack"]?.modules?.length, 3);
+  assert.equal(schema.ui.preview?.surfaces?.["modulation-dock"]?.slots?.length, 4);
+  assert.equal(schema.ui.preview?.surfaces?.["keyboard-strip"]?.keys?.length, 8);
+});
+
 test("press deck schema reserves the compressor-oriented export contract", () => {
   const { schema } = loadGeneratedProject("press-deck");
   const controlLabels = new Set(schema.controls.map((control) => control.label));

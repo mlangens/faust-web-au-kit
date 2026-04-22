@@ -42,14 +42,412 @@
     "familyVersion": 1,
     "variant": "modular-synth",
     "catalog": {
-      "productId": "mirror-field",
-      "prototypeRole": "current-app"
+      "productId": "pulse-pad",
+      "prototypeRole": "suite-polish-pass"
+    },
+    "shell": {
+      "hero": {
+        "status": "Compact morph synth with texture-led oscillator color, contour sweep, stereo motion, and drive-aware output in the shared Northline instrument shell."
+      },
+      "sections": {
+        "controls": {
+          "title": "Morph Surface",
+          "description": "Pulse Pad now uses the full shared synth lane: voice stack, tone field, module rack, motion dock, and performance strip without reverting to app-specific preview code."
+        },
+        "meters": {
+          "title": "Voice Preview",
+          "description": "The meter contract keeps body, motion bloom, and output peak separated so the smaller synth still reads like a finished instrument."
+        }
+      }
+    },
+    "display": {
+      "controls": {
+        "gate": {
+          "onLabel": "Held",
+          "offLabel": "Idle"
+        }
+      }
+    },
+    "preview": {
+      "surfaces": {
+        "oscillator-stack": {
+          "title": "Voice stack",
+          "description": "Shared module cards frame Pulse Pad's lean oscillator, tone sweep, and stereo movement as a first-class suite instrument.",
+          "focusBadges": [
+            {
+              "label": "Texture",
+              "control": "Texture",
+              "tone": "accent"
+            },
+            {
+              "label": "Motion",
+              "control": "Motion",
+              "tone": "muted"
+            },
+            {
+              "label": "Drive",
+              "control": "Drive",
+              "tone": "warning"
+            }
+          ],
+          "modules": [
+            {
+              "id": "voice-core",
+              "label": "Voice",
+              "accent": "info",
+              "meterId": "voiceBody",
+              "readouts": [
+                "Texture",
+                "Detune",
+                "Sub"
+              ]
+            },
+            {
+              "id": "tone-core",
+              "label": "Tone",
+              "accent": "warning",
+              "activityControls": [
+                "Tone",
+                "Contour"
+              ],
+              "readouts": [
+                "Tone",
+                "Contour",
+                "Drive"
+              ]
+            },
+            {
+              "id": "motion-core",
+              "label": "Motion",
+              "accent": "positive",
+              "meterId": "motionBloom",
+              "readouts": [
+                "Motion",
+                "Stereo Width",
+                "Release"
+              ]
+            }
+          ]
+        },
+        "filter-canvas": {
+          "title": "Tone field",
+          "description": "The shared graph canvas becomes a compact tone map for texture, tone contour, motion, and stereo field.",
+          "selection": "tone-band",
+          "focusBadges": [
+            {
+              "label": "Texture",
+              "control": "Texture",
+              "tone": "accent"
+            },
+            {
+              "label": "Contour",
+              "control": "Contour",
+              "tone": "muted"
+            },
+            {
+              "label": "Motion",
+              "control": "Motion",
+              "tone": "muted"
+            }
+          ],
+          "gridLabels": [
+            "Body",
+            "Texture",
+            "Tone",
+            "Contour",
+            "Motion",
+            "Field"
+          ],
+          "bands": [
+            {
+              "id": "texture-band",
+              "label": "Texture",
+              "role": "shelf",
+              "accent": "warning",
+              "x": 0.18,
+              "yControl": "Texture",
+              "yMin": 0,
+              "yMax": 1,
+              "readouts": [
+                "Texture",
+                "Detune"
+              ]
+            },
+            {
+              "id": "tone-band",
+              "label": "Tone",
+              "role": "bell",
+              "accent": "info",
+              "x": 0.46,
+              "yControl": "Tone",
+              "yMin": 0,
+              "yMax": 1,
+              "readouts": [
+                "Tone",
+                "Contour"
+              ]
+            },
+            {
+              "id": "motion-band",
+              "label": "Motion",
+              "role": "bell",
+              "accent": "accent",
+              "x": 0.72,
+              "yControl": "Motion",
+              "yMin": 0,
+              "yMax": 1,
+              "readouts": [
+                "Motion",
+                "Attack",
+                "Release"
+              ]
+            },
+            {
+              "id": "field-band",
+              "label": "Field",
+              "role": "shelf",
+              "accent": "positive",
+              "x": 0.9,
+              "yControl": "Stereo Width",
+              "yMin": 0,
+              "yMax": 1,
+              "readouts": [
+                "Stereo Width",
+                "Drive",
+                "Sub"
+              ]
+            }
+          ]
+        },
+        "module-rack": {
+          "title": "Module rack",
+          "description": "Shared module cards keep the voice core, motion contour, and output stage grouped without creating a Pulse Pad-only renderer.",
+          "modules": [
+            {
+              "id": "voice-module",
+              "label": "Voice",
+              "accent": "info",
+              "meterId": "voiceBody",
+              "readouts": [
+                "Texture",
+                "Tone",
+                "Detune"
+              ]
+            },
+            {
+              "id": "motion-module",
+              "label": "Motion",
+              "accent": "warning",
+              "meterId": "motionBloom",
+              "readouts": [
+                "Contour",
+                "Motion",
+                "Stereo Width"
+              ]
+            },
+            {
+              "id": "output-module",
+              "label": "Output",
+              "accent": "positive",
+              "meterId": "outputPeak",
+              "readouts": [
+                "Drive",
+                "Attack",
+                "Release"
+              ]
+            }
+          ]
+        },
+        "modulation-dock": {
+          "title": "Motion dock",
+          "description": "The shared modulation dock stages texture, contour, motion, and stereo movement as reusable assignment cards.",
+          "focusBadges": [
+            {
+              "label": "Texture",
+              "control": "Texture",
+              "tone": "accent"
+            },
+            {
+              "label": "Motion",
+              "control": "Motion",
+              "tone": "muted"
+            },
+            {
+              "label": "Stereo Width",
+              "control": "Stereo Width",
+              "tone": "muted"
+            }
+          ],
+          "sources": [
+            {
+              "id": "texture-source",
+              "label": "Texture",
+              "control": "Texture",
+              "tone": "warning"
+            },
+            {
+              "id": "contour-source",
+              "label": "Contour",
+              "control": "Contour",
+              "tone": "info"
+            },
+            {
+              "id": "motion-source",
+              "label": "Motion",
+              "control": "Motion",
+              "tone": "accent"
+            },
+            {
+              "id": "field-source",
+              "label": "Field",
+              "control": "Stereo Width",
+              "tone": "positive"
+            }
+          ],
+          "slots": [
+            {
+              "id": "shape-slot",
+              "label": "Shape",
+              "assignment": "Oscillator color",
+              "amountControl": "Texture",
+              "activityControls": [
+                "Texture",
+                "Detune"
+              ],
+              "readouts": [
+                "Texture",
+                "Detune",
+                "Sub"
+              ]
+            },
+            {
+              "id": "tone-slot",
+              "label": "Tone",
+              "assignment": "Contour sweep",
+              "amountControl": "Contour",
+              "activityControls": [
+                "Tone",
+                "Contour"
+              ],
+              "readouts": [
+                "Tone",
+                "Contour",
+                "Drive"
+              ]
+            },
+            {
+              "id": "motion-slot",
+              "label": "Motion",
+              "assignment": "Stereo drift",
+              "amountControl": "Motion",
+              "activityControls": [
+                "Motion",
+                "Stereo Width"
+              ],
+              "readouts": [
+                "Motion",
+                "Stereo Width",
+                "Release"
+              ]
+            },
+            {
+              "id": "envelope-slot",
+              "label": "Envelope",
+              "assignment": "Gate contour",
+              "amountControl": "Attack",
+              "activityControls": [
+                "Attack",
+                "Release"
+              ],
+              "readouts": [
+                "Attack",
+                "Release",
+                "gate"
+              ]
+            }
+          ]
+        },
+        "keyboard-strip": {
+          "title": "Performance strip",
+          "description": "A shared keyboard strip gives Pulse Pad a simple play-state preview plus texture, contour, and width readouts.",
+          "voiceControl": "Motion",
+          "keys": [
+            {
+              "label": "C",
+              "controls": [
+                "Texture",
+                "Tone"
+              ]
+            },
+            {
+              "label": "C#",
+              "kind": "black",
+              "controls": [
+                "Contour",
+                "Motion"
+              ]
+            },
+            {
+              "label": "D",
+              "controls": [
+                "Texture",
+                "Contour"
+              ]
+            },
+            {
+              "label": "F",
+              "controls": [
+                "Motion",
+                "Stereo Width"
+              ]
+            },
+            {
+              "label": "F#",
+              "kind": "black",
+              "controls": [
+                "Tone",
+                "Drive"
+              ]
+            },
+            {
+              "label": "G",
+              "controls": [
+                "Sub",
+                "Motion"
+              ]
+            },
+            {
+              "label": "A",
+              "controls": [
+                "Drive",
+                "Attack"
+              ]
+            },
+            {
+              "label": "B",
+              "controls": [
+                "Release",
+                "Stereo Width"
+              ]
+            }
+          ],
+          "readouts": [
+            "Texture",
+            "Contour",
+            "Attack",
+            "Release",
+            "Stereo Width"
+          ]
+        }
+      }
     },
     "overrides": {
       "surfacePresetIds": [
         "oscillator-stack",
+        "filter-canvas",
         "module-rack",
-        "modulation-dock"
+        "modulation-dock",
+        "keyboard-strip"
       ],
       "layoutProfile": "modules-plus-dock"
     },

@@ -3,6 +3,7 @@ import test from "node:test";
 
 import { normalizeSchema } from "../../preview/lib/schema-ui.js";
 import { resolveSurfaceModels } from "../../preview/lib/surfaces.js";
+import { SURFACE_BUILDERS, resolveSurfaceBuilder } from "../../preview/lib/surfaces/registry.js";
 
 test("normalizeSchema provides a default shared surfaces section", () => {
   const schema = normalizeSchema({
@@ -280,4 +281,57 @@ test("resolveSurfaceModels carries section-grid configs through unchanged", () =
   assert.equal(models[0].kind, "section-grid");
   assert.equal(models[0].config.sections.length, 2);
   assert.equal(models[0].config.sections[1].summaryControl, "Cutoff");
+});
+
+test("surface registry resolves shared builders in priority order", () => {
+  const transferBuilder = resolveSurfaceBuilder({
+    kind: "hybrid-canvas",
+    config: {
+      curveControls: [{ control: "Drive" }],
+      nodes: [{ id: "field" }]
+    }
+  });
+  const graphBuilder = resolveSurfaceBuilder({
+    kind: "hybrid-canvas",
+    config: {
+      bands: [{ id: "bell" }]
+    }
+  });
+  const fieldBuilder = resolveSurfaceBuilder({
+    kind: "hybrid-canvas",
+    config: {
+      nodes: [{ id: "tail-core" }]
+    }
+  });
+  const summaryBuilder = resolveSurfaceBuilder({
+    kind: "surface-card",
+    config: {}
+  });
+
+  assert.equal(transferBuilder.id, "transfer-curve");
+  assert.equal(graphBuilder.id, "graph-canvas");
+  assert.equal(fieldBuilder.id, "field-canvas");
+  assert.equal(summaryBuilder.id, "summary");
+});
+
+test("surface registry keeps all shared preview builders available", () => {
+  assert.deepEqual(
+    SURFACE_BUILDERS.map((entry) => entry.id),
+    [
+      "transfer-curve",
+      "modulation-dock",
+      "timeline-editor",
+      "routing-control",
+      "section-grid",
+      "module-cards",
+      "keyboard-strip",
+      "linked-strip",
+      "graph-canvas",
+      "history-trace",
+      "region-editor",
+      "field-canvas",
+      "value-detail",
+      "summary"
+    ]
+  );
 });

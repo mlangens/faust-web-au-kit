@@ -124,6 +124,31 @@ test("pulse pad preview loads the alternate generated project and its meter layo
   await expect(page.locator('.control-card[data-control-id="Sub"] .value')).toHaveText("48 %");
 });
 
+test("pulse pad preview renders the shared synth parity surfaces", async ({ page }) => {
+  await page.goto("/?app=pulse-pad");
+
+  const stackSurface = page.locator('.surface-card[data-surface-id="oscillator-stack"]');
+  const graphSurface = page.locator('.surface-card[data-surface-id="filter-canvas"]');
+  const rackSurface = page.locator('.surface-card[data-surface-id="module-rack"]');
+  const dockSurface = page.locator('.surface-card[data-surface-id="modulation-dock"]');
+  const keyboardSurface = page.locator('.surface-card[data-surface-id="keyboard-strip"]');
+
+  await expect(page.locator("#surfaces .surface-card")).toHaveCount(5);
+  await expect(stackSurface.locator(".module-card")).toHaveCount(3);
+  await expect(graphSurface.locator(".graph-band-handle")).toHaveCount(4);
+  await expect(rackSurface.locator(".module-card")).toHaveCount(3);
+  await expect(dockSurface.locator(".mod-slot-card")).toHaveCount(4);
+  await expect(keyboardSurface.locator(".keyboard-key")).toHaveCount(8);
+
+  await setRangeValue(page, "Motion", 0.9);
+  await setRangeValue(page, "Contour", 0.72);
+  await setToggleValue(page, "gate", true);
+
+  await expect(graphSurface.locator(".surface-metric-row")).toContainText("Motion: 0.90");
+  await expect(dockSurface).toContainText("Held");
+  await expect(keyboardSurface).toContainText("0.72");
+});
+
 test("atlas curve preview loads the flagship-eq scaffold route", async ({ page }) => {
   await page.goto("/?app=atlas-curve");
 

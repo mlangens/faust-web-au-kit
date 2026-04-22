@@ -3,7 +3,7 @@ import path from "node:path";
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 
-execFileSync(process.execPath, ["./tools/export-workspace.mjs"], {
+execFileSync(process.execPath, ["./tools/export-workspace.mjs", "--export-profile", "preview"], {
   cwd: root,
   stdio: "inherit"
 });

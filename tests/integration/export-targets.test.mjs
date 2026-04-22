@@ -5,13 +5,19 @@ import path from "node:path";
 import test from "node:test";
 import { promisify } from "node:util";
 
-import { loadGeneratedProject } from "../support/generated-projects.mjs";
+import { loadGeneratedProject, loadGeneratedWorkspace } from "../support/generated-projects.mjs";
 
 const execFileAsync = promisify(execFile);
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
 
 async function runExport(args = []) {
   await execFileAsync(process.execPath, ["./tools/export-targets.mjs", ...args], {
+    cwd: root
+  });
+}
+
+async function runPrepare() {
+  await execFileAsync(process.execPath, ["./tools/prepare-test-artifacts.mjs"], {
     cwd: root
   });
 }
@@ -104,4 +110,23 @@ test("native export profile skips non-native sidecar targets while keeping schem
   } finally {
     fs.rmSync(scratchRoot, { recursive: true, force: true });
   }
+});
+
+test("prepare-test-artifacts refreshes the workspace manifest and Pulse Pad parity schema", { timeout: 360000 }, async () => {
+  await runPrepare();
+
+  const workspace = loadGeneratedWorkspace();
+  const { schema } = loadGeneratedProject("pulse-pad");
+
+  assert.ok(Array.isArray(workspace.apps));
+  assert.ok(workspace.apps.some((app) => app.key === "pulse-pad"));
+  assert.equal(schema.project.key, "pulse-pad");
+  assert.equal(schema.ui.catalog?.productId, "pulse-pad");
+  assert.deepEqual(
+    schema.ui.surfacePresetIds,
+    ["oscillator-stack", "filter-canvas", "module-rack", "modulation-dock", "keyboard-strip"]
+  );
+  assert.equal(schema.ui.preview?.surfaces?.["filter-canvas"]?.bands?.length, 4);
+  assert.equal(schema.ui.preview?.surfaces?.["modulation-dock"]?.slots?.length, 4);
+  assert.equal(schema.ui.preview?.surfaces?.["keyboard-strip"]?.keys?.length, 8);
 });
