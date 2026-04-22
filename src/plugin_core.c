@@ -98,6 +98,21 @@ static float fwak_clampf(float value, float minValue, float maxValue)
     return value;
 }
 
+static bool fwak_parameter_has_enum_labels(const FwakParameterInfo* info)
+{
+    return info != NULL && info->enumLabels != NULL && info->enumLabelCount > 0u;
+}
+
+static const char* fwak_parameter_off_label(const FwakParameterInfo* info)
+{
+    return info != NULL && info->offLabel != NULL && info->offLabel[0] != '\0' ? info->offLabel : "Off";
+}
+
+static const char* fwak_parameter_on_label(const FwakParameterInfo* info)
+{
+    return info != NULL && info->onLabel != NULL && info->onLabel[0] != '\0' ? info->onLabel : "On";
+}
+
 static float fwak_quantize_parameter_value(const FwakParameterInfo* info, float value)
 {
     if (!info) {
@@ -108,7 +123,8 @@ static float fwak_quantize_parameter_value(const FwakParameterInfo* info, float 
         return value >= 0.5f ? 1.0f : 0.0f;
     }
 
-    if (info->displayKind == FWAK_PARAM_DISPLAY_DRIVE_TARGET || info->displayKind == FWAK_PARAM_DISPLAY_DRIVE_FOCUS) {
+    if (fwak_parameter_has_enum_labels(info) || info->displayKind == FWAK_PARAM_DISPLAY_DRIVE_TARGET ||
+        info->displayKind == FWAK_PARAM_DISPLAY_DRIVE_FOCUS) {
         return roundf(value);
     }
 
@@ -628,21 +644,31 @@ double cplug_getDefaultParameterValue(void* userPlugin, uint32_t paramId)
 
 static const char* fwak_parameter_value_to_enum_label(const FwakParameterInfo* info, float value)
 {
-    const int discreteValue = (int)lrintf(value);
     if (!info) {
         return NULL;
     }
 
-    if (info->displayKind == FWAK_PARAM_DISPLAY_DRIVE_TARGET) {
-        return (discreteValue >= 0 && discreteValue < (int)(sizeof(gDriveTargetLabels) / sizeof(gDriveTargetLabels[0])))
-                   ? gDriveTargetLabels[discreteValue]
-                   : NULL;
+    if (fwak_parameter_has_enum_labels(info)) {
+        const int discreteValue = (int)lrintf(value);
+        const int baseValue = (int)lrint(info->minValue);
+        const int enumIndex = discreteValue - baseValue;
+        return (enumIndex >= 0 && enumIndex < (int)info->enumLabelCount) ? info->enumLabels[enumIndex] : NULL;
     }
 
-    if (info->displayKind == FWAK_PARAM_DISPLAY_DRIVE_FOCUS) {
-        return (discreteValue >= 0 && discreteValue < (int)(sizeof(gDriveFocusLabels) / sizeof(gDriveFocusLabels[0])))
-                   ? gDriveFocusLabels[discreteValue]
-                   : NULL;
+    {
+        const int discreteValue = (int)lrintf(value);
+
+        if (info->displayKind == FWAK_PARAM_DISPLAY_DRIVE_TARGET) {
+            return (discreteValue >= 0 && discreteValue < (int)(sizeof(gDriveTargetLabels) / sizeof(gDriveTargetLabels[0])))
+                       ? gDriveTargetLabels[discreteValue]
+                       : NULL;
+        }
+
+        if (info->displayKind == FWAK_PARAM_DISPLAY_DRIVE_FOCUS) {
+            return (discreteValue >= 0 && discreteValue < (int)(sizeof(gDriveFocusLabels) / sizeof(gDriveFocusLabels[0])))
+                       ? gDriveFocusLabels[discreteValue]
+                       : NULL;
+        }
     }
 
     return NULL;
@@ -694,30 +720,59 @@ double cplug_normaliseParameterValue(void* userPlugin, uint32_t paramId, double 
     return 0.0;
 }
 
+static double fwak_parameter_string_to_enum_value(const FwakParameterInfo* info, const char* stringValue)
+{
+    if (!info || !stringValue) {
+        return NAN;
+    }
+
+    if (fwak_parameter_has_enum_labels(info)) {
+        uint32_t index = 0;
+        for (; index < info->enumLabelCount; ++index) {
+            if (strcmp(stringValue, info->enumLabels[index]) == 0) {
+                return info->minValue + (double)index;
+            }
+        }
+    }
+
+    if (info->displayKind == FWAK_PARAM_DISPLAY_DRIVE_TARGET) {
+        int index = 0;
+        for (; index < (int)(sizeof(gDriveTargetLabels) / sizeof(gDriveTargetLabels[0])); ++index) {
+            if (strcmp(stringValue, gDriveTargetLabels[index]) == 0) {
+                return index;
+            }
+        }
+    }
+
+    if (info->displayKind == FWAK_PARAM_DISPLAY_DRIVE_FOCUS) {
+        int index = 0;
+        for (; index < (int)(sizeof(gDriveFocusLabels) / sizeof(gDriveFocusLabels[0])); ++index) {
+            if (strcmp(stringValue, gDriveFocusLabels[index]) == 0) {
+                return index;
+            }
+        }
+    }
+
+    return NAN;
+}
+
 double cplug_parameterStringToValue(void* userPlugin, uint32_t paramId, const char* stringValue)
 {
+    (void)userPlugin;
     const int parameterIndex = fwak_find_parameter_index_by_id(paramId);
     if (parameterIndex >= 0) {
         const FwakParameterInfo* info = &gFwakParameters[parameterIndex];
         if (info->flags & CPLUG_FLAG_PARAMETER_IS_BOOL) {
-            return (strcmp(stringValue, "On") == 0 || strcmp(stringValue, "1") == 0) ? 1.0 : 0.0;
+            return (strcmp(stringValue, fwak_parameter_on_label(info)) == 0 || strcmp(stringValue, "On") == 0 ||
+                    strcmp(stringValue, "1") == 0)
+                       ? 1.0
+                       : 0.0;
         }
 
-        if (info->displayKind == FWAK_PARAM_DISPLAY_DRIVE_TARGET) {
-            int index = 0;
-            for (; index < (int)(sizeof(gDriveTargetLabels) / sizeof(gDriveTargetLabels[0])); ++index) {
-                if (strcmp(stringValue, gDriveTargetLabels[index]) == 0) {
-                    return index;
-                }
-            }
-        }
-
-        if (info->displayKind == FWAK_PARAM_DISPLAY_DRIVE_FOCUS) {
-            int index = 0;
-            for (; index < (int)(sizeof(gDriveFocusLabels) / sizeof(gDriveFocusLabels[0])); ++index) {
-                if (strcmp(stringValue, gDriveFocusLabels[index]) == 0) {
-                    return index;
-                }
+        {
+            const double enumValue = fwak_parameter_string_to_enum_value(info, stringValue);
+            if (!isnan(enumValue)) {
+                return enumValue;
             }
         }
     }
@@ -733,7 +788,7 @@ void cplug_parameterValueToString(void* userPlugin, uint32_t paramId, char* buff
             const FwakParameterInfo* info = &gFwakParameters[parameterIndex];
             const char* enumLabel = fwak_parameter_value_to_enum_label(info, (float)value);
             if (info->flags & CPLUG_FLAG_PARAMETER_IS_BOOL) {
-                snprintf(buffer, bufferLength, "%s", value >= 0.5 ? "On" : "Off");
+                snprintf(buffer, bufferLength, "%s", value >= 0.5 ? fwak_parameter_on_label(info) : fwak_parameter_off_label(info));
             } else if (enumLabel) {
                 snprintf(buffer, bufferLength, "%s", enumLabel);
             } else if (strcmp(info->unit, "Hz") == 0) {

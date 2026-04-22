@@ -22,6 +22,38 @@ async function runPrepare() {
   });
 }
 
+function createScratchWorkspace(appKeys) {
+  const scratchRoot = fs.mkdtempSync(path.join(path.dirname(loadGeneratedProject().runtime.outputDir), "native-manifest."));
+  const workspaceFile = path.join(scratchRoot, "workspace.json");
+  const generatedRoot = path.join(scratchRoot, "generated");
+  const generatedApps = path.join(generatedRoot, "apps");
+  const buildApps = path.join(scratchRoot, "build", "apps");
+  const distApps = path.join(scratchRoot, "dist", "apps");
+
+  fs.writeFileSync(
+    workspaceFile,
+    `${JSON.stringify({
+      schemaVersion: 1,
+      name: "native-manifest-scratch",
+      version: "0.0.0",
+      defaultApp: appKeys[0],
+      paths: {
+        generatedRoot,
+        generatedApps,
+        buildApps,
+        distApps
+      },
+      apps: appKeys.map((key) => ({
+        key,
+        name: key,
+        manifest: `apps/${key}/project.json`
+      }))
+    }, null, 2)}\n`
+  );
+
+  return { scratchRoot, workspaceFile, generatedApps };
+}
+
 test("concurrent default exports finish cleanly and leave stable generated artifacts", { timeout: 120000 }, async () => {
   const scratchDirRoot = path.dirname(loadGeneratedProject().runtime.outputDir);
   const scratchDirsBefore = new Set(
@@ -107,6 +139,39 @@ test("native export profile skips non-native sidecar targets while keeping schem
     assert.equal(fs.existsSync(path.join(targetDir, "main.cmajor")), false);
     assert.equal(fs.existsSync(path.join(targetDir, "main.rs")), false);
     assert.equal(fs.existsSync(path.join(generatedRoot, "workspace_manifest.json")), true);
+  } finally {
+    fs.rmSync(scratchRoot, { recursive: true, force: true });
+  }
+});
+
+test("native ui manifests carry hero status, enum labels, and toggle display labels", { timeout: 120000 }, async () => {
+  const { scratchRoot, workspaceFile, generatedApps } = createScratchWorkspace(["pulse-pad", "mirror-field", "limiter-lab"]);
+
+  try {
+    for (const appKey of ["pulse-pad", "mirror-field", "limiter-lab"]) {
+      await runExport(["--workspace", workspaceFile, "--app", appKey, "--export-profile", "native"]);
+    }
+
+    const pulseHeader = fs.readFileSync(path.join(generatedApps, "pulse-pad", "ui_manifest.h"), "utf8");
+    const mirrorHeader = fs.readFileSync(path.join(generatedApps, "mirror-field", "ui_manifest.h"), "utf8");
+    const limiterHeader = fs.readFileSync(path.join(generatedApps, "limiter-lab", "ui_manifest.h"), "utf8");
+
+    assert.match(
+      pulseHeader,
+      /#define FWAK_STATUS_TEXT "Compact morph synth with texture-led oscillator color, contour sweep, stereo motion, and drive-aware output in the shared Northline instrument shell\."/
+    );
+    assert.equal(
+      pulseHeader.includes("MIDI-ready synth voice with morphable oscillators, contour sweep, stereo drift, and drive-aware band activity."),
+      false
+    );
+    assert.equal(pulseHeader.includes("\"Idle\", \"Held\", 0, 0u"), true);
+
+    assert.equal(mirrorHeader.includes("FWAK_PARAM_ENUM_LABELS_"), true);
+    assert.equal(mirrorHeader.includes("\"Mono\""), true);
+    assert.equal(mirrorHeader.includes("\"Stack\""), true);
+    assert.equal(mirrorHeader.includes("\"Orbit\""), true);
+
+    assert.equal(limiterHeader.includes("\"Modern\", \"Vintage\", 0, 0u"), true);
   } finally {
     fs.rmSync(scratchRoot, { recursive: true, force: true });
   }

@@ -78,6 +78,26 @@ static double FwakMeterValueForId(const FwakPlugin* plugin, const char* meterId)
     return fwak_get_meter_value(plugin, meterId);
 }
 
+static BOOL FwakSupportsFrequencyEditor(void);
+
+static NSString* FwakAnalyzerTitleForPlugin(const FwakPlugin* plugin)
+{
+    if (plugin && fwak_has_analyzer_zones(plugin)) {
+        return FwakSupportsFrequencyEditor() ? @"Drive Band Map" : @"Band Activity";
+    }
+    return FWAK_PLUGIN_IS_INSTRUMENT ? @"Performance Trace" : @"Signal Trace";
+}
+
+static NSString* FwakAnalyzerBadgeTextForMeter(const FwakPlugin* plugin, NSUInteger meterIndex)
+{
+    if (!plugin || meterIndex >= FWAK_METER_COUNT) {
+        return nil;
+    }
+
+    const FwakMeterManifestItem* manifest = &FWAK_METER_MANIFEST[meterIndex];
+    return [NSString stringWithFormat:@"%s %.1f", manifest->label, FwakMeterValueForId(plugin, manifest->id)];
+}
+
 static int FwakDriveTargetParameterIndex(void)
 {
     static int cachedIndex = -2;
@@ -477,11 +497,8 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
             NSFontAttributeName: [NSFont systemFontOfSize:10.0 weight:NSFontWeightSemibold],
             NSForegroundColorAttributeName: [NSColor colorWithCalibratedWhite:0.84 alpha:0.8]
         };
-        NSString* title = @"Analyzer";
-        if (_plugin && fwak_has_analyzer_zones(_plugin)) {
-            title = FwakSupportsFrequencyEditor() ? @"Drive Band Map" : @"Band Activity";
-        }
-        [title drawAtPoint:NSMakePoint(NSMinX(frequencyRect), NSMaxY(frequencyRect) + 4.0) withAttributes:heatTitleAttributes];
+        [FwakAnalyzerTitleForPlugin(_plugin) drawAtPoint:NSMakePoint(NSMinX(frequencyRect), NSMaxY(frequencyRect) + 4.0)
+                                          withAttributes:heatTitleAttributes];
     }
 
     if (_plugin) {
@@ -671,15 +688,44 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
                            fillColor:[NSColor colorWithCalibratedRed:0.52 green:0.27 blue:0.17 alpha:0.94]];
     }
 
-    [self drawRoundedBadgeInRect:NSMakeRect(NSMinX(panelRect) + 18.0, NSMaxY(panelRect) - 34.0, 92.0, 20.0)
-                            text:[NSString stringWithFormat:@"In %.1f dB", fwak_get_meter_input_peak_db(_plugin)]
-                       fillColor:[NSColor colorWithCalibratedRed:0.36 green:0.42 blue:0.74 alpha:0.92]];
-    [self drawRoundedBadgeInRect:NSMakeRect(NSMinX(panelRect) + 116.0, NSMaxY(panelRect) - 34.0, 102.0, 20.0)
-                            text:[NSString stringWithFormat:@"Out %.1f dB", fwak_get_meter_output_peak_db(_plugin)]
-                       fillColor:[NSColor colorWithCalibratedRed:0.48 green:0.56 blue:0.92 alpha:0.92]];
-    [self drawRoundedBadgeInRect:NSMakeRect(NSMinX(panelRect) + 224.0, NSMaxY(panelRect) - 34.0, 92.0, 20.0)
-                            text:[NSString stringWithFormat:@"GR %.1f dB", fwak_get_meter_gain_reduction_db(_plugin)]
-                       fillColor:[NSColor colorWithCalibratedRed:0.80 green:0.55 blue:0.24 alpha:0.96]];
+    {
+        NSColor* badgeColors[] = {
+            [NSColor colorWithCalibratedRed:0.36 green:0.42 blue:0.74 alpha:0.92],
+            [NSColor colorWithCalibratedRed:0.48 green:0.56 blue:0.92 alpha:0.92],
+            [NSColor colorWithCalibratedRed:0.80 green:0.55 blue:0.24 alpha:0.96]
+        };
+        const BOOL showsDriveBadges = _plugin && FwakDriveTargetParameterIndex() >= 0 && FwakDriveFocusParameterIndex() >= 0;
+        const NSUInteger badgeCount = FWAK_METER_COUNT < 3 ? (NSUInteger)FWAK_METER_COUNT : 3u;
+        if (badgeCount > 0u) {
+            const CGFloat badgeGap = 8.0;
+            const CGFloat reservedRightWidth = showsDriveBadges ? 160.0 : 0.0;
+            const CGFloat badgeWidth =
+                fmin(154.0, (frequencyRect.size.width - reservedRightWidth - badgeGap * (CGFloat)(badgeCount - 1u)) / (CGFloat)badgeCount);
+            NSUInteger badgeIndex = 0;
+            for (; badgeIndex < badgeCount; ++badgeIndex) {
+                NSString* badgeText = FwakAnalyzerBadgeTextForMeter(_plugin, badgeIndex);
+                if (!badgeText) {
+                    continue;
+                }
+                [self drawRoundedBadgeInRect:NSMakeRect(NSMinX(panelRect) + 18.0 + (badgeWidth + badgeGap) * (CGFloat)badgeIndex,
+                                                        NSMaxY(panelRect) - 34.0,
+                                                        badgeWidth,
+                                                        20.0)
+                                        text:badgeText
+                                   fillColor:badgeColors[badgeIndex]];
+            }
+        } else {
+            [self drawRoundedBadgeInRect:NSMakeRect(NSMinX(panelRect) + 18.0, NSMaxY(panelRect) - 34.0, 92.0, 20.0)
+                                    text:[NSString stringWithFormat:@"In %.1f dB", fwak_get_meter_input_peak_db(_plugin)]
+                               fillColor:[NSColor colorWithCalibratedRed:0.36 green:0.42 blue:0.74 alpha:0.92]];
+            [self drawRoundedBadgeInRect:NSMakeRect(NSMinX(panelRect) + 116.0, NSMaxY(panelRect) - 34.0, 102.0, 20.0)
+                                    text:[NSString stringWithFormat:@"Out %.1f dB", fwak_get_meter_output_peak_db(_plugin)]
+                               fillColor:[NSColor colorWithCalibratedRed:0.48 green:0.56 blue:0.92 alpha:0.92]];
+            [self drawRoundedBadgeInRect:NSMakeRect(NSMinX(panelRect) + 224.0, NSMaxY(panelRect) - 34.0, 92.0, 20.0)
+                                    text:[NSString stringWithFormat:@"GR %.1f dB", fwak_get_meter_gain_reduction_db(_plugin)]
+                               fillColor:[NSColor colorWithCalibratedRed:0.80 green:0.55 blue:0.24 alpha:0.96]];
+        }
+    }
 }
 
 @end
@@ -751,7 +797,7 @@ static NSString* FwakParameterDisplayString(FwakPlugin* plugin, int parameterInd
                 [slider setMinValue:info->minValue];
                 [slider setMaxValue:info->maxValue];
                 [slider setContinuous:YES];
-                if (info->displayKind != 0u) {
+                if (info->enumLabelCount > 0u) {
                     [slider setNumberOfTickMarks:(NSInteger)(info->maxValue - info->minValue + 1.0)];
                     [slider setAllowsTickMarkValuesOnly:YES];
                 }

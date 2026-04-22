@@ -27,6 +27,10 @@ typedef struct {
     double defaultValue;
     uint32_t flags;
     uint32_t displayKind;
+    const char* offLabel;
+    const char* onLabel;
+    const char* const* enumLabels;
+    uint32_t enumLabelCount;
 } FwakParameterInfo;
 
 #include "ui_manifest.h"

@@ -21,7 +21,7 @@ const className = project.faust.className;
 const resolvedUi = runtime.ui ?? project.ui ?? {};
 const controlOrder = resolvedUi?.controlOrder ?? [];
 const meters = resolvedUi?.meters ?? [];
-const statusText = resolvedUi?.statusText ?? resolvedUi?.shell?.statusText ?? "";
+const statusText = resolvedUi?.shell?.hero?.status ?? resolvedUi?.statusText ?? resolvedUi?.shell?.statusText ?? "";
 const exportProfile = runtime.args["export-profile"] != null
   ? String(runtime.args["export-profile"]).toLowerCase()
   : runtime.args["native-only"]
@@ -98,6 +98,16 @@ function controlFlags(control) {
     flags.push("CPLUG_FLAG_PARAMETER_IS_BYPASS");
   }
   return flags.join(" | ");
+}
+
+function controlEnumLabels(control) {
+  const labels = resolvedUi?.display?.enumLabels?.[control.label];
+  return Array.isArray(labels) && labels.length > 0 ? labels : null;
+}
+
+function controlDisplay(control) {
+  const display = resolvedUi?.display?.controls?.[control.label];
+  return display != null && typeof display === "object" ? display : null;
 }
 
 function writeProjectConfig() {
@@ -282,12 +292,29 @@ function writeUiManifest(uiJsonPath) {
 
   const orderedIndices = orderedControls.map((control) => controls.findIndex((candidate) => candidate.label === control.label));
   const orderedIndexLines = orderedIndices.map((index) => `    ${index}`).join(",\n");
+  const parameterEnumLabelLines = [];
   const parameterLines = controls.map((control, index) => {
     const initValue = formatFloatLiteral(control.init ?? 0);
     const minValue = formatFloatLiteral(control.min ?? 0);
     const maxValue = formatFloatLiteral(control.max ?? 1);
     const unit = findMetaValue(control, "unit") ?? "";
-    return `    { ${controlParameterId(control, index)}u, "${escapeCString(control.label)}", "${escapeCString(unit)}", ${minValue}, ${maxValue}, ${initValue}, ${controlFlags(control)}, ${controlDisplayKind(control)} }`;
+    const enumLabels = controlEnumLabels(control);
+    const display = controlDisplay(control);
+    let enumLabelSymbol = "0";
+    let enumLabelCount = "0u";
+
+    if (enumLabels) {
+      enumLabelSymbol = `FWAK_PARAM_ENUM_LABELS_${index}`;
+      enumLabelCount = `${enumLabels.length}u`;
+      parameterEnumLabelLines.push(`static const char* const ${enumLabelSymbol}[${enumLabels.length}] = {
+${enumLabels.map((label) => `    "${escapeCString(label)}"`).join(",\n")}
+};`);
+    }
+
+    const offLabel = typeof display?.offLabel === "string" ? `"${escapeCString(display.offLabel)}"` : "0";
+    const onLabel = typeof display?.onLabel === "string" ? `"${escapeCString(display.onLabel)}"` : "0";
+
+    return `    { ${controlParameterId(control, index)}u, "${escapeCString(control.label)}", "${escapeCString(unit)}", ${minValue}, ${maxValue}, ${initValue}, ${controlFlags(control)}, ${controlDisplayKind(control)}, ${offLabel}, ${onLabel}, ${enumLabelSymbol}, ${enumLabelCount} }`;
   });
 
   const meterLines = meters.map((meter) => {
@@ -330,7 +357,7 @@ static const int FWAK_CONTROL_ORDER[FWAK_CONTROL_ORDER_COUNT] = {
 ${orderedIndexLines}
 };
 
-static const FwakParameterInfo FWAK_PARAMETER_MANIFEST[FWAK_CONTROL_COUNT] = {
+${parameterEnumLabelLines.length > 0 ? `${parameterEnumLabelLines.join("\n\n")}\n\n` : ""}static const FwakParameterInfo FWAK_PARAMETER_MANIFEST[FWAK_CONTROL_COUNT] = {
 ${parameterLines.join(",\n")}
 };
 
@@ -390,7 +417,8 @@ ${meterLines.join(",\n")}
       unit: findMetaValue(control, "unit"),
       scale: findMetaValue(control, "scale"),
       isToggle: control.type === "checkbox" || control.type === "button",
-      enumLabels: resolvedUi?.display?.enumLabels?.[control.label] ?? null
+      enumLabels: controlEnumLabels(control),
+      display: controlDisplay(control)
     })),
     meters,
     benchmarkPath: `/generated/apps/${runtime.appKey}/benchmark-results.json`
