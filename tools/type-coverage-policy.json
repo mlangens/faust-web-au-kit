@@ -1,0 +1,26 @@
+{
+  "trackedRoots": [
+    "preview/lib",
+    "tools",
+    "tests/support"
+  ],
+  "trackedExtensions": [
+    ".js",
+    ".mjs"
+  ],
+  "exemptions": {
+    "preview/lib/bootstrap.js": "Depends on preview simulator and surface registries that still need a dedicated typing pass.",
+    "preview/lib/simulators.js": "Large family/app simulation monolith with many implicit runtime value shapes still to model.",
+    "preview/lib/surfaces.js": "Legacy surface entrypoint re-export pending a surface-registry typing pass.",
+    "preview/lib/surfaces/detail.js": "Surface detail builders still rely on broad config object shapes and DOM-heavy implicit contracts.",
+    "preview/lib/surfaces/graph-and-meter.js": "Graph and meter surface builders still need shared surface model typedefs before clean checkJs coverage.",
+    "preview/lib/surfaces/index.js": "Surface orchestration imports untyped builders that are still tracked via explicit exemptions.",
+    "preview/lib/surfaces/registry.js": "Surface registry depends on untyped builder signatures that still need shared JSDoc contracts.",
+    "preview/lib/surfaces/shared.js": "Shared surface helpers still depend on broad untyped surface config and simulator state objects.",
+    "tools/export-targets.mjs": "Top-level export orchestration still needs a second typing pass after helper extraction.",
+    "tools/lib/benchmark-harness.mjs": "Benchmark harness mixes native compile orchestration, wasm execution, and JSON report assembly with loose data shapes.",
+    "tools/lib/export-faust-tools.mjs": "Faust export helper still needs stricter runtime and stager typedefs.",
+    "tools/lib/export-manifest-tools.mjs": "Manifest generation remains the heaviest string-builder module and needs a dedicated typing pass.",
+    "tools/run-benchmarks.mjs": "Benchmark driver still depends on untyped benchmark and export helper payloads."
+  }
+}

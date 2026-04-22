@@ -53,7 +53,7 @@ The framework now treats plugin products as workspace apps with explicit, repeat
 - Generated artifacts, native builds, and installers are always namespaced by app key.
 - Shared framework behavior belongs in root-level shared code, not duplicated inside app folders.
 
-These naming rules are now enforced by `npm run check:structure`, and the first framework typing boundary is enforced by `npm run check:types`.
+These naming rules are now enforced by `npm run check:structure`, while framework typing coverage and the active checked set are enforced by `npm run check:type-coverage` and `npm run check:types`.
 
 That means a new plugin should be added by registering a new app, not by copying Limiter Lab into a parallel ad hoc structure.
 
@@ -131,8 +131,10 @@ The framework is validated in layers:
 
 - `npm run check:structure`
   Enforces workspace naming, manifest placement, DSP entrypoint paths, and shared file naming conventions.
+- `npm run check:type-coverage`
+  Enforces which framework JS/MJS files must be in the checked set and which remaining gaps are still temporary, reasoned exemptions.
 - `npm run check:types`
-  Runs the framework’s first TypeScript-backed `--noEmit` check over the shared runtime and naming enforcement slice.
+  Runs the framework’s TypeScript-backed `--noEmit` check over the currently enforced shared runtime, preview, and tooling slice.
 - `npm test`
   Runs the workspace export prepare step, unit tests, schema contract tests, export integration tests, and Playwright preview tests.
 - `npm run test:unit`
@@ -145,6 +147,12 @@ The framework is validated in layers:
   Exercises the shared browser preview across workspace routes and failure states.
 - `npm run test:native`
   Runs the AU validation path and keeps host-dependent checks at the top of the pyramid.
+
+When adding or splitting shared JS/MJS framework files, keep the typing workflow explicit:
+
+1. Add the file to the checked set by expanding `tsconfig.check.json`, or add a temporary exemption with a concrete reason in `tools/type-coverage-policy.json`.
+2. Run `npm run check:type-coverage`.
+3. Run `npm run check:types`.
 
 For app-specific native regression, pass an app key through the native scripts:
 

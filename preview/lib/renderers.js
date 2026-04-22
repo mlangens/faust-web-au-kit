@@ -127,6 +127,7 @@ function buildSlider(control, ui, state) {
   });
 
   rememberControlValue(state, control, Number(control.init));
+  /** @type {HTMLElement | null} */
   let enumRail = null;
   if (enumLabels?.length) {
     card.classList.add("mode-card");

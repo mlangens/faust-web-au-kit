@@ -92,6 +92,14 @@ export interface ProjectUiShellConfig extends JsonObject {
   sections?: Record<string, ProjectUiSectionCopy>;
 }
 
+export interface ProjectUiSimulatorManifest extends JsonObject {
+  id?: string;
+  kind?: string;
+  name?: string;
+  type?: string;
+  family?: string;
+}
+
 export interface DisplayConfig extends JsonObject {
   enumLabels?: string[];
   onLabel?: string;
@@ -156,6 +164,7 @@ export interface PreviewSurfaceConfig extends JsonObject {
 
 export interface ProjectUiPreviewManifest extends JsonObject {
   surfaces?: Record<string, PreviewSurfaceConfig>;
+  simulator?: ProjectUiSimulatorManifest | string | null;
 }
 
 export interface ProjectUiCatalogManifest extends JsonObject {
@@ -176,8 +185,15 @@ export interface ProjectUiManifest extends JsonObject {
   familyVersion?: number;
   variant?: string | null;
   overrides?: JsonObject;
+  eyebrow?: string;
+  title?: string;
+  description?: string;
+  hero?: ProjectUiShellHero;
   statusText?: string;
   controlOrder?: string[];
+  controls?: Record<string, DisplayConfig | JsonObject>;
+  controlDisplay?: Record<string, DisplayConfig | JsonObject>;
+  controlDisplays?: Record<string, DisplayConfig | JsonObject>;
   meters?: GeneratedMeter[];
   catalog?: ProjectUiCatalogManifest;
   group?: string | null;
@@ -190,11 +206,20 @@ export interface ProjectUiManifest extends JsonObject {
   meterPresetIds?: string[];
   meterPresets?: Record<string, JsonObject>;
   presentation?: JsonObject;
+  sections?: Record<string, ProjectUiSectionCopy>;
   surfacePresetIds?: string[];
   surfacePresets?: Record<string, PreviewSurfaceConfig>;
   surfaces?: JsonValue[];
+  simulator?: ProjectUiSimulatorManifest | string | null;
+  meterSimulator?: ProjectUiSimulatorManifest | string | null;
+  simulation?: ProjectUiSimulatorManifest | string | null;
   theme?: JsonObject;
   themeGroup?: string | null;
+  themeTokens?: JsonObject;
+  tokens?: JsonObject;
+  formatting?: JsonObject;
+  enumDisplays?: Record<string, JsonValue>;
+  enums?: Record<string, JsonValue>;
   visualLanguage?: JsonObject;
   shell?: ProjectUiShellConfig;
   display?: ProjectUiDisplayManifest;

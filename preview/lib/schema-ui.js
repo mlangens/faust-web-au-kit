@@ -1,3 +1,24 @@
+// @ts-check
+
+/**
+ * @typedef {import("../../types/framework").DisplayConfig} DisplayConfig
+ * @typedef {import("../../types/framework").GeneratedControl} GeneratedControl
+ * @typedef {import("../../types/framework").GeneratedUiSchema} GeneratedUiSchema
+ * @typedef {import("../../types/framework").JsonObject} JsonObject
+ * @typedef {import("../../types/framework").JsonValue} JsonValue
+ * @typedef {import("../../types/framework").ProjectUiManifest} ProjectUiManifest
+ * @typedef {import("../../types/framework").ProjectUiSectionCopy} ProjectUiSectionCopy
+ * @typedef {import("../../types/framework").ProjectUiShellConfig} ProjectUiShellConfig
+ * @typedef {import("../../types/framework").ProjectUiSimulatorManifest} ProjectUiSimulatorManifest
+ */
+
+/**
+ * @typedef {DisplayConfig & { enumLabels?: string[] }} ResolvedControlDisplay
+ * @typedef {Record<string, string | undefined>} ThemeTokens
+ * @typedef {ProjectUiSimulatorManifest & { id: string }} ResolvedSimulator
+ */
+
+/** @type {ProjectUiShellConfig} */
 const DEFAULT_SHELL = {
   eyebrow: "Web Preview Only",
   hero: {},
@@ -21,6 +42,7 @@ const DEFAULT_SHELL = {
   }
 };
 
+/** @type {ThemeTokens} */
 const BASE_THEME_TOKENS = {
   bg: "#ebeee7",
   bgDeep: "#d7ddd1",
@@ -45,6 +67,7 @@ const BASE_THEME_TOKENS = {
   heroGlow: "rgba(255, 255, 255, 0.55)"
 };
 
+/** @type {Record<string, ThemeTokens>} */
 const FAMILY_THEME_TOKENS = {
   dynamics: {
     accent: "#9f5e2a",
@@ -81,33 +104,47 @@ const FAMILY_THEME_TOKENS = {
   }
 };
 
+/** @type {Record<string, string[]>} */
 const LEGACY_ENUM_DISPLAYS = {
   "Drive Target": ["Both", "Mid", "Side"],
   "Drive Focus": ["Full", "Low", "Mid", "High"]
 };
 
+/**
+ * @param {unknown} value
+ * @returns {JsonObject}
+ */
 function asObject(value) {
-  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  return value && typeof value === "object" && !Array.isArray(value) ? /** @type {JsonObject} */ (value) : {};
 }
 
+/**
+ * @param {unknown} value
+ * @returns {JsonValue | undefined}
+ */
 function cloneValue(value) {
   if (Array.isArray(value)) {
-    return value.map(cloneValue);
+    return /** @type {JsonValue[]} */ (value.map((entry) => cloneValue(entry)));
   }
   if (value && typeof value === "object") {
-    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, cloneValue(entry)]));
+    return /** @type {JsonObject} */ (Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, cloneValue(entry)])));
   }
-  return value;
+  return /** @type {JsonValue | undefined} */ (value);
 }
 
+/**
+ * @param {unknown} base
+ * @param {unknown} override
+ * @returns {JsonObject}
+ */
 function deepMerge(base, override) {
   const left = asObject(base);
   const right = asObject(override);
-  const merged = { ...cloneValue(left) };
+  const merged = { ...asObject(cloneValue(left)) };
 
   Object.entries(right).forEach(([key, value]) => {
     if (Array.isArray(value)) {
-      merged[key] = value.map(cloneValue);
+      merged[key] = /** @type {JsonValue[]} */ (value.map((entry) => cloneValue(entry)));
       return;
     }
     if (value && typeof value === "object") {
@@ -120,14 +157,39 @@ function deepMerge(base, override) {
   return merged;
 }
 
+/**
+ * @param {GeneratedControl} control
+ * @returns {string}
+ */
 function controlKey(control) {
   return control.id || control.label;
 }
 
+/**
+ * @param {...unknown} values
+ * @returns {string | undefined}
+ */
 function pickFirstString(...values) {
-  return values.find((value) => typeof value === "string" && value.trim().length > 0);
+  for (const value of values) {
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value;
+    }
+  }
+  return undefined;
 }
 
+/**
+ * @param {unknown} value
+ * @returns {string | undefined}
+ */
+function maybeString(value) {
+  return typeof value === "string" ? value : undefined;
+}
+
+/**
+ * @param {GeneratedUiSchema} schema
+ * @returns {string}
+ */
 function inferFamily(schema) {
   if (typeof schema.ui?.family === "string" && schema.ui.family.trim().length > 0) {
     return schema.ui.family;
@@ -141,6 +203,11 @@ function inferFamily(schema) {
   return "utility";
 }
 
+/**
+ * @param {GeneratedUiSchema} schema
+ * @param {ProjectUiManifest} ui
+ * @returns {string}
+ */
 function inferThemeGroup(schema, ui) {
   return pickFirstString(
     ui.group,
@@ -148,25 +215,38 @@ function inferThemeGroup(schema, ui) {
     schema.project?.kind === "instrument" ? "instrument" : null,
     schema.meters?.some((meter) => meter.mode === "gr") ? "dynamics" : null,
     "utility"
-  );
+  ) ?? "utility";
 }
 
+/**
+ * @param {unknown} value
+ * @param {number} alpha
+ * @returns {string}
+ */
 function hexToRgba(value, alpha) {
   const normalized = String(value ?? "").trim();
   const match = normalized.match(/^#([0-9a-f]{6}|[0-9a-f]{3})$/i);
   if (!match) {
-    return value;
+    return normalized;
   }
 
-  const hex = match[1].length === 3
-    ? match[1].split("").map((char) => `${char}${char}`).join("")
-    : match[1];
+  const hexSource = match[1] ?? "";
+  if (!hexSource) {
+    return normalized;
+  }
+  const hex = hexSource.length === 3
+    ? hexSource.split("").map((char) => `${char}${char}`).join("")
+    : hexSource;
   const red = parseInt(hex.slice(0, 2), 16);
   const green = parseInt(hex.slice(2, 4), 16);
   const blue = parseInt(hex.slice(4, 6), 16);
   return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 }
 
+/**
+ * @param {ProjectUiManifest} ui
+ * @returns {ThemeTokens}
+ */
 function themeTokensFromVisualLanguage(ui) {
   const visualLanguage = asObject(ui.visualLanguage);
   const palette = asObject(visualLanguage.palette);
@@ -174,26 +254,28 @@ function themeTokensFromVisualLanguage(ui) {
     ui.presentation?.accentPaletteId,
     ui.accentPaletteId
   );
-  const accentPalette = asObject(asObject(visualLanguage.accentPalettes)[accentPaletteId]);
+  const accentPalette = accentPaletteId
+    ? asObject(asObject(visualLanguage.accentPalettes)[accentPaletteId])
+    : {};
 
   if (!Object.keys(palette).length && !Object.keys(accentPalette).length) {
     return {};
   }
 
-  const accent = accentPalette.primary ?? palette.focus;
+  const accent = pickFirstString(accentPalette.primary, palette.focus);
   return {
-    bg: palette.canvas,
-    bgDeep: palette.panelInset ?? palette.panel,
+    bg: maybeString(palette.canvas),
+    bgDeep: pickFirstString(palette.panelInset, palette.panel),
     panel: hexToRgba(palette.panel ?? palette.panelElevated, 0.9),
     panelStrong: hexToRgba(palette.panelElevated ?? palette.panel, 0.96),
-    ink: palette.textStrong,
-    muted: palette.textMuted ?? palette.textDim,
+    ink: maybeString(palette.textStrong),
+    muted: pickFirstString(palette.textMuted, palette.textDim),
     line: hexToRgba(palette.line ?? "#39414c", 0.32),
     accent,
-    accentSoft: accentPalette.secondary ?? palette.info,
-    info: palette.info ?? accentPalette.secondary ?? accent ?? "#63b7c8",
-    positive: palette.positive ?? "#72bf78",
-    warning: palette.warning ?? accentPalette.secondary ?? "#d38a54",
+    accentSoft: pickFirstString(accentPalette.secondary, palette.info),
+    info: pickFirstString(palette.info, accentPalette.secondary, accent, "#63b7c8"),
+    positive: pickFirstString(palette.positive, "#72bf78"),
+    warning: pickFirstString(palette.warning, accentPalette.secondary, "#d38a54"),
     accentTint: hexToRgba(accent ?? palette.focus, 0.14),
     accentLine: hexToRgba(accent ?? palette.focus, 0.3),
     card: hexToRgba(palette.panelElevated ?? palette.panel ?? "#272d35", 0.84),
@@ -205,22 +287,25 @@ function themeTokensFromVisualLanguage(ui) {
   };
 }
 
+/**
+ * @param {GeneratedUiSchema} schema
+ * @param {ProjectUiManifest} ui
+ * @returns {ProjectUiShellConfig}
+ */
 function resolveShell(schema, ui) {
   const shell = asObject(ui.shell);
   const shellSections = asObject(shell.sections);
   const sectionAliases = asObject(ui.sections);
-
-  const mergedShell = deepMerge(DEFAULT_SHELL, shell);
+  const hero = deepMerge(asObject(shell.hero), asObject(ui.hero));
+  /** @type {Record<string, ProjectUiSectionCopy>} */
+  const sections = {};
 
   ["surfaces", "controls", "meters", "benchmarks"].forEach((sectionKey) => {
-    mergedShell.sections[sectionKey] = deepMerge(
-      mergedShell.sections[sectionKey],
-      deepMerge(asObject(shell[sectionKey]), asObject(shellSections[sectionKey]))
-    );
-    mergedShell.sections[sectionKey] = deepMerge(mergedShell.sections[sectionKey], asObject(sectionAliases[sectionKey]));
+    sections[sectionKey] = /** @type {ProjectUiSectionCopy} */ (deepMerge(
+      deepMerge(DEFAULT_SHELL.sections?.[sectionKey], deepMerge(asObject(shell[sectionKey]), asObject(shellSections[sectionKey]))),
+      asObject(sectionAliases[sectionKey])
+    ));
   });
-
-  const hero = deepMerge(asObject(shell.hero), asObject(ui.hero));
 
   return {
     eyebrow: pickFirstString(shell.eyebrow, shell.kicker, ui.eyebrow, DEFAULT_SHELL.eyebrow),
@@ -229,23 +314,34 @@ function resolveShell(schema, ui) {
       description: pickFirstString(hero.description, shell.description, ui.description, schema.project?.description),
       status: pickFirstString(hero.status, hero.statusText, shell.statusText, schema.project?.statusText)
     },
-    sections: mergedShell.sections
+    sections
   };
 }
 
+/**
+ * @param {ProjectUiManifest} ui
+ * @param {string} family
+ * @returns {ThemeTokens}
+ */
 function resolveThemeTokens(ui, family) {
   const theme = asObject(ui.theme);
-  const directThemeTokens = Object.fromEntries(
+  const directThemeTokens = /** @type {ThemeTokens} */ (Object.fromEntries(
     Object.entries(theme).filter(([key]) => !["tokens", "tone", "density", "radius", "family"].includes(key))
-  );
-  const themeGroup = pickFirstString(ui.themeGroup, family, "utility");
+  ));
+  const themeGroup = pickFirstString(ui.themeGroup, family, "utility") ?? "utility";
 
-  return deepMerge(
+  return /** @type {ThemeTokens} */ (deepMerge(
     deepMerge(BASE_THEME_TOKENS, deepMerge(FAMILY_THEME_TOKENS[themeGroup], themeTokensFromVisualLanguage(ui))),
     deepMerge(directThemeTokens, deepMerge(asObject(theme.tokens), deepMerge(asObject(ui.themeTokens), asObject(ui.tokens))))
-  );
+  ));
 }
 
+/**
+ * @param {ProjectUiManifest} ui
+ * @param {GeneratedUiSchema} schema
+ * @param {string} family
+ * @returns {ResolvedSimulator}
+ */
 function resolveSimulator(ui, schema, family) {
   const preview = asObject(ui.preview);
   const simulator = preview.simulator ?? ui.simulator ?? ui.meterSimulator ?? ui.simulation ?? {};
@@ -253,29 +349,57 @@ function resolveSimulator(ui, schema, family) {
     return { id: simulator };
   }
   if (simulator && typeof simulator === "object") {
-    return {
-      ...simulator,
-      id: simulator.id || simulator.kind || simulator.name || simulator.type || simulator.family || schema.project?.key || family
-    };
+    const simulatorObject = asObject(simulator);
+    return /** @type {ResolvedSimulator} */ ({
+      ...simulatorObject,
+      id: pickFirstString(
+        simulatorObject.id,
+        simulatorObject.kind,
+        simulatorObject.name,
+        simulatorObject.type,
+        simulatorObject.family,
+        schema.project?.key,
+        family,
+        "default"
+      ) ?? "default"
+    });
   }
   return { id: schema.project?.key || family || "default" };
 }
 
+/**
+ * @param {unknown} value
+ * @returns {value is string[]}
+ */
+function isStringArray(value) {
+  return Array.isArray(value) && value.every((entry) => typeof entry === "string");
+}
+
+/**
+ * @param {unknown} value
+ * @returns {value is JsonObject[]}
+ */
+function isObjectArray(value) {
+  return Array.isArray(value) && value.every((entry) => entry && typeof entry === "object" && !Array.isArray(entry));
+}
+
+/**
+ * @param {unknown} value
+ * @returns {string[] | null}
+ */
 function normalizeEnumLabels(value) {
   if (!value) {
     return null;
   }
 
-  if (Array.isArray(value)) {
-    if (value.every((entry) => typeof entry === "string")) {
-      return value;
-    }
-    if (value.every((entry) => entry && typeof entry === "object")) {
-      return value
-        .slice()
-        .sort((left, right) => Number(left.value ?? left.index ?? 0) - Number(right.value ?? right.index ?? 0))
-        .map((entry) => entry.label ?? entry.text ?? String(entry.value ?? entry.index ?? ""));
-    }
+  if (isStringArray(value)) {
+    return value;
+  }
+  if (isObjectArray(value)) {
+    return value
+      .slice()
+      .sort((left, right) => Number(left.value ?? left.index ?? 0) - Number(right.value ?? right.index ?? 0))
+      .map((entry) => pickFirstString(entry.label, entry.text, String(entry.value ?? entry.index ?? "")) ?? "");
   }
 
   const objectValue = asObject(value);
@@ -297,7 +421,8 @@ function normalizeEnumLabels(value) {
   if (numericEntries.length) {
     return numericEntries.map(([, entry]) => {
       if (entry && typeof entry === "object") {
-        return entry.label ?? entry.text ?? String(entry.value ?? "");
+        const entryObject = asObject(entry);
+        return String(entryObject.label ?? entryObject.text ?? entryObject.value ?? "");
       }
       return String(entry);
     });
@@ -306,24 +431,44 @@ function normalizeEnumLabels(value) {
   return null;
 }
 
+/**
+ * @param {unknown} collection
+ * @param {string[]} keyCandidates
+ * @returns {JsonObject}
+ */
 function lookupControlConfig(collection, keyCandidates) {
   if (Array.isArray(collection)) {
     return keyCandidates.reduce((resolved, key) => {
-      const match = collection.find((entry) => entry?.id === key || entry?.label === key || entry?.key === key);
+      const match = collection.find((entry) => {
+        const entryObject = asObject(entry);
+        return entryObject.id === key || entryObject.label === key || entryObject.key === key;
+      });
       return match ? deepMerge(resolved, match) : resolved;
     }, {});
   }
 
+  const collectionObject = asObject(collection);
   return keyCandidates.reduce((resolved, key) => {
-    if (collection && Object.hasOwn(collection, key)) {
-      return deepMerge(resolved, collection[key]);
+    if (Object.hasOwn(collectionObject, key)) {
+      return deepMerge(resolved, collectionObject[key]);
     }
     return resolved;
   }, {});
 }
 
+/**
+ * @param {ProjectUiManifest} ui
+ * @param {GeneratedControl} control
+ * @returns {ResolvedControlDisplay}
+ */
 function resolveControlDisplay(ui, control) {
-  const keyCandidates = [controlKey(control), control.id, control.label, control.shortname].filter(Boolean);
+  const keyCandidates = [controlKey(control), control.id, control.label, control.shortname].filter(
+    /**
+     * @param {string | undefined} key
+     * @returns {key is string}
+     */
+    (key) => typeof key === "string" && key.length > 0
+  );
   const uiObject = asObject(ui);
 
   const displayConfig = [
@@ -334,17 +479,18 @@ function resolveControlDisplay(ui, control) {
     asObject(asObject(uiObject.formatting).controls)
   ].reduce((resolved, collection) => deepMerge(resolved, lookupControlConfig(collection, keyCandidates)), {});
 
-  const enumDisplay = keyCandidates.reduce((resolved, key) => {
-    if (resolved) {
-      return resolved;
-    }
-    return (
+  let enumDisplay = null;
+  for (const key of keyCandidates) {
+    enumDisplay = (
       asObject(uiObject.enumDisplays)[key]
       || asObject(uiObject.enums)[key]
       || asObject(asObject(uiObject.display).enums)[key]
       || null
     );
-  }, null);
+    if (enumDisplay) {
+      break;
+    }
+  }
 
   return {
     ...displayConfig,
@@ -358,17 +504,21 @@ function resolveControlDisplay(ui, control) {
       || asObject(control.display).enum
       || enumDisplay
       || LEGACY_ENUM_DISPLAYS[control.label]
-    )
+    ) ?? undefined
   };
 }
 
+/**
+ * @param {GeneratedUiSchema} rawSchema
+ * @returns {GeneratedUiSchema}
+ */
 function normalizeSchema(rawSchema) {
-  const ui = asObject(rawSchema.ui);
-  const family = pickFirstString(ui.family, inferFamily(rawSchema));
-  const variant = pickFirstString(ui.variant, rawSchema.project?.key, family);
+  const ui = /** @type {ProjectUiManifest} */ (asObject(rawSchema.ui));
+  const family = pickFirstString(ui.family, inferFamily(rawSchema)) ?? "utility";
+  const variant = pickFirstString(ui.variant, rawSchema.project?.key, family) ?? family;
   const themeGroup = inferThemeGroup(rawSchema, ui);
 
-  return {
+  return /** @type {GeneratedUiSchema} */ ({
     ...rawSchema,
     ui: {
       ...ui,
@@ -382,7 +532,7 @@ function normalizeSchema(rawSchema) {
       },
       simulator: resolveSimulator({ ...ui, themeGroup }, rawSchema, family)
     }
-  };
+  });
 }
 
 export { controlKey, deepMerge, normalizeSchema, resolveControlDisplay };

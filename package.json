@@ -5,6 +5,7 @@
   "description": "A monorepo-native Faust plugin suite framework with shared native, preview, export, and packaging tooling.",
   "type": "module",
   "scripts": {
+    "check:type-coverage": "node ./tools/check-type-coverage.mjs",
     "check:structure": "node ./tools/check-framework-structure.mjs",
     "check:types": "tsc -p tsconfig.check.json",
     "export": "node ./tools/export-targets.mjs",
@@ -63,7 +64,7 @@
     "test:preview:run": "playwright test",
     "test:preview": "npm run test:prepare && npm run test:preview:run",
     "test:native": "node ./tools/run-native-validation.mjs",
-    "test": "npm run check:structure && npm run check:types && npm run test:prepare && npm run test:unit:run && npm run test:contracts:run && npm run test:integration:run && npm run test:preview:run"
+    "test": "npm run check:structure && npm run check:type-coverage && npm run check:types && npm run test:prepare && npm run test:unit:run && npm run test:contracts:run && npm run test:integration:run && npm run test:preview:run"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",

@@ -21,15 +21,19 @@ function decimalPlaces(step) {
     return Number(normalized.split("e-")[1]);
   }
 
-  return normalized.includes(".") ? normalized.split(".")[1].length : 0;
+  if (!normalized.includes(".")) {
+    return 0;
+  }
+  const fraction = normalized.split(".")[1];
+  return fraction ? fraction.length : 0;
 }
 
 /**
- * @param {string[] | undefined} labels
+ * @param {string[]} labels
  * @param {unknown} value
  * @returns {string}
  */
-function formatEnumValue(labels, value) {
+function formatEnumValue(labels = [], value) {
   const index = Math.round(Number(value));
   return labels[index] ?? labels[0] ?? String(value);
 }
@@ -57,7 +61,7 @@ function formatValue(control, value, ui) {
   }
 
   if (control.isToggle) {
-    return value >= 0.5 ? (display.onLabel ?? "On") : (display.offLabel ?? "Off");
+    return Number(value) >= 0.5 ? (display.onLabel ?? "On") : (display.offLabel ?? "Off");
   }
 
   if (display.precision != null) {
@@ -66,10 +70,10 @@ function formatValue(control, value, ui) {
   }
 
   if (control.unit === "Hz") {
-    return `${Math.round(value)} Hz`;
+    return `${Math.round(Number(value))} Hz`;
   }
   if (control.unit === "%") {
-    return `${Math.round(value)} %`;
+    return `${Math.round(Number(value))} %`;
   }
   if (control.unit === "ct") {
     return `${formatNumber(value, 1)} ct`;
