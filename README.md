@@ -25,6 +25,8 @@ Each app follows the same convention:
   Native build products for that app only.
 - `dist/apps/<app-key>/`
   Installer artifacts for that app only.
+- `dist/suites/<suite-id>/`
+  Bulk installer artifacts for a curated suite such as `northline-suite`.
 
 Shared framework code stays centralized:
 
@@ -51,14 +53,19 @@ The framework now treats plugin products as workspace apps with explicit, repeat
 - Generated artifacts, native builds, and installers are always namespaced by app key.
 - Shared framework behavior belongs in root-level shared code, not duplicated inside app folders.
 
+These naming rules are now enforced by `npm run check:structure`, and the first framework typing boundary is enforced by `npm run check:types`.
+
 That means a new plugin should be added by registering a new app, not by copying Limiter Lab into a parallel ad hoc structure.
 
 ## Current Apps
 
+- `Northline Audio`
+  A 14-app clone-distance suite scaffold with flagship, dynamics, creative, and reduced lanes:
+  `atlas-curve`, `press-deck`, `headroom`, `room-bloom`, `silk-guard`, `latch-line`, `split-stack`, `ember-drive`, `relay-tape`, `contour-forge`, `mirror-field`, `seed-tone`, `span-pair`, and `pocket-cut`.
 - `Limiter Lab`
-  The flagship proof of concept: an oversampled limiter with native AU/CLAP/VST3/standalone targets, analyzer history, and drive-before-limiter routing.
+  The framework’s original limiter proof of concept, kept aligned as an example app rather than part of the clone suite installer.
 - `Pulse Pad`
-  A synth example that exercises the same manifest, export, preview, and native wrapper conventions.
+  The framework’s original synth example, also kept aligned outside the clone suite installer.
 
 ## Commands
 
@@ -74,9 +81,12 @@ npm run build:au
 npm run build:au -- --app pulse-pad
 npm run build:native
 npm run install:local
+npm run install:clone-suite
+npm run uninstall:clone-suite
 npm run validate:au
 npm run doctor:au
 npm run package:installer
+npm run package:clone-suite-installer
 npm run preview
 ```
 
@@ -98,21 +108,31 @@ What they do:
   Builds AUv2, CLAP, VST3, and standalone outputs for the selected app.
 - `npm run install:local`
   Installs the selected app into `~/Library/Audio/Plug-Ins` and `~/Applications`.
+- `npm run install:clone-suite`
+  Builds and installs the ordered Northline clone suite into `~/Library/Audio/Plug-Ins` and `~/Applications`.
+- `npm run uninstall:clone-suite`
+  Removes the ordered Northline clone suite from the user install scope by default. Pass `-- --scope both` to also remove system installs.
 - `npm run validate:au`
   Rebuilds, installs, and runs `auval` for the selected app.
 - `npm run doctor:au`
   Reports user vs system AU installs, versions, hashes, and a compact `auval` summary for the selected app.
 - `npm run package:installer`
   Builds a namespaced unsigned macOS installer for the selected app.
+- `npm run package:clone-suite-installer`
+  Builds one unsigned macOS installer containing the full Northline clone suite into `dist/suites/northline-suite/`.
 - `npm run preview`
   Starts the shared preview server. Use `/` for the default app or `/?app=<app-key>` for any other registered app.
 
-The scripts also honor `FWAK_APP=<app-key>` if you prefer selecting an app through the environment.
+The app-scoped scripts also honor `FWAK_APP=<app-key>` if you prefer selecting an app through the environment. The suite scripts accept `--suite <catalog-id>` and default the clone path to `northline-suite`.
 
 ## Testing
 
 The framework is validated in layers:
 
+- `npm run check:structure`
+  Enforces workspace naming, manifest placement, DSP entrypoint paths, and shared file naming conventions.
+- `npm run check:types`
+  Runs the framework’s first TypeScript-backed `--noEmit` check over the shared runtime and naming enforcement slice.
 - `npm test`
   Runs the workspace export prepare step, unit tests, schema contract tests, export integration tests, and Playwright preview tests.
 - `npm run test:unit`
@@ -134,6 +154,14 @@ npm run validate:au -- --app pulse-pad
 npm run package:installer -- --app pulse-pad
 ```
 
+For suite-oriented native flows:
+
+```sh
+npm run install:clone-suite
+npm run uninstall:clone-suite -- --scope both
+npm run package:clone-suite-installer
+```
+
 ## Outputs
 
 For `Limiter Lab`, the shared conventions now produce:
@@ -144,6 +172,10 @@ For `Limiter Lab`, the shared conventions now produce:
 - `build/apps/limiter-lab/LimiterLab.vst3`
 - `build/apps/limiter-lab/LimiterLab.app`
 - `dist/apps/limiter-lab/LimiterLab-0.3.0.pkg`
+
+For the bulk Northline path, the framework also produces:
+
+- `dist/suites/northline-suite/northline-suite-0.3.0.pkg`
 
 The preview server also publishes `generated/workspace_manifest.json`, which the web preview uses to render app navigation and route-aware schema loading.
 
@@ -157,6 +189,12 @@ Recommended local flow:
 2. Install locally with `npm run install:local`.
 3. Run `npm run doctor:au`.
 4. If the user and system copies differ, either remove the stale copy or install the fresh `.pkg` so `/Library` matches the current build.
+
+Recommended suite flow:
+
+1. Install the clone suite locally with `npm run install:clone-suite`.
+2. If you need a system-wide test build, generate `npm run package:clone-suite-installer` and install the resulting `.pkg`.
+3. Clean out stale copies with `npm run uninstall:clone-suite -- --scope both` before re-testing host scans if needed.
 
 ## Practical Caveats
 

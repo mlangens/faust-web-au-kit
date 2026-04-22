@@ -5,6 +5,8 @@
   "description": "A monorepo-native Faust plugin suite framework with shared native, preview, export, and packaging tooling.",
   "type": "module",
   "scripts": {
+    "check:structure": "node ./tools/check-framework-structure.mjs",
+    "check:types": "tsc -p tsconfig.check.json",
     "export": "node ./tools/export-targets.mjs",
     "export:all": "node ./tools/export-workspace.mjs",
     "export:atlas-curve": "node ./tools/export-targets.mjs --app atlas-curve",
@@ -43,7 +45,13 @@
     "build:native": "./scripts/build-native.sh",
     "doctor:au": "./scripts/doctor-au.sh",
     "install:local": "./scripts/install-local.sh",
+    "install:suite": "./scripts/install-suite-local.sh",
+    "install:clone-suite": "./scripts/install-suite-local.sh --suite northline-suite",
+    "uninstall:suite": "./scripts/uninstall-suite-local.sh",
+    "uninstall:clone-suite": "./scripts/uninstall-suite-local.sh --suite northline-suite",
     "package:installer": "./scripts/package-installer.sh",
+    "package:suite-installer": "./scripts/package-suite-installer.sh",
+    "package:clone-suite-installer": "./scripts/package-suite-installer.sh --suite northline-suite",
     "validate:au": "./scripts/validate-au.sh",
     "test:prepare": "node ./tools/prepare-test-artifacts.mjs",
     "test:unit:run": "node --test tests/unit/**/*.test.mjs",
@@ -55,9 +63,11 @@
     "test:preview:run": "playwright test",
     "test:preview": "npm run test:prepare && npm run test:preview:run",
     "test:native": "node ./tools/run-native-validation.mjs",
-    "test": "npm run test:prepare && npm run test:unit:run && npm run test:contracts:run && npm run test:integration:run && npm run test:preview:run"
+    "test": "npm run check:structure && npm run check:types && npm run test:prepare && npm run test:unit:run && npm run test:contracts:run && npm run test:integration:run && npm run test:preview:run"
   },
   "devDependencies": {
-    "@playwright/test": "^1.59.1"
+    "@types/node": "^24.10.1",
+    "@playwright/test": "^1.59.1",
+    "typescript": "^5.9.3"
   }
 }

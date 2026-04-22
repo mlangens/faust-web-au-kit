@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { loadSuiteRuntime } from "../../tools/lib/project-tools.mjs";
 import { expectedOrderedLabels, loadGeneratedProject, loadGeneratedWorkspace } from "../support/generated-projects.mjs";
 
 test("default app schema stays aligned with the current limiter manifest and Faust export", () => {
@@ -80,6 +81,36 @@ test("default limiter schema exports the new drive routing controls as stable UI
   );
 });
 
+test("default limiter schema reserves the shared mastering-limiter surface contract", () => {
+  const { schema } = loadGeneratedProject();
+
+  assert.deepEqual(schema.ui.surfacePresetIds, ["history-trace", "transfer-curve", "meter-stack", "output-popover"]);
+  assert.ok(schema.ui.shell?.hero?.status);
+  assert.ok(schema.ui.shell?.sections?.controls?.title);
+  assert.ok(schema.ui.shell?.sections?.meters?.title);
+  assert.deepEqual(schema.ui.display?.enumLabels?.["Drive Target"], ["Both", "Mid", "Side"]);
+  assert.deepEqual(schema.ui.display?.enumLabels?.["Drive Focus"], ["Full", "Low", "Mid", "High"]);
+  assert.equal(schema.ui.display?.controls?.["Vintage Response"]?.onLabel, "Vintage");
+  assert.equal(schema.ui.display?.controls?.["Vintage Response"]?.offLabel, "Modern");
+  assert.deepEqual(
+    schema.ui.preview?.surfaces?.["history-trace"]?.focusBadges?.map((item) => item.control),
+    ["Drive Target", "Drive Focus", "Vintage Response"]
+  );
+  assert.equal(schema.ui.preview?.surfaces?.["history-trace"]?.series?.length, 5);
+  assert.deepEqual(
+    schema.ui.preview?.surfaces?.["transfer-curve"]?.curveControls?.map((item) => item.control),
+    ["Input Gain", "Tube Drive", "Ceiling"]
+  );
+  assert.deepEqual(
+    schema.ui.preview?.surfaces?.["transfer-curve"]?.timingItems?.map((item) => item.control),
+    ["Attack", "Hold", "Release"]
+  );
+  assert.deepEqual(
+    schema.ui.preview?.surfaces?.["output-popover"]?.items?.map((item) => item.control),
+    ["Output Trim", "Drive Low Split", "Drive High Split", "Vintage Response", "Bypass"]
+  );
+});
+
 test("pulse pad schema keeps the preview route in sync with the shared export path", () => {
   const { runtime, schema, faustControls } = loadGeneratedProject("pulse-pad");
   const expectedLabels = expectedOrderedLabels(runtime.project, faustControls);
@@ -142,6 +173,13 @@ test("press deck schema reserves the compressor-oriented export contract", () =>
     ["Threshold", "Ratio", "Attack", "Release", "Knee", "Mix"].some((label) => controlLabels.has(label)),
     "Press Deck should expose at least one compressor-style control"
   );
+  assert.deepEqual(schema.ui.surfacePresetIds, ["history-trace", "sidechain-editor", "meter-stack", "output-popover"]);
+  assert.equal(schema.ui.preview?.surfaces?.["history-trace"]?.series?.length, 4);
+  assert.equal(schema.ui.preview?.surfaces?.["sidechain-editor"]?.bands?.length, 3);
+  assert.deepEqual(
+    schema.ui.preview?.surfaces?.["output-popover"]?.items?.map((item) => item.control),
+    ["Mix", "Output", "Auto Trim", "Audition", "Bypass"]
+  );
 });
 
 test("atlas curve schema reserves the spectral-eq export contract", () => {
@@ -157,6 +195,15 @@ test("atlas curve schema reserves the spectral-eq export contract", () => {
   assert.ok(
     ["Low Cut", "Low Shelf", "Bell Freq", "Bell Gain", "Bell Q", "High Shelf", "Analyzer"].some((label) => controlLabels.has(label)),
     "Atlas Curve should expose at least one EQ-style control"
+  );
+  assert.deepEqual(schema.ui.surfacePresetIds, ["eq-canvas", "instance-strip", "output-popover"]);
+  assert.deepEqual(schema.ui.analyzerPresetIds, ["spectrum"]);
+  assert.equal(schema.ui.layoutProfile, "hero-canvas");
+  assert.equal(schema.ui.analyzerPresets?.spectrum?.curve, "frequency");
+  assert.equal(schema.ui.preview?.surfaces?.["eq-canvas"]?.bands?.length, 5);
+  assert.deepEqual(
+    schema.ui.preview?.surfaces?.["output-popover"]?.items?.map((item) => item.control),
+    ["Guide", "Dynamic", "Output Trim", "Bypass"]
   );
 });
 
@@ -174,6 +221,13 @@ test("room bloom schema reserves the reverb export contract", () => {
     ["Space", "Size", "Pre-Delay", "Decay", "Diffusion", "Mix"].some((label) => controlLabels.has(label)),
     "Room Bloom should expose at least one reverb-style control"
   );
+  assert.deepEqual(schema.ui.surfacePresetIds, ["reverb-space", "meter-stack", "output-popover"]);
+  assert.equal(schema.ui.preview?.surfaces?.["reverb-space"]?.nodes?.length, 5);
+  assert.equal(schema.ui.preview?.surfaces?.["reverb-space"]?.links?.length, 4);
+  assert.deepEqual(
+    schema.ui.preview?.surfaces?.["output-popover"]?.items?.map((item) => item.control),
+    ["Ducking", "Duck Release", "Mix", "Output", "Freeze"]
+  );
 });
 
 test("ember drive schema reserves the multiband-saturation export contract", () => {
@@ -190,6 +244,10 @@ test("ember drive schema reserves the multiband-saturation export contract", () 
     ["Low Drive", "Mid Drive", "High Drive", "Glue", "Output Trim"].some((label) => controlLabels.has(label)),
     "Ember Drive should expose at least one multiband-saturation-style control"
   );
+  assert.deepEqual(schema.ui.surfacePresetIds, ["multiband-editor", "band-inspector", "modulation-dock", "output-popover"]);
+  assert.equal(schema.ui.preview?.surfaces?.["multiband-editor"]?.regions?.length, 3);
+  assert.equal(schema.ui.preview?.surfaces?.["band-inspector"]?.bands?.length, 3);
+  assert.equal(schema.ui.preview?.surfaces?.["modulation-dock"]?.slots?.length, 4);
 });
 
 test("relay tape schema reserves the mod-delay export contract", () => {
@@ -206,6 +264,10 @@ test("relay tape schema reserves the mod-delay export contract", () => {
     ["Time", "Feedback", "Smear", "Mod Depth", "Mod Rate", "Freeze"].some((label) => controlLabels.has(label)),
     "Relay Tape should expose at least one mod-delay-style control"
   );
+  assert.deepEqual(schema.ui.surfacePresetIds, ["delay-timeline", "filter-canvas", "modulation-dock", "output-popover"]);
+  assert.equal(schema.ui.preview?.surfaces?.["delay-timeline"]?.taps?.length, 5);
+  assert.equal(schema.ui.preview?.surfaces?.["filter-canvas"]?.bands?.length, 4);
+  assert.equal(schema.ui.preview?.surfaces?.["modulation-dock"]?.slots?.length, 4);
 });
 
 test("contour forge schema reserves the routable-filter export contract", () => {
@@ -222,6 +284,10 @@ test("contour forge schema reserves the routable-filter export contract", () => 
     ["Mode", "Cutoff", "Resonance", "Drive", "Env Amount", "LFO Depth", "Routing"].some((label) => controlLabels.has(label)),
     "Contour Forge should expose at least one routable-filter-style control"
   );
+  assert.deepEqual(schema.ui.surfacePresetIds, ["filter-canvas", "routing-matrix", "modulation-dock", "output-popover"]);
+  assert.equal(schema.ui.preview?.surfaces?.["filter-canvas"]?.bands?.length, 4);
+  assert.equal(schema.ui.preview?.surfaces?.["routing-matrix"]?.routes?.length, 3);
+  assert.equal(schema.ui.preview?.surfaces?.["modulation-dock"]?.slots?.length, 3);
 });
 
 test("mirror field schema reserves the modular-synth export contract", () => {
@@ -238,6 +304,14 @@ test("mirror field schema reserves the modular-synth export contract", () => {
     ["Blend", "Shape", "Tone", "Contour", "Motion", "Mod Amount", "Detune"].some((label) => controlLabels.has(label)),
     "Mirror Field should expose at least one modular-synth-style control"
   );
+  assert.deepEqual(
+    schema.ui.surfacePresetIds,
+    ["oscillator-stack", "filter-canvas", "module-rack", "modulation-dock", "keyboard-strip"]
+  );
+  assert.equal(schema.ui.preview?.surfaces?.["oscillator-stack"]?.modules?.length, 3);
+  assert.equal(schema.ui.preview?.surfaces?.["module-rack"]?.modules?.length, 3);
+  assert.equal(schema.ui.preview?.surfaces?.["modulation-dock"]?.slots?.length, 4);
+  assert.equal(schema.ui.preview?.surfaces?.["keyboard-strip"]?.keys?.length, 8);
 });
 
 test("seed tone schema reserves the simple-synth export contract", () => {
@@ -253,6 +327,12 @@ test("seed tone schema reserves the simple-synth export contract", () => {
   assert.ok(
     ["Wave", "Cutoff", "Resonance", "Color", "Sub", "Noise", "Motion"].some((label) => controlLabels.has(label)),
     "Seed Tone should expose at least one simple-synth-style control"
+  );
+  assert.deepEqual(schema.ui.surfacePresetIds, ["section-grid", "meter-stack"]);
+  assert.equal(schema.ui.preview?.surfaces?.["section-grid"]?.sections?.length, 4);
+  assert.deepEqual(
+    schema.ui.preview?.surfaces?.["section-grid"]?.sections?.map((section) => section.id),
+    ["oscillator", "tone", "motion", "output"]
   );
 });
 
@@ -270,6 +350,13 @@ test("span pair schema reserves the dual-filter export contract", () => {
     ["Mode", "Routing", "Filter A Cutoff", "Filter B Cutoff", "Spacing", "Link", "Drive"].some((label) => controlLabels.has(label)),
     "Span Pair should expose at least one dual-filter-style control"
   );
+  assert.deepEqual(schema.ui.surfacePresetIds, ["filter-canvas", "routing-matrix", "output-popover"]);
+  assert.equal(schema.ui.preview?.surfaces?.["filter-canvas"]?.bands?.length, 2);
+  assert.equal(schema.ui.preview?.surfaces?.["routing-matrix"]?.routes?.length, 3);
+  assert.deepEqual(
+    schema.ui.preview?.surfaces?.["output-popover"]?.items?.map((item) => item.label),
+    ["Drive", "Mix", "Output", "Span Gap", "Bypass"]
+  );
 });
 
 test("pocket cut schema reserves the mini-filter export contract", () => {
@@ -285,6 +372,13 @@ test("pocket cut schema reserves the mini-filter export contract", () => {
   assert.ok(
     ["Mode", "Cutoff", "Resonance", "Envelope Follow", "Drive", "Mix"].some((label) => controlLabels.has(label)),
     "Pocket Cut should expose at least one mini-filter-style control"
+  );
+  assert.deepEqual(schema.ui.surfacePresetIds, ["filter-canvas", "output-popover"]);
+  assert.equal(schema.ui.preview?.surfaces?.["filter-canvas"]?.bands?.length, 3);
+  assert.equal(schema.ui.preview?.surfaces?.["filter-canvas"]?.selection, "cutoff-core");
+  assert.deepEqual(
+    schema.ui.preview?.surfaces?.["output-popover"]?.items?.map((item) => item.label),
+    ["Envelope", "Envelope Follow", "Drive", "Mix", "Output", "Bypass"]
   );
 });
 
@@ -302,6 +396,16 @@ test("headroom schema reserves the mastering-limiter export contract", () => {
     ["Ceiling", "Transient", "Lookahead", "Release", "Audition"].some((label) => controlLabels.has(label)),
     "Headroom should expose at least one mastering-limiter-style control"
   );
+  assert.deepEqual(schema.ui.surfacePresetIds, ["history-trace", "transfer-curve", "meter-stack", "output-popover"]);
+  assert.equal(schema.ui.preview?.surfaces?.["history-trace"]?.series?.length, 5);
+  assert.deepEqual(
+    schema.ui.preview?.surfaces?.["transfer-curve"]?.curveControls?.map((item) => item.control),
+    ["Input Gain", "Drive", "Ceiling"]
+  );
+  assert.deepEqual(
+    schema.ui.preview?.surfaces?.["output-popover"]?.items?.map((item) => item.control),
+    ["Output Trim", "Loudness Match", "Audition", "Bypass"]
+  );
 });
 
 test("latch line schema reserves the gate-expander export contract", () => {
@@ -317,6 +421,16 @@ test("latch line schema reserves the gate-expander export contract", () => {
   assert.ok(
     ["Threshold", "Range", "Hold", "Hysteresis", "Detector HP", "Detector LP"].some((label) => controlLabels.has(label)),
     "Latch Line should expose at least one gate-or-expander-style control"
+  );
+  assert.deepEqual(schema.ui.surfacePresetIds, ["transfer-curve", "sidechain-editor", "meter-stack", "output-popover"]);
+  assert.deepEqual(
+    schema.ui.preview?.surfaces?.["transfer-curve"]?.curveControls?.map((item) => item.control),
+    ["Threshold", "Range", "Floor"]
+  );
+  assert.equal(schema.ui.preview?.surfaces?.["sidechain-editor"]?.bands?.length, 3);
+  assert.deepEqual(
+    schema.ui.preview?.surfaces?.["output-popover"]?.items?.map((item) => item.control),
+    ["Mix", "Output", "Monitor", "Bypass"]
   );
 });
 
@@ -334,6 +448,13 @@ test("silk guard schema reserves the de-esser export contract", () => {
     ["Threshold", "Range", "Band Frequency", "Lookahead", "Split/Wide"].some((label) => controlLabels.has(label)),
     "Silk Guard should expose at least one de-esser-style control"
   );
+  assert.deepEqual(schema.ui.surfacePresetIds, ["history-trace", "detector-filter", "meter-stack", "output-popover"]);
+  assert.equal(schema.ui.preview?.surfaces?.["history-trace"]?.series?.length, 5);
+  assert.equal(schema.ui.preview?.surfaces?.["detector-filter"]?.bands?.length, 2);
+  assert.deepEqual(
+    schema.ui.preview?.surfaces?.["output-popover"]?.items?.map((item) => item.control),
+    ["Split Depth", "Monitor", "Mix", "Output", "Bypass"]
+  );
 });
 
 test("split stack schema reserves the multiband-dynamics export contract", () => {
@@ -349,6 +470,13 @@ test("split stack schema reserves the multiband-dynamics export contract", () =>
   assert.ok(
     ["Low Crossover", "High Crossover", "Low Threshold", "Mid Threshold", "High Threshold", "Mix"].some((label) => controlLabels.has(label)),
     "Split Stack should expose at least one multiband-dynamics-style control"
+  );
+  assert.deepEqual(schema.ui.surfacePresetIds, ["multiband-editor", "band-inspector", "meter-stack", "output-popover"]);
+  assert.equal(schema.ui.preview?.surfaces?.["multiband-editor"]?.regions?.length, 3);
+  assert.equal(schema.ui.preview?.surfaces?.["band-inspector"]?.bands?.length, 3);
+  assert.deepEqual(
+    schema.ui.preview?.surfaces?.["output-popover"]?.items?.map((item) => item.control),
+    ["Monitor", "Mix", "Output", "Bypass"]
   );
 });
 
@@ -443,4 +571,52 @@ test("workspace manifest exposes the app suite through stable monorepo conventio
       }
     ]
   );
+});
+
+test("northline suite runtime resolves the clone suite in catalog order", () => {
+  const suite = loadSuiteRuntime(["--suite", "northline-suite"]);
+
+  assert.equal(suite.suiteId, "northline-suite");
+  assert.equal(suite.suiteName, "Northline Audio");
+  assert.deepEqual(
+    suite.apps.map((app) => app.appKey),
+    [
+      "atlas-curve",
+      "press-deck",
+      "headroom",
+      "room-bloom",
+      "silk-guard",
+      "latch-line",
+      "split-stack",
+      "ember-drive",
+      "relay-tape",
+      "contour-forge",
+      "mirror-field",
+      "seed-tone",
+      "span-pair",
+      "pocket-cut"
+    ]
+  );
+  assert.equal(suite.apps.some((app) => app.appKey === "limiter-lab"), false);
+  assert.equal(suite.apps.some((app) => app.appKey === "pulse-pad"), false);
+});
+
+test("northline suite schemas keep shell copy and preview surface descriptions consistent", () => {
+  const suite = loadSuiteRuntime(["--suite", "northline-suite"]);
+
+  for (const app of suite.apps) {
+    const { schema } = loadGeneratedProject(app.appKey);
+    assert.ok(schema.ui.shell?.hero?.status, `${app.appKey} is missing hero status copy.`);
+    assert.ok(schema.ui.shell?.sections?.controls?.title, `${app.appKey} is missing controls section title.`);
+    assert.ok(schema.ui.shell?.sections?.controls?.description, `${app.appKey} is missing controls section description.`);
+    assert.ok(schema.ui.shell?.sections?.meters?.title, `${app.appKey} is missing meters section title.`);
+    assert.ok(schema.ui.shell?.sections?.meters?.description, `${app.appKey} is missing meters section description.`);
+
+    const surfaces = Object.entries(schema.ui.preview?.surfaces ?? {});
+    assert.ok(surfaces.length > 0, `${app.appKey} should expose at least one preview surface.`);
+    for (const [surfaceId, surface] of surfaces) {
+      assert.ok(surface?.title, `${app.appKey} surface "${surfaceId}" is missing a title.`);
+      assert.ok(surface?.description, `${app.appKey} surface "${surfaceId}" is missing a description.`);
+    }
+  }
 });

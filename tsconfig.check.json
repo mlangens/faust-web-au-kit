@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.base.json",
+  "include": [
+    "types/**/*.d.ts",
+    "tools/check-framework-structure.mjs",
+    "tools/lib/project-tools.mjs",
+    "tools/lib/ui-family-tools.mjs"
+  ]
+}

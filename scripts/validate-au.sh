@@ -19,7 +19,7 @@ cd "$ROOT_DIR"
 acquire_lock "$BUILD_LOCK_DIR"
 trap 'rm -rf "$STAGING_DST" 2>/dev/null || true; release_lock "$INSTALL_LOCK_DIR"; release_lock "$BUILD_LOCK_DIR"' EXIT
 
-node ./tools/export-targets.mjs "$@" >/dev/null
+node ./tools/export-targets.mjs --export-profile native "$@" >/dev/null
 cmake -S . -B "$FWAK_BUILD_DIR" -G Ninja \
   -DFWAK_BUILD_AUV2=ON \
   -DFWAK_BUILD_CLAP=OFF \

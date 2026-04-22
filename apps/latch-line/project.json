@@ -90,6 +90,215 @@
         ]
       }
     },
+    "preview": {
+      "surfaces": {
+        "transfer-curve": {
+          "title": "Closure response",
+          "description": "The shared gate curve now visualizes threshold, closure range, floor behavior, and timing without splitting into a product-specific panel.",
+          "focusBadges": [
+            {
+              "label": "Mode",
+              "control": "Mode",
+              "tone": "accent"
+            },
+            {
+              "label": "Style",
+              "control": "Style",
+              "tone": "muted"
+            },
+            {
+              "label": "Detector",
+              "control": "Detector Mode",
+              "tone": "muted"
+            }
+          ],
+          "curveControls": [
+            {
+              "role": "input",
+              "label": "Threshold",
+              "control": "Threshold",
+              "tone": "warning"
+            },
+            {
+              "role": "drive",
+              "label": "Range",
+              "control": "Range",
+              "tone": "accent"
+            },
+            {
+              "role": "ceiling",
+              "label": "Floor",
+              "control": "Floor",
+              "tone": "positive"
+            }
+          ],
+          "timingItems": [
+            {
+              "label": "Attack",
+              "control": "Attack"
+            },
+            {
+              "label": "Hold",
+              "control": "Hold"
+            },
+            {
+              "label": "Release",
+              "control": "Release"
+            },
+            {
+              "label": "Hysteresis",
+              "control": "Hysteresis"
+            }
+          ],
+          "detailItems": [
+            {
+              "label": "Stereo Link",
+              "control": "Stereo Link"
+            },
+            {
+              "label": "Detector Focus",
+              "control": "Detector Focus"
+            }
+          ],
+          "monitor": {
+            "label": "Monitor",
+            "control": "Monitor"
+          },
+          "meters": [
+            {
+              "label": "Closure Depth",
+              "meter": "closureDepth"
+            },
+            {
+              "label": "Gain Reduction",
+              "meter": "gainReduction"
+            },
+            {
+              "label": "Detector Drive",
+              "meter": "detectorDrive"
+            }
+          ]
+        },
+        "sidechain-editor": {
+          "title": "Detector shape",
+          "description": "The shared detector editor covers high-pass, focus, and tilt shaping while staying aligned with the rest of the dynamics lane.",
+          "selection": "detector-focus-band",
+          "focusBadges": [
+            {
+              "label": "Focus",
+              "control": "Detector Focus",
+              "tone": "accent"
+            },
+            {
+              "label": "Detector",
+              "control": "Detector Mode",
+              "tone": "muted"
+            },
+            {
+              "label": "Monitor",
+              "control": "Monitor",
+              "tone": "muted"
+            }
+          ],
+          "gridLabels": [
+            "20",
+            "50",
+            "100",
+            "200",
+            "500",
+            "1k",
+            "2k",
+            "5k",
+            "10k",
+            "20k"
+          ],
+          "bands": [
+            {
+              "id": "detector-hp-band",
+              "label": "HP",
+              "role": "cut",
+              "accent": "warning",
+              "xControl": "Detector HP",
+              "xMin": 20,
+              "xMax": 4000,
+              "y": 0.18,
+              "readouts": [
+                {
+                  "label": "Detector HP",
+                  "control": "Detector HP"
+                },
+                {
+                  "label": "Detector Mode",
+                  "control": "Detector Mode"
+                }
+              ]
+            },
+            {
+              "id": "detector-focus-band",
+              "label": "Focus",
+              "role": "bell",
+              "accent": "info",
+              "x": 0.54,
+              "yControl": "Detector Focus",
+              "yMin": 0,
+              "yMax": 2,
+              "readouts": [
+                {
+                  "label": "Detector Focus",
+                  "control": "Detector Focus"
+                },
+                {
+                  "label": "Hysteresis",
+                  "control": "Hysteresis"
+                }
+              ]
+            },
+            {
+              "id": "detector-tilt-band",
+              "label": "Tilt",
+              "role": "shelf",
+              "accent": "positive",
+              "x": 0.84,
+              "yControl": "Detector Tilt",
+              "yMin": -100,
+              "yMax": 100,
+              "readouts": [
+                {
+                  "label": "Detector Tilt",
+                  "control": "Detector Tilt"
+                },
+                {
+                  "label": "Monitor",
+                  "control": "Monitor"
+                }
+              ]
+            }
+          ]
+        },
+        "output-popover": {
+          "title": "Output tools",
+          "description": "Footer utilities stay shared across the dynamics lane for blend, output trim, monitor routing, and bypass.",
+          "items": [
+            {
+              "label": "Mix",
+              "control": "Mix"
+            },
+            {
+              "label": "Output",
+              "control": "Output"
+            },
+            {
+              "label": "Monitor",
+              "control": "Monitor"
+            },
+            {
+              "label": "Bypass",
+              "control": "Bypass"
+            }
+          ]
+        }
+      }
+    },
     "statusText": "Character gate-expander with mode-shaped closure, selectable detector behavior, hysteresis and floor control, stereo linking, parallel mix, and monitor utilities.",
     "controlOrder": [
       "Mode",

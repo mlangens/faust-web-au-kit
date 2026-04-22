@@ -10,6 +10,7 @@ const headroom = loadGeneratedProject("headroom");
 const latchLine = loadGeneratedProject("latch-line");
 const mirrorField = loadGeneratedProject("mirror-field");
 const pocketCut = loadGeneratedProject("pocket-cut");
+const pressDeck = loadGeneratedProject("press-deck");
 const pulsePad = loadGeneratedProject("pulse-pad");
 const relayTape = loadGeneratedProject("relay-tape");
 const roomBloom = loadGeneratedProject("room-bloom");
@@ -69,6 +70,37 @@ test("default preview interactions expose the new drive routing controls and tog
   await expect(page.locator('.control-card[data-control-id="Bypass"] .value')).toHaveText("On");
 });
 
+test("default preview renders the shared limiter surfaces", async ({ page }) => {
+  await page.goto("/");
+
+  const historySurface = page.locator('.surface-card[data-surface-id="history-trace"]');
+  const transferSurface = page.locator('.surface-card[data-surface-id="transfer-curve"]');
+  const outputSurface = page.locator('.surface-card[data-surface-id="output-popover"]');
+  const outputTrimRow = outputSurface.locator(".surface-value-row").filter({ hasText: "Output Trim" });
+  const vintageRow = outputSurface.locator(".surface-value-row").filter({ hasText: "Vintage Response" });
+
+  await expect(page.locator("#surfaces .surface-card")).toHaveCount(3);
+  await expect(page.locator("#surfaces .surface-card--summary")).toHaveCount(0);
+  await expect(historySurface.locator(".trace-path")).toHaveCount(5);
+  await expect(transferSurface.locator(".transfer-handle")).toHaveCount(3);
+  await expect(outputSurface.locator(".surface-value-row")).toHaveCount(5);
+
+  await setRangeValue(page, "Drive Target", 2);
+  await setRangeValue(page, "Drive Focus", 3);
+  await expect(historySurface.locator(".surface-metric-row")).toContainText("Target: Side");
+  await expect(historySurface.locator(".surface-metric-row")).toContainText("Focus: High");
+
+  await setRangeValue(page, "Tube Drive", 48);
+  await setRangeValue(page, "Attack", 4.2);
+  await expect(transferSurface).toContainText("48 %");
+  await expect(transferSurface).toContainText("4.20 ms");
+
+  await setRangeValue(page, "Output Trim", 1.5);
+  await setToggleValue(page, "Vintage Response", true);
+  await expect(outputTrimRow.locator("strong")).toHaveText("1.5 dB");
+  await expect(vintageRow.locator("strong")).toHaveText("Vintage");
+});
+
 test("pulse pad preview loads the alternate generated project and its meter layout", async ({ page }) => {
   await page.goto("/?app=pulse-pad");
 
@@ -103,6 +135,34 @@ test("atlas curve preview loads the flagship-eq scaffold route", async ({ page }
   await expect(page.locator("#controls")).toContainText(/Low Cut|Low Shelf|Bell Freq|Bell Gain|Bell Q|High Shelf|Analyzer/);
 });
 
+test("atlas curve preview renders the shared graph editor surface", async ({ page }) => {
+  await page.goto("/?app=atlas-curve");
+
+  const surfacePanel = page.locator("#surfacePanel");
+  const eqSurface = page.locator('.surface-card[data-surface-id="eq-canvas"]');
+  const bellChip = eqSurface.locator(".surface-band-chip").filter({ hasText: /^Bell/ });
+  const popover = eqSurface.locator(".graph-popover");
+
+  await expect(surfacePanel).toBeVisible();
+  await expect(surfacePanel).toContainText("Adaptive Curve Editor");
+  await expect(page.locator("#surfaces .surface-card")).toHaveCount(3);
+  await expect(page.locator('.surface-card[data-surface-id="eq-canvas"]')).toContainText("Adaptive curve editor");
+  await expect(page.locator('.surface-card[data-surface-id="instance-strip"]')).toContainText("Scene cues");
+  await expect(page.locator('.surface-card[data-surface-id="output-popover"]')).toContainText("Output tools");
+  await expect(eqSurface.locator(".graph-band-handle")).toHaveCount(5);
+  await expect(popover.locator("h4")).toHaveText("Bell");
+
+  await setRangeValue(page, "Bell Freq", 2100);
+  await setRangeValue(page, "Bell Gain", 3.4);
+
+  await expect(bellChip).toContainText("2100 Hz");
+  await expect(popover).toContainText("Bell Gain");
+  await expect(popover).toContainText("3.4 dB");
+
+  await eqSurface.locator('.graph-band-handle[data-band-id="presence-band"]').click();
+  await expect(popover.locator("h4")).toHaveText("Presence");
+});
+
 test("room bloom preview loads the reverb scaffold route", async ({ page }) => {
   await page.goto("/?app=room-bloom");
 
@@ -112,6 +172,21 @@ test("room bloom preview loads the reverb scaffold route", async ({ page }) => {
   await expect(page.locator("#controls .control-card")).toHaveCount(roomBloom.schema.controls.length);
   await expect(page.locator("#meters .meter-card")).toHaveCount(roomBloom.schema.meters.length);
   await expect(page.locator("#controls")).toContainText(/Space|Size|Pre-Delay|Decay|Diffusion|Mix/);
+});
+
+test("room bloom preview renders the shared macro field surface", async ({ page }) => {
+  await page.goto("/?app=room-bloom");
+
+  const fieldSurface = page.locator('.surface-card[data-surface-id="reverb-space"]');
+
+  await expect(page.locator("#surfaces .surface-card")).toHaveCount(2);
+  await expect(fieldSurface.locator(".field-node")).toHaveCount(5);
+  await expect(fieldSurface.locator(".field-link")).toHaveCount(4);
+
+  await fieldSurface.locator('.field-node[data-node-id="spread-node"]').click();
+  await setRangeValue(page, "Width", 84);
+
+  await expect(fieldSurface.locator(".field-popover")).toContainText("84 %");
 });
 
 test("ember drive preview loads the multiband-saturation scaffold route", async ({ page }) => {
@@ -125,6 +200,20 @@ test("ember drive preview loads the multiband-saturation scaffold route", async 
   await expect(page.locator("#controls")).toContainText(/Low Drive|Mid Drive|High Drive|Glue|Output Trim/);
 });
 
+test("ember drive preview renders the shared multiband creative surfaces", async ({ page }) => {
+  await page.goto("/?app=ember-drive");
+
+  const editorSurface = page.locator('.surface-card[data-surface-id="multiband-editor"]');
+  const inspectorSurface = page.locator('.surface-card[data-surface-id="band-inspector"]');
+  const dockSurface = page.locator('.surface-card[data-surface-id="modulation-dock"]');
+
+  await expect(page.locator("#surfaces .surface-card")).toHaveCount(4);
+  await expect(editorSurface.locator(".region-block")).toHaveCount(3);
+  await expect(inspectorSurface.locator(".linked-band-card")).toHaveCount(3);
+  await expect(dockSurface.locator(".mod-slot-card")).toHaveCount(4);
+  await expect(dockSurface.locator(".mod-source-chip")).toHaveCount(4);
+});
+
 test("relay tape preview loads the modulation-delay scaffold route", async ({ page }) => {
   await page.goto("/?app=relay-tape");
 
@@ -134,6 +223,23 @@ test("relay tape preview loads the modulation-delay scaffold route", async ({ pa
   await expect(page.locator("#controls .control-card")).toHaveCount(relayTape.schema.controls.length);
   await expect(page.locator("#meters .meter-card")).toHaveCount(relayTape.schema.meters.length);
   await expect(page.locator("#controls")).toContainText(/Time|Feedback|Smear|Mod Depth|Mod Rate|Freeze/);
+});
+
+test("relay tape preview renders the shared timeline, graph, and motion dock", async ({ page }) => {
+  await page.goto("/?app=relay-tape");
+
+  const timelineSurface = page.locator('.surface-card[data-surface-id="delay-timeline"]');
+  const graphSurface = page.locator('.surface-card[data-surface-id="filter-canvas"]');
+  const dockSurface = page.locator('.surface-card[data-surface-id="modulation-dock"]');
+
+  await expect(page.locator("#surfaces .surface-card")).toHaveCount(4);
+  await expect(timelineSurface.locator(".timeline-tap")).toHaveCount(5);
+  await expect(graphSurface.locator(".graph-band-handle")).toHaveCount(4);
+  await expect(dockSurface.locator(".mod-slot-card")).toHaveCount(4);
+
+  await setRangeValue(page, "Time", 520);
+
+  await expect(timelineSurface).toContainText("520.00 ms");
 });
 
 test("contour forge preview loads the routable-filter scaffold route", async ({ page }) => {
@@ -147,6 +253,23 @@ test("contour forge preview loads the routable-filter scaffold route", async ({ 
   await expect(page.locator("#controls")).toContainText(/Mode|Cutoff|Resonance|Drive|Env Amount|LFO Depth|Routing/);
 });
 
+test("contour forge preview renders the shared filter, routing, and modulation surfaces", async ({ page }) => {
+  await page.goto("/?app=contour-forge");
+
+  const graphSurface = page.locator('.surface-card[data-surface-id="filter-canvas"]');
+  const routingSurface = page.locator('.surface-card[data-surface-id="routing-matrix"]');
+  const dockSurface = page.locator('.surface-card[data-surface-id="modulation-dock"]');
+
+  await expect(page.locator("#surfaces .surface-card")).toHaveCount(4);
+  await expect(graphSurface.locator(".graph-band-handle")).toHaveCount(4);
+  await expect(routingSurface.locator(".routing-matrix__cell")).toHaveCount(9);
+  await expect(dockSurface.locator(".mod-slot-card")).toHaveCount(3);
+
+  await setRangeValue(page, "Routing", 1);
+
+  await expect(routingSurface.locator(".routing-matrix__cell.is-active")).toHaveCount(3);
+});
+
 test("mirror field preview loads the modular-synth scaffold route", async ({ page }) => {
   await page.goto("/?app=mirror-field");
 
@@ -156,6 +279,25 @@ test("mirror field preview loads the modular-synth scaffold route", async ({ pag
   await expect(page.locator("#controls .control-card")).toHaveCount(mirrorField.schema.controls.length);
   await expect(page.locator("#meters .meter-card")).toHaveCount(mirrorField.schema.meters.length);
   await expect(page.locator("#controls")).toContainText(/Blend|Shape|Tone|Contour|Motion|Mod Amount|Detune/);
+});
+
+test("mirror field preview renders the shared synth stack, rack, dock, and keyboard surfaces", async ({ page }) => {
+  await page.goto("/?app=mirror-field");
+
+  const stackSurface = page.locator('.surface-card[data-surface-id="oscillator-stack"]');
+  const rackSurface = page.locator('.surface-card[data-surface-id="module-rack"]');
+  const dockSurface = page.locator('.surface-card[data-surface-id="modulation-dock"]');
+  const keyboardSurface = page.locator('.surface-card[data-surface-id="keyboard-strip"]');
+
+  await expect(page.locator("#surfaces .surface-card")).toHaveCount(5);
+  await expect(stackSurface.locator(".module-card")).toHaveCount(3);
+  await expect(rackSurface.locator(".module-card")).toHaveCount(3);
+  await expect(dockSurface.locator(".mod-slot-card")).toHaveCount(4);
+  await expect(keyboardSurface.locator(".keyboard-key")).toHaveCount(8);
+
+  await setRangeValue(page, "Voice Mode", 1);
+
+  await expect(keyboardSurface.locator(".keyboard-key.is-active")).toHaveCount(2);
 });
 
 test("seed tone preview loads the simple-synth scaffold route", async ({ page }) => {
@@ -169,6 +311,22 @@ test("seed tone preview loads the simple-synth scaffold route", async ({ page })
   await expect(page.locator("#controls")).toContainText(/Wave|Cutoff|Resonance|Color|Sub|Noise|Motion/);
 });
 
+test("seed tone preview renders the shared section grid surface", async ({ page }) => {
+  await page.goto("/?app=seed-tone");
+
+  const gridSurface = page.locator('.surface-card[data-surface-id="section-grid"]');
+  const toneSection = gridSurface.locator(".section-grid-card").filter({ hasText: /^Tone/ });
+
+  await expect(page.locator("#surfaces .surface-card")).toHaveCount(1);
+  await expect(gridSurface.locator(".section-grid-card")).toHaveCount(4);
+
+  await setRangeValue(page, "Cutoff", 4200);
+  await setRangeValue(page, "Drive", 9);
+
+  await expect(toneSection).toContainText("4200 Hz");
+  await expect(toneSection).toContainText("9.0 dB");
+});
+
 test("span pair preview loads the dual-filter scaffold route", async ({ page }) => {
   await page.goto("/?app=span-pair");
 
@@ -178,6 +336,26 @@ test("span pair preview loads the dual-filter scaffold route", async ({ page }) 
   await expect(page.locator("#controls .control-card")).toHaveCount(spanPair.schema.controls.length);
   await expect(page.locator("#meters .meter-card")).toHaveCount(spanPair.schema.meters.length);
   await expect(page.locator("#controls")).toContainText(/Mode|Routing|Filter A Cutoff|Filter B Cutoff|Spacing|Link|Drive/);
+});
+
+test("span pair preview renders the shared dual-filter and routing surfaces", async ({ page }) => {
+  await page.goto("/?app=span-pair");
+
+  const graphSurface = page.locator('.surface-card[data-surface-id="filter-canvas"]');
+  const routingSurface = page.locator('.surface-card[data-surface-id="routing-matrix"]');
+  const outputSurface = page.locator('.surface-card[data-surface-id="output-popover"]');
+  const filterBChip = graphSurface.locator(".surface-band-chip").filter({ hasText: /^Filter B/ });
+
+  await expect(page.locator("#surfaces .surface-card")).toHaveCount(3);
+  await expect(graphSurface.locator(".graph-band-handle")).toHaveCount(2);
+  await expect(routingSurface.locator(".routing-matrix__cell")).toHaveCount(9);
+  await expect(outputSurface).toContainText("Span Gap");
+
+  await setRangeValue(page, "Filter B Cutoff", 4200);
+  await setRangeValue(page, "Routing", 1);
+
+  await expect(filterBChip).toContainText("4200 Hz");
+  await expect(routingSurface.locator(".routing-matrix__cell.is-active")).toHaveCount(3);
 });
 
 test("pocket cut preview loads the mini-filter scaffold route", async ({ page }) => {
@@ -191,9 +369,25 @@ test("pocket cut preview loads the mini-filter scaffold route", async ({ page })
   await expect(page.locator("#controls")).toContainText(/Mode|Cutoff|Resonance|Envelope Follow|Drive|Mix/);
 });
 
-test("press deck preview loads the new compressor-oriented scaffold route", async ({ page }) => {
-  const pressDeck = loadGeneratedProject("press-deck");
+test("pocket cut preview renders the shared compact filter surfaces", async ({ page }) => {
+  await page.goto("/?app=pocket-cut");
 
+  const graphSurface = page.locator('.surface-card[data-surface-id="filter-canvas"]');
+  const outputSurface = page.locator('.surface-card[data-surface-id="output-popover"]');
+  const cutoffChip = graphSurface.locator(".surface-band-chip").filter({ hasText: /^Cutoff/ });
+
+  await expect(page.locator("#surfaces .surface-card")).toHaveCount(2);
+  await expect(graphSurface.locator(".graph-band-handle")).toHaveCount(3);
+  await expect(outputSurface).toContainText("Envelope");
+
+  await setRangeValue(page, "Cutoff", 2400);
+  await setRangeValue(page, "Mix", 64);
+
+  await expect(cutoffChip).toContainText("2400 Hz");
+  await expect(outputSurface).toContainText("64 %");
+});
+
+test("press deck preview loads the new compressor-oriented scaffold route", async ({ page }) => {
   await page.goto("/?app=press-deck");
 
   await expect(page.locator("body")).toHaveAttribute("data-project-key", pressDeck.schema.project.key);
@@ -202,6 +396,22 @@ test("press deck preview loads the new compressor-oriented scaffold route", asyn
   await expect(page.locator("#controls .control-card")).toHaveCount(pressDeck.schema.controls.length);
   await expect(page.locator("#meters .meter-card")).toHaveCount(pressDeck.schema.meters.length);
   await expect(page.locator("#controls")).toContainText(/Threshold|Ratio|Attack|Release|Knee|Mix/);
+});
+
+test("press deck preview renders the shared history and detector surfaces", async ({ page }) => {
+  await page.goto("/?app=press-deck");
+
+  const historySurface = page.locator('.surface-card[data-surface-id="history-trace"]');
+  const detectorSurface = page.locator('.surface-card[data-surface-id="sidechain-editor"]');
+  const hpChip = detectorSurface.locator(".surface-band-chip").filter({ hasText: /^HP/ });
+
+  await expect(page.locator("#surfaces .surface-card")).toHaveCount(3);
+  await expect(historySurface.locator(".trace-path")).toHaveCount(4);
+  await expect(detectorSurface.locator(".graph-band-handle")).toHaveCount(3);
+
+  await setRangeValue(page, "Detector HP", 420);
+
+  await expect(hpChip).toContainText("420 Hz");
 });
 
 test("headroom preview loads the mastering-limiter scaffold route", async ({ page }) => {
@@ -215,6 +425,21 @@ test("headroom preview loads the mastering-limiter scaffold route", async ({ pag
   await expect(page.locator("#controls")).toContainText(/Ceiling|Lookahead|Release|Audition/);
 });
 
+test("headroom preview renders the shared limiter transfer curve", async ({ page }) => {
+  await page.goto("/?app=headroom");
+
+  const historySurface = page.locator('.surface-card[data-surface-id="history-trace"]');
+  const transferSurface = page.locator('.surface-card[data-surface-id="transfer-curve"]');
+
+  await expect(page.locator("#surfaces .surface-card")).toHaveCount(3);
+  await expect(historySurface.locator(".trace-path")).toHaveCount(5);
+  await expect(transferSurface.locator(".transfer-handle")).toHaveCount(3);
+
+  await setRangeValue(page, "Drive", 8);
+
+  await expect(transferSurface).toContainText("8.0 dB");
+});
+
 test("latch line preview loads the gate-expander scaffold route", async ({ page }) => {
   await page.goto("/?app=latch-line");
 
@@ -224,6 +449,22 @@ test("latch line preview loads the gate-expander scaffold route", async ({ page 
   await expect(page.locator("#controls .control-card")).toHaveCount(latchLine.schema.controls.length);
   await expect(page.locator("#meters .meter-card")).toHaveCount(latchLine.schema.meters.length);
   await expect(page.locator("#controls")).toContainText(/Threshold|Range|Hold|Hysteresis|Detector HP|Detector LP/);
+});
+
+test("latch line preview renders the shared gate curve and detector editor", async ({ page }) => {
+  await page.goto("/?app=latch-line");
+
+  const transferSurface = page.locator('.surface-card[data-surface-id="transfer-curve"]');
+  const detectorSurface = page.locator('.surface-card[data-surface-id="sidechain-editor"]');
+  const hpChip = detectorSurface.locator(".surface-band-chip").filter({ hasText: /^HP/ });
+
+  await expect(page.locator("#surfaces .surface-card")).toHaveCount(3);
+  await expect(transferSurface.locator(".transfer-handle")).toHaveCount(3);
+  await expect(detectorSurface.locator(".graph-band-handle")).toHaveCount(3);
+
+  await setRangeValue(page, "Detector HP", 320);
+
+  await expect(hpChip).toContainText("320 Hz");
 });
 
 test("silk guard preview loads the de-esser scaffold route", async ({ page }) => {
@@ -237,6 +478,22 @@ test("silk guard preview loads the de-esser scaffold route", async ({ page }) =>
   await expect(page.locator("#controls")).toContainText(/Threshold|Range|Band Frequency|Lookahead|Split\/Wide/);
 });
 
+test("silk guard preview renders the shared de-ess history and focus filter", async ({ page }) => {
+  await page.goto("/?app=silk-guard");
+
+  const historySurface = page.locator('.surface-card[data-surface-id="history-trace"]');
+  const filterSurface = page.locator('.surface-card[data-surface-id="detector-filter"]');
+  const focusChip = filterSurface.locator(".surface-band-chip").filter({ hasText: /^Focus/ });
+
+  await expect(page.locator("#surfaces .surface-card")).toHaveCount(3);
+  await expect(historySurface.locator(".trace-path")).toHaveCount(5);
+  await expect(filterSurface.locator(".graph-band-handle")).toHaveCount(2);
+
+  await setRangeValue(page, "Center Frequency", 7200);
+
+  await expect(focusChip).toContainText("7200 Hz");
+});
+
 test("split stack preview loads the multiband-dynamics scaffold route", async ({ page }) => {
   await page.goto("/?app=split-stack");
 
@@ -246,6 +503,18 @@ test("split stack preview loads the multiband-dynamics scaffold route", async ({
   await expect(page.locator("#controls .control-card")).toHaveCount(splitStack.schema.controls.length);
   await expect(page.locator("#meters .meter-card")).toHaveCount(splitStack.schema.meters.length);
   await expect(page.locator("#controls")).toContainText(/Low Crossover|High Crossover|Low Threshold|Mid Threshold|High Threshold/);
+});
+
+test("split stack preview renders the shared multiband editor and linked inspector", async ({ page }) => {
+  await page.goto("/?app=split-stack");
+
+  const editorSurface = page.locator('.surface-card[data-surface-id="multiband-editor"]');
+  const inspectorSurface = page.locator('.surface-card[data-surface-id="band-inspector"]');
+
+  await expect(page.locator("#surfaces .surface-card")).toHaveCount(3);
+  await expect(editorSurface.locator(".region-block")).toHaveCount(3);
+  await expect(inspectorSurface.locator(".linked-band-card")).toHaveCount(3);
+  await expect(inspectorSurface).toContainText(/Attack|Release|Timing Spread|Band Link/);
 });
 
 test("preview falls back cleanly when benchmark data is unavailable", async ({ page }) => {

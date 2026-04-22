@@ -13,7 +13,7 @@ cd "$ROOT_DIR"
 acquire_lock "$BUILD_LOCK_DIR"
 trap 'release_lock "$BUILD_LOCK_DIR"' EXIT
 
-node ./tools/export-targets.mjs "$@"
+node ./tools/export-targets.mjs --export-profile native "$@"
 cmake -S . -B "$FWAK_BUILD_DIR" -G Ninja \
   -DFWAK_BUILD_AUV2=ON \
   -DFWAK_BUILD_CLAP=OFF \

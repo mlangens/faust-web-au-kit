@@ -76,6 +76,86 @@
         ]
       }
     },
+    "preview": {
+      "surfaces": {
+        "section-grid": {
+          "title": "Voice grid",
+          "description": "A shared grouped panel surface maps oscillator color, tone shaping, motion, and output without adding a synth-specific renderer.",
+          "focusBadges": [
+            {
+              "label": "Wave",
+              "control": "Wave",
+              "tone": "accent"
+            },
+            {
+              "label": "Motion",
+              "control": "Motion",
+              "tone": "muted"
+            },
+            {
+              "label": "Drive",
+              "control": "Drive",
+              "tone": "warning"
+            }
+          ],
+          "sections": [
+            {
+              "id": "oscillator",
+              "label": "Oscillator",
+              "accent": "info",
+              "meterId": "voiceLevel",
+              "items": [
+                "Wave",
+                "Color",
+                "Sub",
+                "Noise"
+              ]
+            },
+            {
+              "id": "tone",
+              "label": "Tone",
+              "accent": "warning",
+              "summaryControl": "Cutoff",
+              "activityControls": [
+                "Cutoff",
+                "Resonance",
+                "Drive"
+              ],
+              "items": [
+                "Cutoff",
+                "Resonance",
+                "Drive"
+              ]
+            },
+            {
+              "id": "motion",
+              "label": "Motion",
+              "accent": "positive",
+              "meterId": "motionLevel",
+              "items": [
+                "Motion",
+                "Stereo Width",
+                "Attack",
+                "Release"
+              ]
+            },
+            {
+              "id": "output",
+              "label": "Output",
+              "accent": "accent",
+              "meterId": "outputPeak",
+              "items": [
+                "Output Trim",
+                {
+                  "label": "Output Peak",
+                  "meterId": "outputPeak"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
     "statusText": "MIDI-ready simple synth scaffold with one oscillator core, cutoff/resonance shaping, contour motion, color/sub/noise layers, drive, and envelope shaping.",
     "controlOrder": [
       "Wave",

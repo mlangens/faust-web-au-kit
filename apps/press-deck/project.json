@@ -90,6 +90,180 @@
         ]
       }
     },
+    "preview": {
+      "surfaces": {
+        "history-trace": {
+          "title": "Compression history",
+          "description": "Shared dynamics trace tuned for input, detector drive, gain reduction, and output so Press Deck reads like a finished compressor lane.",
+          "focusBadges": [
+            {
+              "label": "Mode",
+              "control": "Mode",
+              "tone": "accent"
+            },
+            {
+              "label": "Character",
+              "control": "Character",
+              "tone": "muted"
+            },
+            {
+              "label": "Detector",
+              "control": "Detector Mode",
+              "tone": "muted"
+            }
+          ],
+          "series": [
+            {
+              "id": "input",
+              "label": "Input",
+              "meterId": "inputPeak",
+              "tone": "warning"
+            },
+            {
+              "id": "detector",
+              "label": "Detector",
+              "meterId": "detectorDrive",
+              "tone": "accent"
+            },
+            {
+              "id": "reduction",
+              "label": "Reduction",
+              "meterId": "gainReduction",
+              "tone": "info",
+              "variant": "gr"
+            },
+            {
+              "id": "output",
+              "label": "Output",
+              "meterId": "outputPeak",
+              "tone": "positive"
+            }
+          ]
+        },
+        "sidechain-editor": {
+          "title": "Detector shape",
+          "description": "The shared graph editor now doubles as a detector canvas for high-pass, focus, and tilt shaping without leaving the family surface system.",
+          "selection": "detector-focus-band",
+          "focusBadges": [
+            {
+              "label": "Focus",
+              "control": "Detector Focus",
+              "tone": "accent"
+            },
+            {
+              "label": "Link",
+              "control": "Stereo Link",
+              "tone": "muted"
+            },
+            {
+              "label": "Audition",
+              "control": "Audition",
+              "tone": "muted"
+            }
+          ],
+          "gridLabels": [
+            "20",
+            "50",
+            "100",
+            "200",
+            "500",
+            "1k",
+            "2k",
+            "5k",
+            "10k",
+            "20k"
+          ],
+          "bands": [
+            {
+              "id": "detector-hp-band",
+              "label": "HP",
+              "role": "cut",
+              "accent": "warning",
+              "xControl": "Detector HP",
+              "xMin": 20,
+              "xMax": 2000,
+              "y": 0.18,
+              "readouts": [
+                {
+                  "label": "Detector HP",
+                  "control": "Detector HP"
+                },
+                {
+                  "label": "Range",
+                  "control": "Range"
+                }
+              ]
+            },
+            {
+              "id": "detector-focus-band",
+              "label": "Focus",
+              "role": "bell",
+              "accent": "info",
+              "x": 0.54,
+              "yControl": "Detector Focus",
+              "yMin": 0,
+              "yMax": 2,
+              "readouts": [
+                {
+                  "label": "Detector Focus",
+                  "control": "Detector Focus"
+                },
+                {
+                  "label": "Stereo Link",
+                  "control": "Stereo Link"
+                }
+              ]
+            },
+            {
+              "id": "detector-tilt-band",
+              "label": "Tilt",
+              "role": "shelf",
+              "accent": "positive",
+              "x": 0.84,
+              "yControl": "Detector Tilt",
+              "yMin": -100,
+              "yMax": 100,
+              "readouts": [
+                {
+                  "label": "Detector Tilt",
+                  "control": "Detector Tilt"
+                },
+                {
+                  "label": "Audition",
+                  "control": "Audition"
+                }
+              ]
+            }
+          ]
+        },
+        "output-popover": {
+          "title": "Output tools",
+          "description": "Footer utilities stay shared: parallel blend, trim, auto compensation, and audition routing.",
+          "items": [
+            {
+              "label": "Mix",
+              "control": "Mix"
+            },
+            {
+              "label": "Output",
+              "control": "Output"
+            },
+            {
+              "label": "Auto Trim",
+              "control": "Auto Trim"
+            },
+            {
+              "label": "Audition",
+              "control": "Audition"
+            },
+            {
+              "label": "Bypass",
+              "control": "Bypass"
+            }
+          ]
+        }
+      }
+    },
     "statusText": "Character compressor with mode-specific timing, selectable detector behavior, stereo link shaping, parallel mix, output trim, and audition utilities.",
     "controlOrder": [
       "Mode",

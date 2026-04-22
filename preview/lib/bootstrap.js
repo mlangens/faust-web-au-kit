@@ -2,11 +2,13 @@ import { getPreviewRoots } from "./dom.js";
 import { renderBenchmarks, renderControls, renderMeters, renderShellChrome, renderWorkspaceNav } from "./renderers.js";
 import { normalizeSchema } from "./schema-ui.js";
 import { createSimulator, setMeter } from "./simulators.js";
+import { renderSurfaces } from "./surfaces.js";
 import { applyTheme } from "./theme.js";
 
 const state = {
   controls: new Map(),
   meterViews: new Map(),
+  surfaceViews: [],
   motionPhase: 0,
   animationFrame: 0,
   schema: null,
@@ -59,6 +61,7 @@ function startMeterAnimation() {
 
   const tick = () => {
     state.motionPhase += 0.04;
+    state.refreshSurfaceViews?.();
     state.meterViews.forEach(({ fill, value, meter }, id) => {
       setMeter(fill, value, state.simulator.measure(state, id, meter), meter);
     });
@@ -72,6 +75,10 @@ async function bootstrapPreview(doc = document) {
   const roots = getPreviewRoots(doc);
 
   delete document.body.dataset.previewError;
+  state.surfaceViews = [];
+  state.refreshSurfaceViews = () => {
+    state.surfaceViews.forEach((update) => update());
+  };
   state.workspace = await loadWorkspaceManifest();
   renderWorkspaceNav(roots.nav, state.workspace, activeAppKeyFromLocation() ?? state.workspace?.defaultApp);
 
@@ -84,7 +91,9 @@ async function bootstrapPreview(doc = document) {
   renderWorkspaceNav(roots.nav, state.workspace, schema.project.key);
   renderShellChrome(roots, schema);
   renderControls(roots.controls, schema, state);
+  renderSurfaces(roots.surfaces, roots.surfacePanel, schema, state);
   renderMeters(roots.meters, schema, state);
+  state.refreshSurfaceViews();
 
   try {
     const fallbackBenchmarkPath = state.workspace?.defaultApp

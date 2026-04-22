@@ -17,3 +17,9 @@ npm run test:native -- --app pulse-pad
 Keep the default local and CI path focused on `npm test`, then opt into native validation when you need confidence in the shipped plugin surface.
 
 The validation/install scripts now serialize access to each app’s user AU install path so overlapping runs do not clobber `~/Library/Audio/Plug-Ins/Components` mid-copy, and native build products now land in `build/apps/<app-key>/`.
+
+For bulk host smoke work on the Northline suite, use the new suite commands outside the default test pyramid:
+
+- `npm run install:clone-suite`
+- `npm run uninstall:clone-suite -- --scope both`
+- `npm run package:clone-suite-installer`

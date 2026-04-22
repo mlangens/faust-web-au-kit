@@ -54,3 +54,54 @@ test("concurrent default exports finish cleanly and leave stable generated artif
   );
   assert.deepEqual(scratchDirsAfter, scratchDirsBefore);
 });
+
+test("native export profile skips non-native sidecar targets while keeping schema outputs", { timeout: 120000 }, async () => {
+  const scratchRoot = fs.mkdtempSync(path.join(path.dirname(loadGeneratedProject().runtime.outputDir), "native-export-profile."));
+  const workspaceFile = path.join(scratchRoot, "workspace.json");
+  const generatedRoot = path.join(scratchRoot, "generated");
+  const generatedApps = path.join(generatedRoot, "apps");
+  const buildApps = path.join(scratchRoot, "build", "apps");
+  const distApps = path.join(scratchRoot, "dist", "apps");
+
+  fs.writeFileSync(
+    workspaceFile,
+    `${JSON.stringify({
+      schemaVersion: 1,
+      name: "native-export-profile",
+      version: "0.0.0",
+      defaultApp: "seed-tone",
+      paths: {
+        generatedRoot,
+        generatedApps,
+        buildApps,
+        distApps
+      },
+      apps: [
+        {
+          key: "seed-tone",
+          name: "Seed Tone",
+          manifest: "apps/seed-tone/project.json"
+        }
+      ]
+    }, null, 2)}\n`
+  );
+
+  try {
+    await runExport(["--workspace", workspaceFile, "--app", "seed-tone", "--export-profile", "native"]);
+
+    const outputDir = path.join(generatedApps, "seed-tone");
+    const targetDir = path.join(outputDir, "targets");
+
+    assert.equal(fs.existsSync(path.join(targetDir, "main.c")), true);
+    assert.equal(fs.existsSync(path.join(targetDir, "main.hpp")), true);
+    assert.equal(fs.existsSync(path.join(targetDir, "main.ui.json")), true);
+    assert.equal(fs.existsSync(path.join(outputDir, "ui_schema.json")), true);
+    assert.equal(fs.existsSync(path.join(targetDir, "main.wast")), false);
+    assert.equal(fs.existsSync(path.join(targetDir, "main.wasm")), false);
+    assert.equal(fs.existsSync(path.join(targetDir, "main.cmajor")), false);
+    assert.equal(fs.existsSync(path.join(targetDir, "main.rs")), false);
+    assert.equal(fs.existsSync(path.join(generatedRoot, "workspace_manifest.json")), true);
+  } finally {
+    fs.rmSync(scratchRoot, { recursive: true, force: true });
+  }
+});

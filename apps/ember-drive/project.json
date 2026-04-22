@@ -70,6 +70,369 @@
         ]
       }
     },
+    "preview": {
+      "surfaces": {
+        "multiband-editor": {
+          "title": "Drive band editor",
+          "description": "The shared multiband editor now drives crossover regions, per-band heat, and a global glue stage for the creative lane.",
+          "selection": "mid-band",
+          "focusBadges": [
+            {
+              "label": "Style",
+              "control": "Style",
+              "tone": "accent"
+            },
+            {
+              "label": "Dynamics",
+              "control": "Dynamics",
+              "tone": "muted"
+            },
+            {
+              "label": "Glue",
+              "control": "Glue",
+              "tone": "muted"
+            }
+          ],
+          "regions": [
+            {
+              "id": "low-band",
+              "label": "Low",
+              "accent": "warning",
+              "start": 20,
+              "endControl": "Low Crossover",
+              "xMin": 20,
+              "xMax": 20000,
+              "frequencyScale": "log",
+              "energyMeterId": "lowHeat",
+              "reductionMeterId": "glueReduction",
+              "readouts": [
+                "Low Drive",
+                "Low Tone",
+                "Low Bias"
+              ]
+            },
+            {
+              "id": "mid-band",
+              "label": "Mid",
+              "accent": "info",
+              "startControl": "Low Crossover",
+              "endControl": "High Crossover",
+              "xMin": 20,
+              "xMax": 20000,
+              "frequencyScale": "log",
+              "energyMeterId": "midHeat",
+              "reductionMeterId": "glueReduction",
+              "readouts": [
+                "Mid Drive",
+                "Mid Tone",
+                "Mid Bias"
+              ]
+            },
+            {
+              "id": "high-band",
+              "label": "High",
+              "accent": "positive",
+              "startControl": "High Crossover",
+              "end": 20000,
+              "xMin": 20,
+              "xMax": 20000,
+              "frequencyScale": "log",
+              "energyMeterId": "highHeat",
+              "reductionMeterId": "glueReduction",
+              "readouts": [
+                "High Drive",
+                "High Tone",
+                "High Bias"
+              ]
+            }
+          ]
+        },
+        "band-inspector": {
+          "title": "Band inspector",
+          "description": "Linked strips keep the three saturation bands aligned with the shared crossover editor and the global glue controls.",
+          "selection": "mid-band",
+          "focusBadges": [
+            {
+              "label": "Style",
+              "control": "Style",
+              "tone": "accent"
+            },
+            {
+              "label": "Band Link",
+              "control": "Band Link",
+              "tone": "muted"
+            },
+            {
+              "label": "Width",
+              "control": "Width",
+              "tone": "muted"
+            }
+          ],
+          "bands": [
+            {
+              "id": "low-band",
+              "label": "Low",
+              "accent": "warning",
+              "items": [
+                {
+                  "label": "Drive",
+                  "control": "Low Drive"
+                },
+                {
+                  "label": "Tone",
+                  "control": "Low Tone"
+                },
+                {
+                  "label": "Bias",
+                  "control": "Low Bias"
+                },
+                {
+                  "label": "Mix",
+                  "control": "Low Mix"
+                }
+              ],
+              "meters": [
+                {
+                  "label": "Heat",
+                  "meter": "lowHeat"
+                },
+                {
+                  "label": "Glue",
+                  "meter": "glueReduction"
+                }
+              ]
+            },
+            {
+              "id": "mid-band",
+              "label": "Mid",
+              "accent": "info",
+              "items": [
+                {
+                  "label": "Drive",
+                  "control": "Mid Drive"
+                },
+                {
+                  "label": "Tone",
+                  "control": "Mid Tone"
+                },
+                {
+                  "label": "Bias",
+                  "control": "Mid Bias"
+                },
+                {
+                  "label": "Mix",
+                  "control": "Mid Mix"
+                }
+              ],
+              "meters": [
+                {
+                  "label": "Heat",
+                  "meter": "midHeat"
+                },
+                {
+                  "label": "Glue",
+                  "meter": "glueReduction"
+                }
+              ]
+            },
+            {
+              "id": "high-band",
+              "label": "High",
+              "accent": "positive",
+              "items": [
+                {
+                  "label": "Drive",
+                  "control": "High Drive"
+                },
+                {
+                  "label": "Tone",
+                  "control": "High Tone"
+                },
+                {
+                  "label": "Bias",
+                  "control": "High Bias"
+                },
+                {
+                  "label": "Mix",
+                  "control": "High Mix"
+                }
+              ],
+              "meters": [
+                {
+                  "label": "Heat",
+                  "meter": "highHeat"
+                },
+                {
+                  "label": "Glue",
+                  "meter": "glueReduction"
+                }
+              ]
+            }
+          ],
+          "globalItems": [
+            {
+              "label": "Input Gain",
+              "control": "Input Gain"
+            },
+            {
+              "label": "Dynamics",
+              "control": "Dynamics"
+            },
+            {
+              "label": "Glue",
+              "control": "Glue"
+            },
+            {
+              "label": "Band Link",
+              "control": "Band Link"
+            },
+            {
+              "label": "Width",
+              "control": "Width"
+            },
+            {
+              "label": "Mix",
+              "control": "Mix"
+            }
+          ]
+        },
+        "modulation-dock": {
+          "title": "Macro dock",
+          "description": "A shared creative dock keeps drive staging, dynamics glue, and width-aware output shaping in one reusable lane.",
+          "focusBadges": [
+            {
+              "label": "Style",
+              "control": "Style",
+              "tone": "accent"
+            },
+            {
+              "label": "Dynamics",
+              "control": "Dynamics",
+              "tone": "muted"
+            },
+            {
+              "label": "Glue",
+              "control": "Glue",
+              "tone": "muted"
+            }
+          ],
+          "sources": [
+            {
+              "id": "input-source",
+              "label": "Input",
+              "control": "Input Gain",
+              "tone": "warning"
+            },
+            {
+              "id": "dynamics-source",
+              "label": "Dynamics",
+              "control": "Dynamics",
+              "tone": "info"
+            },
+            {
+              "id": "glue-source",
+              "label": "Glue",
+              "meterId": "glueReduction",
+              "tone": "accent"
+            },
+            {
+              "id": "field-source",
+              "label": "Width",
+              "control": "Width",
+              "tone": "positive"
+            }
+          ],
+          "slots": [
+            {
+              "id": "low-stage",
+              "label": "Low band",
+              "assignment": "Tone + Bias",
+              "amountControl": "Low Drive",
+              "activityControls": [
+                "Low Drive",
+                "Low Mix"
+              ],
+              "readouts": [
+                "Low Drive",
+                "Low Tone",
+                "Low Bias",
+                "Low Mix"
+              ]
+            },
+            {
+              "id": "mid-stage",
+              "label": "Mid band",
+              "assignment": "Tone + Bias",
+              "amountControl": "Mid Drive",
+              "activityControls": [
+                "Mid Drive",
+                "Mid Mix"
+              ],
+              "readouts": [
+                "Mid Drive",
+                "Mid Tone",
+                "Mid Bias",
+                "Mid Mix"
+              ]
+            },
+            {
+              "id": "high-stage",
+              "label": "High band",
+              "assignment": "Tone + Bias",
+              "amountControl": "High Drive",
+              "activityControls": [
+                "High Drive",
+                "High Mix"
+              ],
+              "readouts": [
+                "High Drive",
+                "High Tone",
+                "High Bias",
+                "High Mix"
+              ]
+            },
+            {
+              "id": "mix-bus",
+              "label": "Mix bus",
+              "assignment": "Glue + field",
+              "amountControl": "Mix",
+              "activityControls": [
+                "Glue",
+                "Mix"
+              ],
+              "readouts": [
+                "Glue",
+                "Band Link",
+                "Width",
+                "Output"
+              ]
+            }
+          ]
+        },
+        "output-popover": {
+          "title": "Output tools",
+          "description": "Shared footer utilities manage the input stage, blend, output trim, and bypass.",
+          "items": [
+            {
+              "label": "Input Gain",
+              "control": "Input Gain"
+            },
+            {
+              "label": "Mix",
+              "control": "Mix"
+            },
+            {
+              "label": "Output",
+              "control": "Output"
+            },
+            {
+              "label": "Bypass",
+              "control": "Bypass"
+            }
+          ]
+        }
+      }
+    },
     "statusText": "Multiband saturation processor with style-selectable drive circuits, per-band tone/bias/mix control, adaptive dynamics, glue, stereo width, parallel blend, and output trim.",
     "controlOrder": [
       "Style",

@@ -77,6 +77,123 @@
         ]
       }
     },
+    "preview": {
+      "surfaces": {
+        "filter-canvas": {
+          "title": "Compact filter canvas",
+          "description": "A shared filter field keeps the mini lane focused on the main cutoff, envelope follow motion, and compact output shaping.",
+          "selection": "cutoff-core",
+          "focusBadges": [
+            {
+              "label": "Mode",
+              "control": "Mode",
+              "tone": "accent"
+            },
+            {
+              "label": "Drive",
+              "control": "Drive",
+              "tone": "muted"
+            },
+            {
+              "label": "Mix",
+              "control": "Mix",
+              "tone": "muted"
+            }
+          ],
+          "gridLabels": [
+            "40",
+            "120",
+            "500",
+            "2k",
+            "8k",
+            "18k"
+          ],
+          "bands": [
+            {
+              "id": "cutoff-core",
+              "label": "Cutoff",
+              "role": "bell",
+              "accent": "info",
+              "xControl": "Cutoff",
+              "xMin": 40,
+              "xMax": 18000,
+              "frequencyScale": "log",
+              "yControl": "Resonance",
+              "yMin": 0,
+              "yMax": 100,
+              "readouts": [
+                "Cutoff",
+                "Resonance",
+                {
+                  "label": "Mode",
+                  "control": "Mode"
+                }
+              ]
+            },
+            {
+              "id": "follow-band",
+              "label": "Follow",
+              "role": "bell",
+              "accent": "warning",
+              "x": 0.76,
+              "yControl": "Envelope Follow",
+              "yMin": 0.005,
+              "yMax": 0.5,
+              "readouts": [
+                "Envelope Follow",
+                "Drive",
+                "Mix"
+              ]
+            },
+            {
+              "id": "mix-band",
+              "label": "Mix",
+              "role": "shelf",
+              "accent": "accent",
+              "x": 0.9,
+              "yControl": "Mix",
+              "yMin": 0,
+              "yMax": 100,
+              "readouts": [
+                "Mix",
+                "Output",
+                "Bypass"
+              ]
+            }
+          ]
+        },
+        "output-popover": {
+          "title": "Output tools",
+          "description": "Shared footer tools keep the compact filter lane aligned with the rest of the suite.",
+          "items": [
+            {
+              "label": "Envelope",
+              "meterId": "envelope"
+            },
+            {
+              "label": "Envelope Follow",
+              "control": "Envelope Follow"
+            },
+            {
+              "label": "Drive",
+              "control": "Drive"
+            },
+            {
+              "label": "Mix",
+              "control": "Mix"
+            },
+            {
+              "label": "Output",
+              "control": "Output"
+            },
+            {
+              "label": "Bypass",
+              "control": "Bypass"
+            }
+          ]
+        }
+      }
+    },
     "statusText": "Mini filter scaffold with mode selection, cutoff and resonance shaping, envelope follow, drive, wet/dry mix, output trim, and bypass.",
     "controlOrder": [
       "Mode",

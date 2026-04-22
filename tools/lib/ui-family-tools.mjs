@@ -1,17 +1,36 @@
+// @ts-check
+
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+/**
+ * @typedef {import("../../types/framework").JsonObject} JsonObject
+ * @typedef {import("../../types/framework").JsonValue} JsonValue
+ * @typedef {import("../../types/framework").ProjectUiManifest} ProjectUiManifest
+ * @typedef {import("../../types/framework").ProjectUiRuntime} ProjectUiRuntime
+ * @typedef {import("../../types/framework").UiFamilyManifest} UiFamilyManifest
+ * @typedef {import("../../types/framework").UiFamilyRuntime} UiFamilyRuntime
+ */
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const reservedUiKeys = new Set(["family", "variant", "overrides"]);
 
+/**
+ * @param {unknown} value
+ * @returns {value is JsonObject}
+ */
 function isPlainObject(value) {
   return value != null && typeof value === "object" && !Array.isArray(value);
 }
 
+/**
+ * @param {JsonValue | undefined} value
+ * @returns {JsonValue | undefined}
+ */
 function cloneValue(value) {
   if (Array.isArray(value)) {
-    return value.map((entry) => cloneValue(entry));
+    return value.map((entry) => /** @type {JsonValue} */ (cloneValue(entry) ?? null));
   }
   if (isPlainObject(value)) {
     return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, cloneValue(entry)]));
@@ -19,7 +38,12 @@ function cloneValue(value) {
   return value;
 }
 
+/**
+ * @param {...(JsonObject | null | undefined)} layers
+ * @returns {JsonObject}
+ */
 function mergeUiLayers(...layers) {
+  /** @type {JsonObject} */
   let merged = {};
   for (const layer of layers) {
     if (layer == null) {
@@ -33,8 +57,13 @@ function mergeUiLayers(...layers) {
   return merged;
 }
 
+/**
+ * @param {JsonObject} base
+ * @param {JsonObject} override
+ * @returns {JsonObject}
+ */
 function mergeObjects(base, override) {
-  const result = { ...cloneValue(base) };
+  const result = { ...base };
   for (const [key, value] of Object.entries(override)) {
     const current = result[key];
     if (isPlainObject(current) && isPlainObject(value)) {
@@ -46,6 +75,10 @@ function mergeObjects(base, override) {
   return result;
 }
 
+/**
+ * @param {UiFamilyManifest} manifest
+ * @returns {{ body: JsonObject, defaults: JsonObject, variants: JsonObject }}
+ */
 function normalizeFamilyManifest(manifest) {
   const body =
     !Object.prototype.hasOwnProperty.call(manifest, "defaults") &&
@@ -74,10 +107,20 @@ function normalizeFamilyManifest(manifest) {
   };
 }
 
+/**
+ * @param {string} family
+ * @param {string} [resolverRoot]
+ * @returns {string}
+ */
 function familyManifestPath(family, resolverRoot = root) {
   return path.resolve(resolverRoot, "ui", "families", family, "manifest.json");
 }
 
+/**
+ * @param {string} family
+ * @param {{ root?: string }} [options]
+ * @returns {UiFamilyRuntime}
+ */
 function loadUiFamilyManifest(family, options = {}) {
   const resolverRoot = options.root ?? root;
   const manifestPath = familyManifestPath(family, resolverRoot);
@@ -85,7 +128,8 @@ function loadUiFamilyManifest(family, options = {}) {
     throw new Error(`UI family manifest "${family}" was not found at "${manifestPath}".`);
   }
 
-  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  /** @type {UiFamilyManifest} */
+  const manifest = /** @type {UiFamilyManifest} */ (JSON.parse(fs.readFileSync(manifestPath, "utf8")));
   if (!isPlainObject(manifest)) {
     throw new Error(`UI family manifest "${family}" must contain a JSON object.`);
   }
@@ -100,6 +144,12 @@ function loadUiFamilyManifest(family, options = {}) {
   };
 }
 
+/**
+ * @param {JsonObject} variants
+ * @param {string | null} variantName
+ * @param {string[]} [stack]
+ * @returns {JsonObject}
+ */
 function resolveVariantConfig(variants, variantName, stack = []) {
   if (!variantName) {
     return {};
@@ -124,10 +174,19 @@ function resolveVariantConfig(variants, variantName, stack = []) {
   return mergeUiLayers(inherited, variantBody);
 }
 
+/**
+ * @param {ProjectUiManifest} projectUi
+ * @returns {JsonObject}
+ */
 function extractInlineOverrides(projectUi) {
   return Object.fromEntries(Object.entries(projectUi).filter(([key]) => !reservedUiKeys.has(key)));
 }
 
+/**
+ * @param {ProjectUiManifest | undefined} projectUi
+ * @param {{ root?: string }} [options]
+ * @returns {ProjectUiRuntime}
+ */
 function resolveProjectUi(projectUi, options = {}) {
   const hasProjectUi = projectUi !== undefined;
   if (!isPlainObject(projectUi)) {
@@ -141,7 +200,7 @@ function resolveProjectUi(projectUi, options = {}) {
       variantConfig: {},
       inlineOverrides: {},
       explicitOverrides: {},
-      resolved: projectUi
+      resolved: projectUi ?? null
     };
   }
 
@@ -165,7 +224,7 @@ function resolveProjectUi(projectUi, options = {}) {
       variantConfig: {},
       inlineOverrides,
       explicitOverrides,
-      resolved: cloneValue(projectUi)
+      resolved: cloneValue(projectUi) ?? null
     };
   }
 
@@ -179,10 +238,10 @@ function resolveProjectUi(projectUi, options = {}) {
     variant,
     manifestPath: familyManifest.manifestPath,
     manifest: familyManifest.manifest,
-    defaults: cloneValue(familyManifest.defaults),
+    defaults: /** @type {JsonObject} */ (cloneValue(familyManifest.defaults) ?? {}),
     variantConfig,
-    inlineOverrides: cloneValue(inlineOverrides),
-    explicitOverrides: cloneValue(explicitOverrides),
+    inlineOverrides: /** @type {JsonObject} */ (cloneValue(inlineOverrides) ?? {}),
+    explicitOverrides: /** @type {JsonObject} */ (cloneValue(explicitOverrides) ?? {}),
     resolved
   };
 }

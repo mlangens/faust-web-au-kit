@@ -50,6 +50,10 @@
         "status": "Flagship equalizer pass with dual sculpting bands, adaptive guidance, and analyzer-aware helper states in neutral studio chrome."
       },
       "sections": {
+        "surfaces": {
+          "title": "Adaptive Curve Editor",
+          "description": "Atlas Curve now leads with a shared graph editor: direct band handles, analyzer-led guidance, anchored band popovers, and reusable support cards."
+        },
         "controls": {
           "title": "Flagship EQ Surface",
           "description": "Atlas Curve now carries a richer Northline control contract: selectable cut slope, dual mid-band sculpting, tilt and air shaping, plus guide and focus helpers."
@@ -91,6 +95,169 @@
           "Mid Focus",
           "Air Focus"
         ]
+      }
+    },
+    "preview": {
+      "surfaces": {
+        "eq-canvas": {
+          "title": "Adaptive curve editor",
+          "description": "The flagship EQ surface turns the shared spectral preset into direct-manipulation bands, analyzer guidance, and reusable contextual readouts.",
+          "selection": "bell-band",
+          "focusBadges": [
+            {
+              "label": "Mode",
+              "control": "Mode",
+              "tone": "accent"
+            },
+            {
+              "label": "Style",
+              "control": "Style",
+              "tone": "muted"
+            },
+            {
+              "label": "Focus",
+              "control": "Band Focus",
+              "tone": "muted"
+            },
+            {
+              "label": "Analyzer",
+              "control": "Analyzer",
+              "tone": "muted"
+            }
+          ],
+          "gridLabels": [
+            "20",
+            "50",
+            "100",
+            "200",
+            "500",
+            "1k",
+            "2k",
+            "5k",
+            "10k",
+            "20k"
+          ],
+          "bands": [
+            {
+              "id": "low-cut-band",
+              "label": "Low Cut",
+              "role": "cut",
+              "accent": "warning",
+              "xControl": "Low Cut",
+              "xMin": 20,
+              "xMax": 1200,
+              "y": 0.18,
+              "readouts": [
+                "Low Cut",
+                "Cut Slope"
+              ]
+            },
+            {
+              "id": "low-shelf-band",
+              "label": "Low Shelf",
+              "role": "shelf",
+              "accent": "warning",
+              "x": 0.23,
+              "yControl": "Low Shelf",
+              "yMin": -6,
+              "yMax": 6,
+              "readouts": [
+                "Low Shelf",
+                "Tilt"
+              ]
+            },
+            {
+              "id": "bell-band",
+              "label": "Bell",
+              "role": "bell",
+              "accent": "info",
+              "xControl": "Bell Freq",
+              "xMin": 120,
+              "xMax": 6000,
+              "yControl": "Bell Gain",
+              "yMin": -6,
+              "yMax": 6,
+              "qControl": "Bell Q",
+              "readouts": [
+                "Bell Freq",
+                "Bell Gain",
+                "Bell Q"
+              ]
+            },
+            {
+              "id": "presence-band",
+              "label": "Presence",
+              "role": "bell",
+              "accent": "accent",
+              "xControl": "Presence Freq",
+              "xMin": 1200,
+              "xMax": 14000,
+              "yControl": "Presence Gain",
+              "yMin": -6,
+              "yMax": 6,
+              "qControl": "Presence Q",
+              "readouts": [
+                "Presence Freq",
+                "Presence Gain",
+                "Presence Q"
+              ]
+            },
+            {
+              "id": "air-band",
+              "label": "Air",
+              "role": "shelf",
+              "accent": "positive",
+              "x": 0.88,
+              "yControl": "Air",
+              "yMin": -6,
+              "yMax": 6,
+              "readouts": [
+                "Air",
+                "High Shelf"
+              ]
+            }
+          ]
+        },
+        "instance-strip": {
+          "title": "Scene cues",
+          "description": "Reference voicings for the shared flagship shell while interaction work is still schematic.",
+          "items": [
+            {
+              "label": "Open contour",
+              "meta": "Low cut eased, broad bell, guide restrained"
+            },
+            {
+              "label": "Focused lift",
+              "meta": "Bell tightened, presence pushed, analyzer mid focus"
+            },
+            {
+              "label": "Polish air",
+              "meta": "High shelf eased, air lifted, dynamic guide active"
+            }
+          ]
+        },
+        "output-popover": {
+          "title": "Output tools",
+          "description": "Footer-adjacent utilities kept generic enough to port to the other Northline editor-led products.",
+          "items": [
+            {
+              "label": "Guide",
+              "control": "Guide"
+            },
+            {
+              "label": "Dynamic",
+              "control": "Dynamic"
+            },
+            {
+              "label": "Output Trim",
+              "control": "Output Trim"
+            },
+            {
+              "label": "Bypass",
+              "control": "Bypass"
+            }
+          ]
+        }
       }
     },
     "statusText": "Flagship EQ pass with selectable cut slope, dual sculpting bands, tilt and air shaping, adaptive guide behavior, analyzer focus modes, and output trim.",

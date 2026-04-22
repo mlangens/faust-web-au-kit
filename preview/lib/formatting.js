@@ -1,5 +1,16 @@
+// @ts-check
+
 import { resolveControlDisplay } from "./schema-ui.js";
 
+/**
+ * @typedef {import("../../types/framework").GeneratedControl} GeneratedControl
+ * @typedef {import("../../types/framework").ProjectUiManifest} ProjectUiManifest
+ */
+
+/**
+ * @param {unknown} step
+ * @returns {number}
+ */
 function decimalPlaces(step) {
   if (!Number.isFinite(Number(step))) {
     return 2;
@@ -13,15 +24,31 @@ function decimalPlaces(step) {
   return normalized.includes(".") ? normalized.split(".")[1].length : 0;
 }
 
+/**
+ * @param {string[] | undefined} labels
+ * @param {unknown} value
+ * @returns {string}
+ */
 function formatEnumValue(labels, value) {
   const index = Math.round(Number(value));
   return labels[index] ?? labels[0] ?? String(value);
 }
 
+/**
+ * @param {unknown} value
+ * @param {number} digits
+ * @returns {string}
+ */
 function formatNumber(value, digits) {
   return Number(value).toFixed(digits);
 }
 
+/**
+ * @param {GeneratedControl} control
+ * @param {unknown} value
+ * @param {ProjectUiManifest} ui
+ * @returns {string}
+ */
 function formatValue(control, value, ui) {
   const display = resolveControlDisplay(ui, control);
 

@@ -74,6 +74,257 @@
         ]
       }
     },
+    "preview": {
+      "surfaces": {
+        "filter-canvas": {
+          "title": "Paired filter canvas",
+          "description": "A shared dual-filter field shows A/B cutoff placement, resonance contrast, and span coupling without a bespoke utility renderer.",
+          "selection": "filter-b",
+          "focusBadges": [
+            {
+              "label": "Mode",
+              "control": "Mode",
+              "tone": "accent"
+            },
+            {
+              "label": "Routing",
+              "control": "Routing",
+              "tone": "muted"
+            },
+            {
+              "label": "Link",
+              "control": "Link",
+              "tone": "muted"
+            }
+          ],
+          "gridLabels": [
+            "20",
+            "80",
+            "320",
+            "1.2k",
+            "4.8k",
+            "18k"
+          ],
+          "bands": [
+            {
+              "id": "filter-a",
+              "label": "Filter A",
+              "role": "bell",
+              "accent": "warning",
+              "xControl": "Filter A Cutoff",
+              "xMin": 20,
+              "xMax": 18000,
+              "frequencyScale": "log",
+              "yControl": "Filter A Resonance",
+              "yMin": 0,
+              "yMax": 100,
+              "readouts": [
+                "Filter A Cutoff",
+                "Filter A Resonance",
+                "Mode"
+              ]
+            },
+            {
+              "id": "filter-b",
+              "label": "Filter B",
+              "role": "bell",
+              "accent": "info",
+              "xControl": "Filter B Cutoff",
+              "xMin": 20,
+              "xMax": 18000,
+              "frequencyScale": "log",
+              "yControl": "Filter B Resonance",
+              "yMin": 0,
+              "yMax": 100,
+              "readouts": [
+                "Filter B Cutoff",
+                "Filter B Resonance",
+                "Routing"
+              ]
+            }
+          ]
+        },
+        "routing-matrix": {
+          "title": "Routing and span",
+          "description": "The shared routing matrix keeps stereo, cross, and mono utility modes visible while spacing, drive, and mix stay close by.",
+          "focusBadges": [
+            {
+              "label": "Routing",
+              "control": "Routing",
+              "tone": "accent"
+            },
+            {
+              "label": "Spacing",
+              "control": "Spacing",
+              "tone": "muted"
+            },
+            {
+              "label": "Link",
+              "control": "Link",
+              "tone": "muted"
+            }
+          ],
+          "columns": [
+            {
+              "id": "input",
+              "label": "Input"
+            },
+            {
+              "id": "filters",
+              "label": "Filters"
+            },
+            {
+              "id": "output",
+              "label": "Output"
+            }
+          ],
+          "rows": [
+            {
+              "id": "stereo",
+              "label": "Stereo"
+            },
+            {
+              "id": "cross",
+              "label": "Cross"
+            },
+            {
+              "id": "mono",
+              "label": "Mono"
+            }
+          ],
+          "routes": [
+            {
+              "id": "stereo-route",
+              "label": "Stereo",
+              "control": "Routing",
+              "matchValue": 0,
+              "cells": [
+                {
+                  "row": "stereo",
+                  "column": "input"
+                },
+                {
+                  "row": "stereo",
+                  "column": "filters"
+                },
+                {
+                  "row": "stereo",
+                  "column": "output"
+                }
+              ],
+              "readouts": [
+                {
+                  "label": "Mode",
+                  "control": "Mode"
+                },
+                {
+                  "label": "Spacing",
+                  "control": "Spacing"
+                },
+                {
+                  "label": "Link",
+                  "control": "Link"
+                }
+              ]
+            },
+            {
+              "id": "cross-route",
+              "label": "Cross",
+              "control": "Routing",
+              "matchValue": 1,
+              "cells": [
+                {
+                  "row": "cross",
+                  "column": "input"
+                },
+                {
+                  "row": "cross",
+                  "column": "filters"
+                },
+                {
+                  "row": "cross",
+                  "column": "output"
+                }
+              ],
+              "readouts": [
+                {
+                  "label": "Mode",
+                  "control": "Mode"
+                },
+                {
+                  "label": "Span Gap",
+                  "meterId": "spanGap"
+                },
+                {
+                  "label": "Drive",
+                  "control": "Drive"
+                }
+              ]
+            },
+            {
+              "id": "mono-route",
+              "label": "Mono",
+              "control": "Routing",
+              "matchValue": 2,
+              "cells": [
+                {
+                  "row": "mono",
+                  "column": "input"
+                },
+                {
+                  "row": "mono",
+                  "column": "filters"
+                },
+                {
+                  "row": "mono",
+                  "column": "output"
+                }
+              ],
+              "readouts": [
+                {
+                  "label": "Mode",
+                  "control": "Mode"
+                },
+                {
+                  "label": "Mix",
+                  "control": "Mix"
+                },
+                {
+                  "label": "Output",
+                  "control": "Output"
+                }
+              ]
+            }
+          ]
+        },
+        "output-popover": {
+          "title": "Output tools",
+          "description": "Shared footer tools keep the compact utility lane aligned with the rest of the suite.",
+          "items": [
+            {
+              "label": "Drive",
+              "control": "Drive"
+            },
+            {
+              "label": "Mix",
+              "control": "Mix"
+            },
+            {
+              "label": "Output",
+              "control": "Output"
+            },
+            {
+              "label": "Span Gap",
+              "meterId": "spanGap"
+            },
+            {
+              "label": "Bypass",
+              "control": "Bypass"
+            }
+          ]
+        }
+      }
+    },
     "statusText": "Dual-filter scaffold with A/B cutoff and resonance, spacing/link coupling, routing, drive, mix, output trim, and bypass.",
     "controlOrder": [
       "Mode",

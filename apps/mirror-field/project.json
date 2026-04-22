@@ -87,6 +87,348 @@
         ]
       }
     },
+    "preview": {
+      "surfaces": {
+        "oscillator-stack": {
+          "title": "Voice stack",
+          "description": "Shared module cards now stage the main oscillator voice, spread behavior, and motion engine for the flagship instrument lane.",
+          "focusBadges": [
+            {
+              "label": "Voice Mode",
+              "control": "Voice Mode",
+              "tone": "accent"
+            },
+            {
+              "label": "Blend",
+              "control": "Blend",
+              "tone": "muted"
+            },
+            {
+              "label": "Motion",
+              "control": "Motion",
+              "tone": "muted"
+            }
+          ],
+          "modules": [
+            {
+              "id": "voice-core",
+              "label": "Voice",
+              "accent": "info",
+              "meterId": "voiceLevel",
+              "readouts": [
+                "Voice Mode",
+                "Blend",
+                "Detune"
+              ]
+            },
+            {
+              "id": "shape-core",
+              "label": "Shape",
+              "accent": "warning",
+              "activityControls": [
+                "Shape",
+                "Tone"
+              ],
+              "readouts": [
+                "Shape",
+                "Tone",
+                "Filter Mode"
+              ]
+            },
+            {
+              "id": "motion-core",
+              "label": "Motion",
+              "accent": "positive",
+              "meterId": "filterBloom",
+              "readouts": [
+                "Motion",
+                "Mod Amount",
+                "Drift"
+              ]
+            }
+          ]
+        },
+        "filter-canvas": {
+          "title": "Tone field",
+          "description": "The shared filter canvas becomes a tone map for body, contour, motion, and stereo spread across the synth voice.",
+          "selection": "tone-band",
+          "focusBadges": [
+            {
+              "label": "Voice Mode",
+              "control": "Voice Mode",
+              "tone": "accent"
+            },
+            {
+              "label": "Filter Mode",
+              "control": "Filter Mode",
+              "tone": "muted"
+            },
+            {
+              "label": "Motion",
+              "control": "Motion",
+              "tone": "muted"
+            }
+          ],
+          "gridLabels": [
+            "Body",
+            "Tone",
+            "Contour",
+            "Motion",
+            "Width",
+            "Air"
+          ],
+          "bands": [
+            {
+              "id": "shape-band",
+              "label": "Shape",
+              "role": "shelf",
+              "accent": "warning",
+              "x": 0.2,
+              "yControl": "Shape",
+              "yMin": 0,
+              "yMax": 1,
+              "readouts": [
+                "Shape",
+                "Blend"
+              ]
+            },
+            {
+              "id": "tone-band",
+              "label": "Tone",
+              "role": "bell",
+              "accent": "info",
+              "x": 0.5,
+              "yControl": "Tone",
+              "yMin": 0,
+              "yMax": 1,
+              "readouts": [
+                "Tone",
+                "Contour",
+                "Filter Mode"
+              ]
+            },
+            {
+              "id": "motion-band",
+              "label": "Motion",
+              "role": "bell",
+              "accent": "accent",
+              "x": 0.72,
+              "yControl": "Contour",
+              "yMin": 0,
+              "yMax": 1,
+              "readouts": [
+                "Contour",
+                "Motion",
+                "Mod Amount"
+              ]
+            },
+            {
+              "id": "field-band",
+              "label": "Field",
+              "role": "shelf",
+              "accent": "positive",
+              "x": 0.9,
+              "yControl": "Stereo Width",
+              "yMin": 0,
+              "yMax": 100,
+              "readouts": [
+                "Stereo Width",
+                "Drive",
+                "Sub"
+              ]
+            }
+          ]
+        },
+        "module-rack": {
+          "title": "Module rack",
+          "description": "Shared module cards keep the filter, motion, and amp/envelope blocks grouped without creating a synth-specific renderer.",
+          "modules": [
+            {
+              "id": "filter-module",
+              "label": "Filter",
+              "accent": "info",
+              "meterId": "filterBloom",
+              "readouts": [
+                "Filter Mode",
+                "Tone",
+                "Contour"
+              ]
+            },
+            {
+              "id": "motion-module",
+              "label": "Motion",
+              "accent": "warning",
+              "meterId": "stereoSpread",
+              "readouts": [
+                "Motion",
+                "Mod Amount",
+                "Drift"
+              ]
+            },
+            {
+              "id": "amp-module",
+              "label": "Amp",
+              "accent": "positive",
+              "meterId": "outputPeak",
+              "readouts": [
+                "Attack",
+                "Release",
+                "Drive"
+              ]
+            }
+          ]
+        },
+        "modulation-dock": {
+          "title": "Motion dock",
+          "description": "The shared modulation dock keeps motion, drift, envelope timing, and stereo behavior aligned with the synth modules.",
+          "focusBadges": [
+            {
+              "label": "Motion",
+              "control": "Motion",
+              "tone": "accent"
+            },
+            {
+              "label": "Voice Mode",
+              "control": "Voice Mode",
+              "tone": "muted"
+            },
+            {
+              "label": "Filter Mode",
+              "control": "Filter Mode",
+              "tone": "muted"
+            }
+          ],
+          "sources": [
+            {
+              "id": "motion-source",
+              "label": "Motion",
+              "control": "Mod Amount",
+              "tone": "warning"
+            },
+            {
+              "id": "drift-source",
+              "label": "Drift",
+              "control": "Drift",
+              "tone": "info"
+            },
+            {
+              "id": "envelope-source",
+              "label": "Envelope",
+              "control": "Attack",
+              "tone": "accent"
+            },
+            {
+              "id": "field-source",
+              "label": "Field",
+              "control": "Stereo Width",
+              "tone": "positive"
+            }
+          ],
+          "slots": [
+            {
+              "id": "shape-slot",
+              "label": "Shape",
+              "assignment": "Voice contour",
+              "amountControl": "Shape",
+              "activityControls": [
+                "Shape",
+                "Mod Amount"
+              ],
+              "readouts": [
+                "Shape",
+                "Blend",
+                "Drive"
+              ]
+            },
+            {
+              "id": "tone-slot",
+              "label": "Tone",
+              "assignment": "Filter body",
+              "amountControl": "Tone",
+              "activityControls": [
+                "Tone",
+                "Contour"
+              ],
+              "readouts": [
+                "Tone",
+                "Contour",
+                "Filter Mode"
+              ]
+            },
+            {
+              "id": "motion-slot",
+              "label": "Motion",
+              "assignment": "Drift + depth",
+              "amountControl": "Mod Amount",
+              "activityControls": [
+                "Mod Amount",
+                "Drift"
+              ],
+              "readouts": [
+                "Motion",
+                "Mod Amount",
+                "Drift"
+              ]
+            },
+            {
+              "id": "field-slot",
+              "label": "Field",
+              "assignment": "Width + envelope",
+              "amountControl": "Stereo Width",
+              "activityControls": [
+                "Stereo Width",
+                "Attack"
+              ],
+              "readouts": [
+                "Stereo Width",
+                "Attack",
+                "Release"
+              ]
+            }
+          ]
+        },
+        "keyboard-strip": {
+          "title": "Performance strip",
+          "description": "A shared keyboard strip gives the synth lane a simple voice-size preview plus envelope and stereo readouts.",
+          "voiceControl": "Voice Mode",
+          "keys": [
+            {
+              "label": "C"
+            },
+            {
+              "label": "C#",
+              "kind": "black"
+            },
+            {
+              "label": "D"
+            },
+            {
+              "label": "F"
+            },
+            {
+              "label": "F#",
+              "kind": "black"
+            },
+            {
+              "label": "G"
+            },
+            {
+              "label": "A"
+            },
+            {
+              "label": "B"
+            }
+          ],
+          "readouts": [
+            "Voice Mode",
+            "Attack",
+            "Release",
+            "Detune",
+            "Stereo Width"
+          ]
+        }
+      }
+    },
     "statusText": "MIDI-ready modular synth with voice modes, waveform blend, filter voicing, motion states, drift, drive, stereo width, and envelope shaping.",
     "controlOrder": [
       "Voice Mode",

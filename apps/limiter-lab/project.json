@@ -50,10 +50,226 @@
     "overrides": {
       "surfacePresetIds": [
         "history-trace",
+        "transfer-curve",
         "meter-stack",
         "output-popover"
       ],
       "layoutProfile": "slider-plus-meter-column"
+    },
+    "shell": {
+      "hero": {
+        "status": "Mastering limiter refresh with shared transfer, drive-routing splits, vintage voicing, and neutral Northline studio chrome."
+      },
+      "sections": {
+        "controls": {
+          "title": "Limiter Surface",
+          "description": "Limiter Lab now centers on input and ceiling shaping, harmonic color, split drive routing, timing response, and matched output utilities."
+        },
+        "meters": {
+          "title": "Response Preview",
+          "description": "The shared limiter scaffold now tracks input, harmonic bias, clamp depth, and output recovery so the original framework example reads more intentionally."
+        }
+      }
+    },
+    "display": {
+      "enumLabels": {
+        "Drive Target": [
+          "Both",
+          "Mid",
+          "Side"
+        ],
+        "Drive Focus": [
+          "Full",
+          "Low",
+          "Mid",
+          "High"
+        ]
+      },
+      "controls": {
+        "Vintage Response": {
+          "onLabel": "Vintage",
+          "offLabel": "Modern"
+        }
+      }
+    },
+    "preview": {
+      "surfaces": {
+        "history-trace": {
+          "title": "Drive history",
+          "description": "Shared limiter traces now span input, harmonic color, routing emphasis, clamp depth, and recovered output.",
+          "focusBadges": [
+            {
+              "label": "Target",
+              "control": "Drive Target",
+              "tone": "accent"
+            },
+            {
+              "label": "Focus",
+              "control": "Drive Focus",
+              "tone": "muted"
+            },
+            {
+              "label": "Vintage",
+              "control": "Vintage Response",
+              "tone": "muted"
+            }
+          ],
+          "series": [
+            {
+              "id": "input",
+              "label": "Input",
+              "meterId": "inputPeak",
+              "tone": "warning"
+            },
+            {
+              "id": "color",
+              "label": "Color",
+              "control": "Tube Drive",
+              "controls": [
+                "Tube Drive",
+                "Transformer Tone"
+              ],
+              "tone": "accent"
+            },
+            {
+              "id": "routing",
+              "label": "Routing",
+              "control": "Drive Target",
+              "controls": [
+                "Drive Target",
+                "Drive Focus"
+              ],
+              "tone": "info"
+            },
+            {
+              "id": "clamp",
+              "label": "Clamp",
+              "meterId": "gainReduction",
+              "tone": "info",
+              "variant": "gr"
+            },
+            {
+              "id": "output",
+              "label": "Output",
+              "meterId": "outputPeak",
+              "tone": "positive"
+            }
+          ]
+        },
+        "transfer-curve": {
+          "title": "Vintage clamp",
+          "description": "The shared transfer view reframes Limiter Lab around input staging, tube drive, output ceiling, release timing, and vintage bite.",
+          "focusBadges": [
+            {
+              "label": "Target",
+              "control": "Drive Target",
+              "tone": "accent"
+            },
+            {
+              "label": "Focus",
+              "control": "Drive Focus",
+              "tone": "muted"
+            },
+            {
+              "label": "Vintage",
+              "control": "Vintage Response",
+              "tone": "muted"
+            }
+          ],
+          "curveControls": [
+            {
+              "role": "input",
+              "label": "Input",
+              "control": "Input Gain",
+              "tone": "warning"
+            },
+            {
+              "role": "drive",
+              "label": "Tube Drive",
+              "control": "Tube Drive",
+              "tone": "accent"
+            },
+            {
+              "role": "ceiling",
+              "label": "Ceiling",
+              "control": "Ceiling",
+              "tone": "positive"
+            }
+          ],
+          "timingItems": [
+            {
+              "label": "Attack",
+              "control": "Attack"
+            },
+            {
+              "label": "Hold",
+              "control": "Hold"
+            },
+            {
+              "label": "Release",
+              "control": "Release"
+            }
+          ],
+          "detailItems": [
+            {
+              "label": "Transformer Tone",
+              "control": "Transformer Tone"
+            },
+            {
+              "label": "Drive Target",
+              "control": "Drive Target"
+            },
+            {
+              "label": "Drive Focus",
+              "control": "Drive Focus"
+            }
+          ],
+          "monitor": {
+            "label": "Vintage",
+            "control": "Vintage Response"
+          },
+          "meters": [
+            {
+              "label": "Gain Reduction",
+              "meter": "gainReduction"
+            },
+            {
+              "label": "Input Peak",
+              "meter": "inputPeak"
+            },
+            {
+              "label": "Output Peak",
+              "meter": "outputPeak"
+            }
+          ]
+        },
+        "output-popover": {
+          "title": "Output tools",
+          "description": "Shared footer utilities keep trim, split points, response mode, and bypass on the same reusable mastering lane.",
+          "items": [
+            {
+              "label": "Output Trim",
+              "control": "Output Trim"
+            },
+            {
+              "label": "Drive Low Split",
+              "control": "Drive Low Split"
+            },
+            {
+              "label": "Drive High Split",
+              "control": "Drive High Split"
+            },
+            {
+              "label": "Vintage Response",
+              "control": "Vintage Response"
+            },
+            {
+              "label": "Bypass",
+              "control": "Bypass"
+            }
+          ]
+        }
+      }
     },
     "statusText": "4x oversampled native runtime with shared schema for AppKit and web preview.",
     "controlOrder": [

@@ -48,6 +48,7 @@
     "overrides": {
       "surfacePresetIds": [
         "history-trace",
+        "transfer-curve",
         "meter-stack",
         "output-popover"
       ],
@@ -91,6 +92,165 @@
           "Delta",
           "Clamp"
         ]
+      }
+    },
+    "preview": {
+      "surfaces": {
+        "history-trace": {
+          "title": "Mastering history",
+          "description": "Shared gain-history traces now cover the limiter lane from input drive through ceiling clamp and final output.",
+          "focusBadges": [
+            {
+              "label": "Algorithm",
+              "control": "Algorithm",
+              "tone": "accent"
+            },
+            {
+              "label": "Style",
+              "control": "Style",
+              "tone": "muted"
+            },
+            {
+              "label": "Detail",
+              "control": "Detail",
+              "tone": "muted"
+            }
+          ],
+          "series": [
+            {
+              "id": "input",
+              "label": "Input",
+              "meterId": "inputPeak",
+              "tone": "warning"
+            },
+            {
+              "id": "drive",
+              "label": "Drive",
+              "meterId": "detectorDrive",
+              "tone": "accent"
+            },
+            {
+              "id": "reduction",
+              "label": "Clamp",
+              "meterId": "gainReduction",
+              "tone": "info",
+              "variant": "gr"
+            },
+            {
+              "id": "ceiling",
+              "label": "Ceiling",
+              "meterId": "ceilingActivity",
+              "tone": "warning"
+            },
+            {
+              "id": "output",
+              "label": "Output",
+              "meterId": "outputPeak",
+              "tone": "positive"
+            }
+          ]
+        },
+        "transfer-curve": {
+          "title": "Clamp response",
+          "description": "A shared transfer canvas ties together input gain, limiter drive, output ceiling, timing, and detail controls without resorting to app-specific preview code.",
+          "focusBadges": [
+            {
+              "label": "Algorithm",
+              "control": "Algorithm",
+              "tone": "accent"
+            },
+            {
+              "label": "Style",
+              "control": "Style",
+              "tone": "muted"
+            },
+            {
+              "label": "Detail",
+              "control": "Detail",
+              "tone": "muted"
+            }
+          ],
+          "curveControls": [
+            {
+              "role": "input",
+              "label": "Input",
+              "control": "Input Gain",
+              "tone": "warning"
+            },
+            {
+              "role": "drive",
+              "label": "Drive",
+              "control": "Drive",
+              "tone": "accent"
+            },
+            {
+              "role": "ceiling",
+              "label": "Ceiling",
+              "control": "Ceiling",
+              "tone": "positive"
+            }
+          ],
+          "timingItems": [
+            {
+              "label": "Lookahead",
+              "control": "Lookahead"
+            },
+            {
+              "label": "Release",
+              "control": "Release"
+            }
+          ],
+          "detailItems": [
+            {
+              "label": "Transient Preserve",
+              "control": "Transient Preserve"
+            },
+            {
+              "label": "Low Guard",
+              "control": "Low Guard"
+            },
+            {
+              "label": "Ceiling Shape",
+              "control": "Ceiling Shape"
+            }
+          ],
+          "monitor": {
+            "label": "Audition",
+            "control": "Audition"
+          },
+          "meters": [
+            {
+              "label": "Gain Reduction",
+              "meter": "gainReduction"
+            },
+            {
+              "label": "Ceiling Activity",
+              "meter": "ceilingActivity"
+            }
+          ]
+        },
+        "output-popover": {
+          "title": "Output tools",
+          "description": "Limiter output utilities stay generic enough to reuse on the rest of the dynamics lane.",
+          "items": [
+            {
+              "label": "Output Trim",
+              "control": "Output Trim"
+            },
+            {
+              "label": "Loudness Match",
+              "control": "Loudness Match"
+            },
+            {
+              "label": "Audition",
+              "control": "Audition"
+            },
+            {
+              "label": "Bypass",
+              "control": "Bypass"
+            }
+          ]
+        }
       }
     },
     "statusText": "Adaptive mastering limiter with algorithm voicing, detail-sensitive detection, stereo linking, ceiling shaping, and audition utilities.",

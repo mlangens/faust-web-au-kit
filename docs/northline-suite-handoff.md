@@ -10,6 +10,7 @@ Completed foundation:
 - Shared suite catalog: `ui/catalog/northline-suite.json`
 - Shared family resolution/runtime plumbing: `tools/lib/ui-family-tools.mjs`, `tools/lib/project-tools.mjs`, `tools/export-targets.mjs`
 - Shared preview runtime: `preview/lib/*`
+- Shared bulk suite install, uninstall, and package scripts: `scripts/install-suite-local.sh`, `scripts/uninstall-suite-local.sh`, `scripts/package-suite-installer.sh`
 - Research baseline: `docs/northline-suite-research.md`
 
 Completed app set:

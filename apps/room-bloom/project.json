@@ -84,6 +84,196 @@
         ]
       }
     },
+    "preview": {
+      "surfaces": {
+        "reverb-space": {
+          "title": "Reverb space",
+          "description": "A shared macro canvas maps scene, entry, tail, spread, and tone movement without needing a room-specific renderer.",
+          "selection": "tail-core",
+          "focusBadges": [
+            {
+              "label": "Mix",
+              "control": "Mix",
+              "tone": "accent"
+            },
+            {
+              "label": "Ducking",
+              "control": "Ducking",
+              "tone": "warning"
+            },
+            {
+              "label": "Freeze",
+              "control": "Freeze",
+              "tone": "muted"
+            }
+          ],
+          "nodes": [
+            {
+              "id": "scene-node",
+              "label": "Scene",
+              "accent": "info",
+              "xControl": "Space",
+              "xMin": 0,
+              "xMax": 3,
+              "yControl": "Character",
+              "yMin": 0,
+              "yMax": 3,
+              "controls": [
+                "Space",
+                "Character"
+              ],
+              "readouts": [
+                {
+                  "label": "Space",
+                  "control": "Space"
+                },
+                {
+                  "label": "Character",
+                  "control": "Character"
+                }
+              ]
+            },
+            {
+              "id": "entry-node",
+              "label": "Entry",
+              "accent": "warning",
+              "xControl": "Pre-Delay",
+              "xMin": 0,
+              "xMax": 180,
+              "yControl": "Size",
+              "yMin": 0,
+              "yMax": 100,
+              "meterId": "earlyEnergy",
+              "readouts": [
+                {
+                  "label": "Pre-Delay",
+                  "control": "Pre-Delay"
+                },
+                {
+                  "label": "Size",
+                  "control": "Size"
+                }
+              ]
+            },
+            {
+              "id": "tail-core",
+              "label": "Tail",
+              "accent": "positive",
+              "xControl": "Decay",
+              "xMin": 0.3,
+              "xMax": 12,
+              "yControl": "Bloom",
+              "yMin": 0,
+              "yMax": 100,
+              "meterId": "tailEnergy",
+              "readouts": [
+                {
+                  "label": "Decay",
+                  "control": "Decay"
+                },
+                {
+                  "label": "Bloom",
+                  "control": "Bloom"
+                }
+              ]
+            },
+            {
+              "id": "spread-node",
+              "label": "Field",
+              "accent": "accent",
+              "xControl": "Width",
+              "xMin": 0,
+              "xMax": 100,
+              "yControl": "Diffusion",
+              "yMin": 0,
+              "yMax": 100,
+              "meterId": "stereoSpread",
+              "readouts": [
+                {
+                  "label": "Width",
+                  "control": "Width"
+                },
+                {
+                  "label": "Diffusion",
+                  "control": "Diffusion"
+                }
+              ]
+            },
+            {
+              "id": "tone-window",
+              "label": "Tone",
+              "accent": "info",
+              "xControl": "High Cut",
+              "xMin": 1200,
+              "xMax": 18000,
+              "yControl": "Low Cut",
+              "yMin": 20,
+              "yMax": 1200,
+              "frequencyScale": "log",
+              "control": "Ducking",
+              "readouts": [
+                {
+                  "label": "Low Cut",
+                  "control": "Low Cut"
+                },
+                {
+                  "label": "High Cut",
+                  "control": "High Cut"
+                }
+              ]
+            }
+          ],
+          "links": [
+            {
+              "from": "scene-node",
+              "to": "entry-node",
+              "tone": "warning"
+            },
+            {
+              "from": "entry-node",
+              "to": "tail-core",
+              "tone": "accent"
+            },
+            {
+              "from": "tail-core",
+              "to": "spread-node",
+              "tone": "positive"
+            },
+            {
+              "from": "tail-core",
+              "to": "tone-window",
+              "tone": "info"
+            }
+          ]
+        },
+        "output-popover": {
+          "title": "Output and ducking",
+          "description": "Shared footer utilities cover duck timing, wet balance, freeze, and final output trim.",
+          "items": [
+            {
+              "label": "Ducking",
+              "control": "Ducking"
+            },
+            {
+              "label": "Duck Release",
+              "control": "Duck Release"
+            },
+            {
+              "label": "Mix",
+              "control": "Mix"
+            },
+            {
+              "label": "Output",
+              "control": "Output"
+            },
+            {
+              "label": "Freeze",
+              "control": "Freeze"
+            }
+          ]
+        }
+      }
+    },
     "statusText": "Layered ambience processor with space/character selection, bloom shaping, stereo width, frequency shaping, duck timing, and freeze-aware tail control.",
     "controlOrder": [
       "Space",

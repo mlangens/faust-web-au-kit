@@ -86,6 +86,244 @@
         ]
       }
     },
+    "preview": {
+      "surfaces": {
+        "multiband-editor": {
+          "title": "Band region editor",
+          "description": "The shared multiband editor now drives crossover regions, per-band reduction feedback, and monitor-aware selection in one reusable canvas.",
+          "selection": "mid-band",
+          "focusBadges": [
+            {
+              "label": "Mode",
+              "control": "Mode",
+              "tone": "accent"
+            },
+            {
+              "label": "Character",
+              "control": "Character",
+              "tone": "muted"
+            },
+            {
+              "label": "Detector",
+              "control": "Detector Mode",
+              "tone": "muted"
+            }
+          ],
+          "regions": [
+            {
+              "id": "low-band",
+              "label": "Low",
+              "accent": "warning",
+              "start": 20,
+              "endControl": "Low Crossover",
+              "xMin": 20,
+              "xMax": 20000,
+              "frequencyScale": "log",
+              "energyMeterId": "lowEnergy",
+              "reductionMeterId": "lowReduction",
+              "readouts": [
+                "Low Threshold",
+                "Low Amount",
+                "Low Lift"
+              ]
+            },
+            {
+              "id": "mid-band",
+              "label": "Mid",
+              "accent": "info",
+              "startControl": "Low Crossover",
+              "endControl": "High Crossover",
+              "xMin": 20,
+              "xMax": 20000,
+              "frequencyScale": "log",
+              "energyMeterId": "midEnergy",
+              "reductionMeterId": "midReduction",
+              "readouts": [
+                "Mid Threshold",
+                "Mid Amount",
+                "Mid Lift"
+              ]
+            },
+            {
+              "id": "high-band",
+              "label": "High",
+              "accent": "positive",
+              "startControl": "High Crossover",
+              "end": 20000,
+              "xMin": 20,
+              "xMax": 20000,
+              "frequencyScale": "log",
+              "energyMeterId": "highEnergy",
+              "reductionMeterId": "highReduction",
+              "readouts": [
+                "High Threshold",
+                "High Amount",
+                "High Lift"
+              ]
+            }
+          ]
+        },
+        "band-inspector": {
+          "title": "Band inspector",
+          "description": "Reusable linked strips keep low, mid, and high controls aligned with the shared editor without splitting into app-specific panes.",
+          "selection": "mid-band",
+          "focusBadges": [
+            {
+              "label": "Mode",
+              "control": "Mode",
+              "tone": "accent"
+            },
+            {
+              "label": "Monitor",
+              "control": "Monitor",
+              "tone": "muted"
+            },
+            {
+              "label": "Band Link",
+              "control": "Band Link",
+              "tone": "muted"
+            }
+          ],
+          "bands": [
+            {
+              "id": "low-band",
+              "label": "Low",
+              "accent": "warning",
+              "items": [
+                {
+                  "label": "Threshold",
+                  "control": "Low Threshold"
+                },
+                {
+                  "label": "Amount",
+                  "control": "Low Amount"
+                },
+                {
+                  "label": "Lift",
+                  "control": "Low Lift"
+                }
+              ],
+              "meters": [
+                {
+                  "label": "Energy",
+                  "meter": "lowEnergy"
+                },
+                {
+                  "label": "Reduction",
+                  "meter": "lowReduction"
+                }
+              ]
+            },
+            {
+              "id": "mid-band",
+              "label": "Mid",
+              "accent": "info",
+              "items": [
+                {
+                  "label": "Threshold",
+                  "control": "Mid Threshold"
+                },
+                {
+                  "label": "Amount",
+                  "control": "Mid Amount"
+                },
+                {
+                  "label": "Lift",
+                  "control": "Mid Lift"
+                }
+              ],
+              "meters": [
+                {
+                  "label": "Energy",
+                  "meter": "midEnergy"
+                },
+                {
+                  "label": "Reduction",
+                  "meter": "midReduction"
+                }
+              ]
+            },
+            {
+              "id": "high-band",
+              "label": "High",
+              "accent": "positive",
+              "items": [
+                {
+                  "label": "Threshold",
+                  "control": "High Threshold"
+                },
+                {
+                  "label": "Amount",
+                  "control": "High Amount"
+                },
+                {
+                  "label": "Lift",
+                  "control": "High Lift"
+                }
+              ],
+              "meters": [
+                {
+                  "label": "Energy",
+                  "meter": "highEnergy"
+                },
+                {
+                  "label": "Reduction",
+                  "meter": "highReduction"
+                }
+              ]
+            }
+          ],
+          "globalItems": [
+            {
+              "label": "Attack",
+              "control": "Attack"
+            },
+            {
+              "label": "Release",
+              "control": "Release"
+            },
+            {
+              "label": "Timing Spread",
+              "control": "Timing Spread"
+            },
+            {
+              "label": "Range",
+              "control": "Range"
+            },
+            {
+              "label": "Stereo Link",
+              "control": "Stereo Link"
+            },
+            {
+              "label": "Band Link",
+              "control": "Band Link"
+            }
+          ]
+        },
+        "output-popover": {
+          "title": "Output tools",
+          "description": "Monitor, blend, and output controls stay in the shared footer utility lane.",
+          "items": [
+            {
+              "label": "Monitor",
+              "control": "Monitor"
+            },
+            {
+              "label": "Mix",
+              "control": "Mix"
+            },
+            {
+              "label": "Output",
+              "control": "Output"
+            },
+            {
+              "label": "Bypass",
+              "control": "Bypass"
+            }
+          ]
+        }
+      }
+    },
     "statusText": "Character multiband dynamics tool with richer crossover shaping, per-band threshold/amount/lift control, timing spread, stereo and band linking, output management, and monitor utilities.",
     "controlOrder": [
       "Mode",

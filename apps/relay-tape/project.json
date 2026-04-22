@@ -48,6 +48,7 @@
     "overrides": {
       "surfacePresetIds": [
         "delay-timeline",
+        "filter-canvas",
         "modulation-dock",
         "output-popover"
       ],
@@ -81,6 +82,358 @@
           "Mono Sum",
           "Crossfeed"
         ]
+      }
+    },
+    "preview": {
+      "surfaces": {
+        "delay-timeline": {
+          "title": "Delay timeline",
+          "description": "The shared timeline surface now stages entry, offset echoes, bloom, and freeze hold in one reusable motion lane.",
+          "selection": "main-echo",
+          "focusBadges": [
+            {
+              "label": "Mode",
+              "control": "Mode",
+              "tone": "accent"
+            },
+            {
+              "label": "Routing",
+              "control": "Routing",
+              "tone": "muted"
+            },
+            {
+              "label": "Freeze",
+              "control": "Freeze",
+              "tone": "muted"
+            }
+          ],
+          "lanes": [
+            "Input",
+            "Echo",
+            "Tail"
+          ],
+          "taps": [
+            {
+              "id": "input-send",
+              "label": "Input",
+              "lane": 0,
+              "x": 0.08,
+              "meterId": "inputPeak",
+              "readouts": [
+                {
+                  "label": "Mode",
+                  "control": "Mode"
+                },
+                {
+                  "label": "Routing",
+                  "control": "Routing"
+                }
+              ]
+            },
+            {
+              "id": "main-echo",
+              "label": "Main",
+              "lane": 1,
+              "timeControl": "Time",
+              "xMin": 80,
+              "xMax": 1200,
+              "meterId": "echoDrive",
+              "readouts": [
+                "Time",
+                "Feedback",
+                "Mod Depth"
+              ]
+            },
+            {
+              "id": "offset-echo",
+              "label": "Offset",
+              "lane": 1,
+              "timeControl": "Offset",
+              "xMin": 0,
+              "xMax": 100,
+              "meterId": "motion",
+              "readouts": [
+                "Offset",
+                "Mod Rate",
+                "Flutter"
+              ]
+            },
+            {
+              "id": "bloom-tail",
+              "label": "Bloom",
+              "lane": 2,
+              "x": 0.82,
+              "meterId": "diffuseTail",
+              "readouts": [
+                "Smear",
+                "Tone",
+                "Age"
+              ]
+            },
+            {
+              "id": "freeze-hold",
+              "label": "Hold",
+              "lane": 2,
+              "x": 0.92,
+              "meterId": "freezeHold",
+              "readouts": [
+                "Freeze",
+                "Width",
+                "Mix"
+              ]
+            }
+          ],
+          "connections": [
+            {
+              "from": "input-send",
+              "to": "main-echo",
+              "tone": "warning"
+            },
+            {
+              "from": "main-echo",
+              "to": "offset-echo",
+              "tone": "info"
+            },
+            {
+              "from": "offset-echo",
+              "to": "bloom-tail",
+              "tone": "accent"
+            },
+            {
+              "from": "bloom-tail",
+              "to": "freeze-hold",
+              "tone": "positive"
+            }
+          ]
+        },
+        "filter-canvas": {
+          "title": "Color and motion",
+          "description": "The shared graph canvas covers tape age, bloom color, modulation drift, and stereo width without introducing a custom renderer.",
+          "selection": "motion-band",
+          "focusBadges": [
+            {
+              "label": "Mode",
+              "control": "Mode",
+              "tone": "accent"
+            },
+            {
+              "label": "Routing",
+              "control": "Routing",
+              "tone": "muted"
+            },
+            {
+              "label": "Freeze",
+              "control": "Freeze",
+              "tone": "muted"
+            }
+          ],
+          "gridLabels": [
+            "Age",
+            "Tone",
+            "Bloom",
+            "Wow",
+            "Flutter",
+            "Width"
+          ],
+          "bands": [
+            {
+              "id": "age-band",
+              "label": "Age",
+              "role": "shelf",
+              "accent": "warning",
+              "x": 0.18,
+              "yControl": "Age",
+              "yMin": 0,
+              "yMax": 100,
+              "readouts": [
+                "Age",
+                "Tone"
+              ]
+            },
+            {
+              "id": "tone-band",
+              "label": "Bloom",
+              "role": "bell",
+              "accent": "info",
+              "xControl": "Tone",
+              "xMin": 0,
+              "xMax": 100,
+              "yControl": "Smear",
+              "yMin": 0,
+              "yMax": 100,
+              "readouts": [
+                "Tone",
+                "Smear",
+                "Feedback"
+              ]
+            },
+            {
+              "id": "motion-band",
+              "label": "Motion",
+              "role": "bell",
+              "accent": "accent",
+              "xControl": "Mod Rate",
+              "xMin": 0.05,
+              "xMax": 4,
+              "frequencyScale": "log",
+              "yControl": "Flutter",
+              "yMin": 0,
+              "yMax": 100,
+              "qControl": "Mod Depth",
+              "qMax": 100,
+              "readouts": [
+                "Mod Rate",
+                "Mod Depth",
+                "Flutter"
+              ]
+            },
+            {
+              "id": "width-band",
+              "label": "Field",
+              "role": "shelf",
+              "accent": "positive",
+              "x": 0.88,
+              "yControl": "Width",
+              "yMin": 0,
+              "yMax": 100,
+              "readouts": [
+                "Width",
+                "Routing"
+              ]
+            }
+          ]
+        },
+        "modulation-dock": {
+          "title": "Motion dock",
+          "description": "A shared creative dock keeps wow, flutter, routing, and freeze behavior visible as reusable delay macros.",
+          "focusBadges": [
+            {
+              "label": "Mode",
+              "control": "Mode",
+              "tone": "accent"
+            },
+            {
+              "label": "Routing",
+              "control": "Routing",
+              "tone": "muted"
+            },
+            {
+              "label": "Freeze",
+              "control": "Freeze",
+              "tone": "muted"
+            }
+          ],
+          "sources": [
+            {
+              "id": "routing-source",
+              "label": "Routing",
+              "control": "Routing",
+              "tone": "warning"
+            },
+            {
+              "id": "wow-source",
+              "label": "Wow",
+              "control": "Mod Depth",
+              "tone": "info"
+            },
+            {
+              "id": "flutter-source",
+              "label": "Flutter",
+              "control": "Flutter",
+              "tone": "accent"
+            },
+            {
+              "id": "freeze-source",
+              "label": "Hold",
+              "meterId": "freezeHold",
+              "tone": "positive"
+            }
+          ],
+          "slots": [
+            {
+              "id": "time-slot",
+              "label": "Time lane",
+              "assignment": "Echo spacing",
+              "amountControl": "Time",
+              "activityControls": [
+                "Time",
+                "Offset"
+              ],
+              "readouts": [
+                "Time",
+                "Offset",
+                "Feedback"
+              ]
+            },
+            {
+              "id": "motion-slot",
+              "label": "Motion lane",
+              "assignment": "Wow + flutter",
+              "amountControl": "Mod Depth",
+              "activityControls": [
+                "Mod Depth",
+                "Flutter"
+              ],
+              "readouts": [
+                "Mod Depth",
+                "Mod Rate",
+                "Flutter"
+              ]
+            },
+            {
+              "id": "bloom-slot",
+              "label": "Bloom tail",
+              "assignment": "Smear + age",
+              "amountControl": "Smear",
+              "activityControls": [
+                "Smear",
+                "Age"
+              ],
+              "readouts": [
+                "Smear",
+                "Age",
+                "Tone"
+              ]
+            },
+            {
+              "id": "field-slot",
+              "label": "Output field",
+              "assignment": "Width + freeze",
+              "amountControl": "Width",
+              "activityControls": [
+                "Width",
+                "Mix"
+              ],
+              "readouts": [
+                "Width",
+                "Mix",
+                "Output"
+              ]
+            }
+          ]
+        },
+        "output-popover": {
+          "title": "Output tools",
+          "description": "Shared footer utilities handle freeze, blend, output trim, and bypass.",
+          "items": [
+            {
+              "label": "Freeze",
+              "control": "Freeze"
+            },
+            {
+              "label": "Mix",
+              "control": "Mix"
+            },
+            {
+              "label": "Output",
+              "control": "Output"
+            },
+            {
+              "label": "Bypass",
+              "control": "Bypass"
+            }
+          ]
+        }
       }
     },
     "statusText": "Stereo modulation delay with route selection, offset timing, age and flutter shaping, diffuse bloom, freeze hold, width control, and output trim.",

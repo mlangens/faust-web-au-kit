@@ -2,6 +2,10 @@ const DEFAULT_SHELL = {
   eyebrow: "Web Preview Only",
   hero: {},
   sections: {
+    surfaces: {
+      title: "Editor Surface",
+      description: "Reusable graph and editor surfaces resolved from the shared UI family manifest."
+    },
     controls: {
       title: "Control Surface",
       description: "Generated from Faust metadata so layout experiments stay tied to the real DSP surface."
@@ -27,6 +31,9 @@ const BASE_THEME_TOKENS = {
   line: "rgba(20, 26, 20, 0.11)",
   accent: "#2f6f80",
   accentSoft: "#82aeb8",
+  info: "#2f6f80",
+  positive: "#417f59",
+  warning: "#d38a54",
   accentTint: "rgba(47, 111, 128, 0.13)",
   accentLine: "rgba(47, 111, 128, 0.28)",
   meterIn: "linear-gradient(90deg, #f7bd51, #ea7d44)",
@@ -42,6 +49,9 @@ const FAMILY_THEME_TOKENS = {
   dynamics: {
     accent: "#9f5e2a",
     accentSoft: "#d5a272",
+    info: "#8a82ff",
+    positive: "#417f59",
+    warning: "#ef7f3a",
     accentTint: "rgba(159, 94, 42, 0.12)",
     accentLine: "rgba(159, 94, 42, 0.26)",
     meterIn: "linear-gradient(90deg, #f5c059, #ef7f3a)",
@@ -51,6 +61,9 @@ const FAMILY_THEME_TOKENS = {
   instrument: {
     accent: "#257178",
     accentSoft: "#7eb6b2",
+    info: "#28737b",
+    positive: "#79d4cb",
+    warning: "#d96d4d",
     accentTint: "rgba(37, 113, 120, 0.12)",
     accentLine: "rgba(37, 113, 120, 0.26)",
     meterIn: "linear-gradient(90deg, #f1b65a, #d96d4d)",
@@ -60,6 +73,9 @@ const FAMILY_THEME_TOKENS = {
   utility: {
     accent: "#526b88",
     accentSoft: "#9db0c7",
+    info: "#526b88",
+    positive: "#6a8e72",
+    warning: "#a56f4d",
     accentTint: "rgba(82, 107, 136, 0.12)",
     accentLine: "rgba(82, 107, 136, 0.24)"
   }
@@ -175,6 +191,9 @@ function themeTokensFromVisualLanguage(ui) {
     line: hexToRgba(palette.line ?? "#39414c", 0.32),
     accent,
     accentSoft: accentPalette.secondary ?? palette.info,
+    info: palette.info ?? accentPalette.secondary ?? accent ?? "#63b7c8",
+    positive: palette.positive ?? "#72bf78",
+    warning: palette.warning ?? accentPalette.secondary ?? "#d38a54",
     accentTint: hexToRgba(accent ?? palette.focus, 0.14),
     accentLine: hexToRgba(accent ?? palette.focus, 0.3),
     card: hexToRgba(palette.panelElevated ?? palette.panel ?? "#272d35", 0.84),
@@ -193,7 +212,7 @@ function resolveShell(schema, ui) {
 
   const mergedShell = deepMerge(DEFAULT_SHELL, shell);
 
-  ["controls", "meters", "benchmarks"].forEach((sectionKey) => {
+  ["surfaces", "controls", "meters", "benchmarks"].forEach((sectionKey) => {
     mergedShell.sections[sectionKey] = deepMerge(
       mergedShell.sections[sectionKey],
       deepMerge(asObject(shell[sectionKey]), asObject(shellSections[sectionKey]))

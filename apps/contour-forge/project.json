@@ -86,6 +86,355 @@
         ]
       }
     },
+    "preview": {
+      "surfaces": {
+        "filter-canvas": {
+          "title": "Motion filter canvas",
+          "description": "The shared graph canvas now carries the cutoff core, envelope/LFO motion, and stereo spread routing for the creative filter lane.",
+          "selection": "cutoff-core",
+          "focusBadges": [
+            {
+              "label": "Mode",
+              "control": "Mode",
+              "tone": "accent"
+            },
+            {
+              "label": "Style",
+              "control": "Style",
+              "tone": "muted"
+            },
+            {
+              "label": "Motion Source",
+              "control": "Motion Source",
+              "tone": "muted"
+            }
+          ],
+          "gridLabels": [
+            "40",
+            "120",
+            "500",
+            "2k",
+            "8k",
+            "18k"
+          ],
+          "bands": [
+            {
+              "id": "cutoff-core",
+              "label": "Cutoff",
+              "role": "bell",
+              "accent": "info",
+              "xControl": "Cutoff",
+              "xMin": 40,
+              "xMax": 18000,
+              "frequencyScale": "log",
+              "yControl": "Resonance",
+              "yMin": 0,
+              "yMax": 100,
+              "qControl": "Filter Spread",
+              "qMax": 100,
+              "readouts": [
+                "Cutoff",
+                "Resonance",
+                "Mode"
+              ]
+            },
+            {
+              "id": "env-band",
+              "label": "Env",
+              "role": "bell",
+              "accent": "warning",
+              "xControl": "Env Speed",
+              "xMin": 0.005,
+              "xMax": 0.5,
+              "frequencyScale": "log",
+              "yControl": "Env Amount",
+              "yMin": 0,
+              "yMax": 100,
+              "readouts": [
+                "Env Amount",
+                "Env Speed",
+                "Motion Source"
+              ]
+            },
+            {
+              "id": "lfo-band",
+              "label": "LFO",
+              "role": "bell",
+              "accent": "positive",
+              "xControl": "LFO Rate",
+              "xMin": 0.03,
+              "xMax": 6,
+              "frequencyScale": "log",
+              "yControl": "LFO Depth",
+              "yMin": 0,
+              "yMax": 100,
+              "readouts": [
+                "LFO Rate",
+                "LFO Depth",
+                "Motion Bias"
+              ]
+            },
+            {
+              "id": "spread-band",
+              "label": "Spread",
+              "role": "shelf",
+              "accent": "accent",
+              "x": 0.84,
+              "yControl": "Filter Spread",
+              "yMin": 0,
+              "yMax": 100,
+              "readouts": [
+                "Routing",
+                "Filter Spread",
+                "Stereo Link"
+              ]
+            }
+          ]
+        },
+        "routing-matrix": {
+          "title": "Routing matrix",
+          "description": "A shared routing matrix now makes the Stereo, Mid/Side, and Mono path choices visible without needing a custom app view.",
+          "focusBadges": [
+            {
+              "label": "Routing",
+              "control": "Routing",
+              "tone": "accent"
+            },
+            {
+              "label": "Motion Source",
+              "control": "Motion Source",
+              "tone": "muted"
+            },
+            {
+              "label": "Stereo Link",
+              "control": "Stereo Link",
+              "tone": "muted"
+            }
+          ],
+          "columns": [
+            {
+              "id": "input",
+              "label": "Input"
+            },
+            {
+              "id": "motion",
+              "label": "Motion"
+            },
+            {
+              "id": "output",
+              "label": "Output"
+            }
+          ],
+          "rows": [
+            {
+              "id": "stereo",
+              "label": "Stereo"
+            },
+            {
+              "id": "mid-side",
+              "label": "Mid/Side"
+            },
+            {
+              "id": "mono",
+              "label": "Mono"
+            }
+          ],
+          "routes": [
+            {
+              "id": "stereo-route",
+              "label": "Stereo",
+              "control": "Routing",
+              "matchValue": 0,
+              "cells": [
+                {
+                  "row": "stereo",
+                  "column": "input"
+                },
+                {
+                  "row": "stereo",
+                  "column": "motion"
+                },
+                {
+                  "row": "stereo",
+                  "column": "output"
+                }
+              ],
+              "readouts": [
+                "Routing",
+                "Stereo Link",
+                "Mix"
+              ]
+            },
+            {
+              "id": "mid-side-route",
+              "label": "Mid/Side",
+              "control": "Routing",
+              "matchValue": 1,
+              "cells": [
+                {
+                  "row": "mid-side",
+                  "column": "input"
+                },
+                {
+                  "row": "mid-side",
+                  "column": "motion"
+                },
+                {
+                  "row": "mid-side",
+                  "column": "output"
+                }
+              ],
+              "readouts": [
+                "Routing",
+                "Motion Bias",
+                "Stereo Link"
+              ]
+            },
+            {
+              "id": "mono-route",
+              "label": "Mono",
+              "control": "Routing",
+              "matchValue": 2,
+              "cells": [
+                {
+                  "row": "mono",
+                  "column": "input"
+                },
+                {
+                  "row": "mono",
+                  "column": "motion"
+                },
+                {
+                  "row": "mono",
+                  "column": "output"
+                }
+              ],
+              "readouts": [
+                "Routing",
+                "Mix",
+                "Output Trim"
+              ]
+            }
+          ]
+        },
+        "modulation-dock": {
+          "title": "Motion dock",
+          "description": "The shared modulation dock keeps envelope, LFO, and bias controls visible next to the filter and routing surfaces.",
+          "focusBadges": [
+            {
+              "label": "Motion Source",
+              "control": "Motion Source",
+              "tone": "accent"
+            },
+            {
+              "label": "Style",
+              "control": "Style",
+              "tone": "muted"
+            },
+            {
+              "label": "Routing",
+              "control": "Routing",
+              "tone": "muted"
+            }
+          ],
+          "sources": [
+            {
+              "id": "env-source",
+              "label": "Envelope",
+              "control": "Env Amount",
+              "tone": "warning"
+            },
+            {
+              "id": "lfo-source",
+              "label": "LFO",
+              "control": "LFO Depth",
+              "tone": "info"
+            },
+            {
+              "id": "bias-source",
+              "label": "Bias",
+              "control": "Motion Bias",
+              "tone": "accent"
+            },
+            {
+              "id": "drive-source",
+              "label": "Drive",
+              "meterId": "driveHeat",
+              "tone": "positive"
+            }
+          ],
+          "slots": [
+            {
+              "id": "cutoff-slot",
+              "label": "Cutoff",
+              "assignment": "Primary motion",
+              "amountControl": "Cutoff",
+              "activityControls": [
+                "Env Amount",
+                "LFO Depth"
+              ],
+              "readouts": [
+                "Cutoff",
+                "Resonance",
+                "Mode"
+              ]
+            },
+            {
+              "id": "motion-slot",
+              "label": "Motion",
+              "assignment": "Env + LFO",
+              "amountControl": "Filter Spread",
+              "activityControls": [
+                "Env Amount",
+                "LFO Depth"
+              ],
+              "readouts": [
+                "Motion Source",
+                "Env Speed",
+                "LFO Rate"
+              ]
+            },
+            {
+              "id": "routing-slot",
+              "label": "Field",
+              "assignment": "Route bias",
+              "amountControl": "Mix",
+              "activityControls": [
+                "Motion Bias",
+                "Mix"
+              ],
+              "readouts": [
+                "Routing",
+                "Stereo Link",
+                "Output Trim"
+              ]
+            }
+          ]
+        },
+        "output-popover": {
+          "title": "Output tools",
+          "description": "Shared footer utilities manage mix, output trim, stereo link, and bypass.",
+          "items": [
+            {
+              "label": "Mix",
+              "control": "Mix"
+            },
+            {
+              "label": "Output Trim",
+              "control": "Output Trim"
+            },
+            {
+              "label": "Stereo Link",
+              "control": "Stereo Link"
+            },
+            {
+              "label": "Bypass",
+              "control": "Bypass"
+            }
+          ]
+        }
+      }
+    },
     "statusText": "Routable filter with selectable motion source, stereo spread shaping, drive staging, envelope/LFO bias, routing control, mix, and output trim.",
     "controlOrder": [
       "Mode",

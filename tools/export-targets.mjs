@@ -22,6 +22,11 @@ const resolvedUi = runtime.ui ?? project.ui ?? {};
 const controlOrder = resolvedUi?.controlOrder ?? [];
 const meters = resolvedUi?.meters ?? [];
 const statusText = resolvedUi?.statusText ?? resolvedUi?.shell?.statusText ?? "";
+const exportProfile = runtime.args["export-profile"] != null
+  ? String(runtime.args["export-profile"]).toLowerCase()
+  : runtime.args["native-only"]
+    ? "native"
+    : "full";
 const outputBaseName = sourceBase;
 const stageDir = createTempDir(path.dirname(outputDir), `.${path.basename(outputDir)}.export-`);
 const stageTargetDir = path.join(stageDir, "targets");
@@ -218,16 +223,38 @@ function exportTarget(target, extraArgs = []) {
 
 function exportJsonMetadata() {
   fs.mkdirSync(stageTargetDir, { recursive: true });
-  execFileSync("faust", ["-json", "-cn", className, sourceFile], {
+  const existingJsonFiles = new Set(
+    fs.readdirSync(stageTargetDir).filter((entry) => entry.endsWith(".json"))
+  );
+  const jsonScaffoldName = `${outputBaseName}.jsonmeta.cpp`;
+  execFileSync("faust", ["-json", "-o", jsonScaffoldName, "-O", ".", "-cn", className, sourceFile], {
     cwd: stageTargetDir,
     stdio: ["ignore", "ignore", "inherit"]
   });
 
-  const emittedJson = path.join(stageTargetDir, `${sourceBase}.json`);
+  const emittedJsonNames = fs.readdirSync(stageTargetDir)
+    .filter((entry) => entry.endsWith(".json") && !existingJsonFiles.has(entry))
+    .sort((left, right) => left.localeCompare(right));
+  const emittedJsonName = emittedJsonNames.find((entry) => entry === `${sourceBase}.json`) ?? emittedJsonNames[0];
+  if (!emittedJsonName) {
+    throw new Error(`Faust did not emit JSON metadata for ${runtime.appKey}.`);
+  }
+
+  const emittedJson = path.join(stageTargetDir, emittedJsonName);
+  removePathSync(path.join(stageTargetDir, jsonScaffoldName));
   const finalJson = path.join(stageTargetDir, `${outputBaseName}.ui.json`);
-  fs.renameSync(emittedJson, finalJson);
+  if (emittedJson !== finalJson) {
+    fs.renameSync(emittedJson, finalJson);
+  }
   stageBinaryArtifact(path.join("targets", `${outputBaseName}.ui.json`));
   return finalJson;
+}
+
+function shouldExportTarget(target) {
+  if (exportProfile === "native") {
+    return target === "c" || target === "cpp";
+  }
+  return true;
 }
 
 function writeUiManifest(uiJsonPath) {
@@ -336,6 +363,9 @@ ${meterLines.join(",\n")}
       theme: resolvedUi?.theme ?? {},
       layout: resolvedUi?.layout ?? {},
       surfaces: resolvedUi?.surfaces ?? [],
+      surfacePresets: resolvedUi?.surfacePresets ?? {},
+      analyzerPresets: resolvedUi?.analyzerPresets ?? {},
+      meterPresets: resolvedUi?.meterPresets ?? {},
       surfacePresetIds: resolvedUi?.surfacePresetIds ?? [],
       analyzerPresetIds: resolvedUi?.analyzerPresetIds ?? [],
       meterPresetIds: resolvedUi?.meterPresetIds ?? [],
@@ -394,12 +424,24 @@ function writeWorkspaceManifest() {
 
 try {
   writeProjectConfig();
-  exportTarget("c");
-  exportTarget("cpp");
-  exportTarget("wast");
-  exportTarget("wasm");
-  exportTarget("cmajor");
-  exportTarget("rust");
+  if (shouldExportTarget("c")) {
+    exportTarget("c");
+  }
+  if (shouldExportTarget("cpp")) {
+    exportTarget("cpp");
+  }
+  if (shouldExportTarget("wast")) {
+    exportTarget("wast");
+  }
+  if (shouldExportTarget("wasm")) {
+    exportTarget("wasm");
+  }
+  if (shouldExportTarget("cmajor")) {
+    exportTarget("cmajor");
+  }
+  if (shouldExportTarget("rust")) {
+    exportTarget("rust");
+  }
   writeUiManifest(exportJsonMetadata());
   publishStagedArtifacts();
   writeWorkspaceManifest();

@@ -59,6 +59,7 @@ function buildToggle(control, ui, state) {
     const nextValue = input.checked ? 1 : 0;
     value.textContent = formatValue(control, nextValue, ui);
     rememberControlValue(state, control, nextValue);
+    state.refreshSurfaceViews?.();
   });
 
   rememberControlValue(state, control, input.checked ? 1 : 0);
@@ -97,6 +98,7 @@ function buildSlider(control, ui, state) {
     if (enumRail) {
       syncEnumRail(enumRail, display.enumLabels, nextValue);
     }
+    state.refreshSurfaceViews?.();
   });
 
   rememberControlValue(state, control, Number(control.init));
@@ -161,6 +163,8 @@ function renderShellChrome(roots, schema) {
   setText(roots.title, shell?.hero?.title || schema.project?.name);
   setText(roots.description, shell?.hero?.description || schema.project?.description);
   setText(roots.status, shell?.hero?.status || schema.project?.statusText);
+  setText(roots.surfacesTitle, shell?.sections?.surfaces?.title);
+  setText(roots.surfacesDescription, shell?.sections?.surfaces?.description);
   setText(roots.controlsTitle, shell?.sections?.controls?.title);
   setText(roots.controlsDescription, shell?.sections?.controls?.description);
   setText(roots.metersTitle, shell?.sections?.meters?.title);
@@ -234,6 +238,12 @@ function renderPreviewError(roots, message) {
   setText(roots.title, "Preview Error");
   setText(roots.description, message);
   setText(roots.status, "The preview could not load its generated schema. Re-export the project artifacts and try again.");
+  if (roots.surfacePanel) {
+    roots.surfacePanel.hidden = true;
+  }
+  if (roots.surfaces) {
+    roots.surfaces.innerHTML = "";
+  }
   roots.controls.innerHTML = "";
   roots.meters.innerHTML = "";
   roots.benchmarks.innerHTML = `<article class="benchmark-card"><h3>Preview Error</h3><p>${message}</p></article>`;

@@ -79,6 +79,172 @@
         ]
       }
     },
+    "preview": {
+      "surfaces": {
+        "history-trace": {
+          "title": "De-ess history",
+          "description": "Shared reduction traces now cover detector energy, focus-band activity, and recovered output in a reusable de-essing lane.",
+          "focusBadges": [
+            {
+              "label": "Style",
+              "control": "Detection Style",
+              "tone": "accent"
+            },
+            {
+              "label": "Focus",
+              "control": "Detection Focus",
+              "tone": "muted"
+            },
+            {
+              "label": "Monitor",
+              "control": "Monitor",
+              "tone": "muted"
+            }
+          ],
+          "series": [
+            {
+              "id": "input",
+              "label": "Input",
+              "meterId": "inputPeak",
+              "tone": "warning"
+            },
+            {
+              "id": "detector",
+              "label": "Detector",
+              "meterId": "detectorDrive",
+              "tone": "accent"
+            },
+            {
+              "id": "focus",
+              "label": "Focus",
+              "meterId": "focusEnergy",
+              "tone": "info"
+            },
+            {
+              "id": "reduction",
+              "label": "Reduction",
+              "meterId": "gainReduction",
+              "tone": "info",
+              "variant": "gr"
+            },
+            {
+              "id": "output",
+              "label": "Output",
+              "meterId": "outputPeak",
+              "tone": "positive"
+            }
+          ]
+        },
+        "detector-filter": {
+          "title": "Focus filter",
+          "description": "The shared detector view becomes a de-ess focus editor with center, width, sensitivity, and split-depth shaping.",
+          "selection": "focus-band",
+          "focusBadges": [
+            {
+              "label": "Focus",
+              "control": "Detection Focus",
+              "tone": "accent"
+            },
+            {
+              "label": "Style",
+              "control": "Detection Style",
+              "tone": "muted"
+            },
+            {
+              "label": "Link",
+              "control": "Stereo Link",
+              "tone": "muted"
+            }
+          ],
+          "gridLabels": [
+            "1k",
+            "2k",
+            "4k",
+            "6k",
+            "8k",
+            "10k",
+            "12k",
+            "14k",
+            "16k"
+          ],
+          "bands": [
+            {
+              "id": "focus-band",
+              "label": "Focus",
+              "role": "bell",
+              "accent": "info",
+              "xControl": "Center Frequency",
+              "xMin": 1000,
+              "xMax": 16000,
+              "yControl": "Sensitivity",
+              "yMin": 0,
+              "yMax": 100,
+              "qControl": "Focus Width",
+              "readouts": [
+                {
+                  "label": "Center Frequency",
+                  "control": "Center Frequency"
+                },
+                {
+                  "label": "Focus Width",
+                  "control": "Focus Width"
+                },
+                {
+                  "label": "Sensitivity",
+                  "control": "Sensitivity"
+                }
+              ]
+            },
+            {
+              "id": "split-band",
+              "label": "Split",
+              "role": "shelf",
+              "accent": "positive",
+              "x": 0.86,
+              "yControl": "Split Depth",
+              "yMin": 0,
+              "yMax": 100,
+              "readouts": [
+                {
+                  "label": "Split Depth",
+                  "control": "Split Depth"
+                },
+                {
+                  "label": "Monitor",
+                  "control": "Monitor"
+                }
+              ]
+            }
+          ]
+        },
+        "output-popover": {
+          "title": "Output tools",
+          "description": "Shared footer utilities cover split depth, detector monitoring, blend, output trim, and bypass.",
+          "items": [
+            {
+              "label": "Split Depth",
+              "control": "Split Depth"
+            },
+            {
+              "label": "Monitor",
+              "control": "Monitor"
+            },
+            {
+              "label": "Mix",
+              "control": "Mix"
+            },
+            {
+              "label": "Output",
+              "control": "Output"
+            },
+            {
+              "label": "Bypass",
+              "control": "Bypass"
+            }
+          ]
+        }
+      }
+    },
     "statusText": "Precision de-esser with selectable detector style, focus-aware timing, stereo-linked split handling, detector monitoring, parallel blend, and output trim.",
     "controlOrder": [
       "Detection Style",
