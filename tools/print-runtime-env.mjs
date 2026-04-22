@@ -1,10 +1,21 @@
+// @ts-check
+
 import { loadProjectRuntime } from "./lib/project-tools.mjs";
 
+/**
+ * @typedef {import("../types/framework").RuntimeEnvironmentExports} RuntimeEnvironmentExports
+ */
+
+/**
+ * @param {unknown} value
+ * @returns {string}
+ */
 function shellQuote(value) {
   return `'${String(value ?? "").replaceAll("'", `'\\''`)}'`;
 }
 
 const runtime = loadProjectRuntime();
+/** @type {RuntimeEnvironmentExports} */
 const exportsMap = {
   FWAK_APP_KEY: runtime.appKey,
   FWAK_APP_NAME: runtime.project.productName,

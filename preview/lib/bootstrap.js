@@ -1,10 +1,20 @@
+// @ts-check
+
+/**
+ * @typedef {import("../../types/framework").GeneratedUiSchema} GeneratedUiSchema
+ * @typedef {import("../../types/framework").PreviewState} PreviewState
+ */
+
 import { getPreviewRoots } from "./dom.js";
+import { setMeter } from "./meters.js";
+import { activeAppKeyFromLocation, loadBenchmarkReport, loadPreviewSchema, loadWorkspaceManifest } from "./preview-data.js";
 import { renderBenchmarks, renderControls, renderMeters, renderShellChrome, renderWorkspaceNav } from "./renderers.js";
 import { normalizeSchema } from "./schema-ui.js";
-import { createSimulator, setMeter } from "./simulators.js";
+import { createSimulator } from "./simulators.js";
 import { renderSurfaces } from "./surfaces.js";
 import { applyTheme } from "./theme.js";
 
+/** @type {PreviewState} */
 const state = {
   controls: new Map(),
   meterViews: new Map(),
@@ -16,91 +26,76 @@ const state = {
   workspace: null
 };
 
-function activeAppKeyFromLocation() {
-  const params = new URLSearchParams(window.location.search);
-  const appKey = params.get("app");
-  if (appKey) {
-    return appKey;
-  }
-
-  const legacyProjectKey = params.get("project");
-  return legacyProjectKey ? legacyProjectKey.replaceAll("_", "-") : null;
+/**
+ * @param {Document} doc
+ * @returns {void}
+ */
+function resetPreviewState(doc) {
+  delete doc.body.dataset.previewError;
+  state.controls.clear();
+  state.meterViews.clear();
+  state.surfaceViews = [];
+  state.motionPhase = 0;
+  state.refreshSurfaceViews = () => {
+    state.surfaceViews.forEach((update) => update());
+  };
 }
 
-async function loadWorkspaceManifest() {
-  const response = await fetch("/generated/workspace_manifest.json");
-  if (!response.ok) {
-    return null;
+/**
+ * @returns {void}
+ */
+function refreshPreviewMotion() {
+  state.refreshSurfaceViews?.();
+  if (!state.simulator) {
+    return;
   }
-  return response.json();
+  state.meterViews.forEach(({ fill, value, meter }, id) => {
+    setMeter(fill, value, state.simulator.measure(state, id, meter), meter);
+  });
 }
 
-function schemaPathForApp(workspace, appKey) {
-  const workspaceEntry = workspace?.apps?.find((app) => app.key === appKey);
-  return workspaceEntry?.schemaPath || `/generated/apps/${appKey}/ui_schema.json`;
-}
-
-async function loadSchema(workspace) {
-  const appKey = activeAppKeyFromLocation() ?? workspace?.defaultApp;
-  if (!appKey) {
-    throw new Error("No workspace default app is available for preview.");
-  }
-
-  const schemaResponse = await fetch(schemaPathForApp(workspace, appKey));
-  if (!schemaResponse.ok) {
-    if (appKey) {
-      throw new Error(`Preview schema for "${appKey}" is unavailable (HTTP ${schemaResponse.status}).`);
-    }
-    throw new Error(`Default preview schema is unavailable (HTTP ${schemaResponse.status}).`);
-  }
-  return schemaResponse.json();
-}
-
+/**
+ * @returns {void}
+ */
 function startMeterAnimation() {
   cancelAnimationFrame(state.animationFrame);
 
   const tick = () => {
     state.motionPhase += 0.04;
-    state.refreshSurfaceViews?.();
-    state.meterViews.forEach(({ fill, value, meter }, id) => {
-      setMeter(fill, value, state.simulator.measure(state, id, meter), meter);
-    });
+    refreshPreviewMotion();
     state.animationFrame = requestAnimationFrame(tick);
   };
 
   tick();
 }
 
+/**
+ * @param {Document} [doc=document]
+ * @returns {Promise<void>}
+ */
 async function bootstrapPreview(doc = document) {
   const roots = getPreviewRoots(doc);
+  const location = doc.defaultView?.location;
 
-  delete document.body.dataset.previewError;
-  state.surfaceViews = [];
-  state.refreshSurfaceViews = () => {
-    state.surfaceViews.forEach((update) => update());
-  };
+  resetPreviewState(doc);
   state.workspace = await loadWorkspaceManifest();
-  renderWorkspaceNav(roots.nav, state.workspace, activeAppKeyFromLocation() ?? state.workspace?.defaultApp);
+  renderWorkspaceNav(roots.nav, state.workspace, activeAppKeyFromLocation(location) ?? state.workspace?.defaultApp ?? null);
 
-  const schema = normalizeSchema(await loadSchema(state.workspace));
+  const schema = /** @type {GeneratedUiSchema} */ (normalizeSchema(await loadPreviewSchema(state.workspace, location)));
   state.schema = schema;
   state.simulator = createSimulator(schema);
 
   applyTheme(schema.ui, doc);
-  document.body.dataset.projectKey = schema.project.key;
+  doc.body.dataset.projectKey = schema.project.key;
   renderWorkspaceNav(roots.nav, state.workspace, schema.project.key);
-  renderShellChrome(roots, schema);
+  renderShellChrome(roots, schema, doc);
   renderControls(roots.controls, schema, state);
   renderSurfaces(roots.surfaces, roots.surfacePanel, schema, state);
   renderMeters(roots.meters, schema, state);
   state.refreshSurfaceViews();
 
   try {
-    const fallbackBenchmarkPath = state.workspace?.defaultApp
-      ? `/generated/apps/${state.workspace.defaultApp}/benchmark-results.json`
-      : "/generated/apps/limiter-lab/benchmark-results.json";
-    const benchmarkResponse = await fetch(schema.benchmarkPath || fallbackBenchmarkPath);
-    renderBenchmarks(roots.benchmarks, benchmarkResponse.ok ? await benchmarkResponse.json() : null);
+    renderBenchmarks(roots.benchmarks, await loadBenchmarkReport(schema, state.workspace));
   } catch (error) {
     renderBenchmarks(roots.benchmarks, null);
     console.error(error);

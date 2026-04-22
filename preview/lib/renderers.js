@@ -1,24 +1,35 @@
+// @ts-check
+
+/**
+ * @typedef {import("../../types/framework").BenchmarkReport} BenchmarkReport
+ * @typedef {import("../../types/framework").GeneratedControl} GeneratedControl
+ * @typedef {import("../../types/framework").GeneratedMeter} GeneratedMeter
+ * @typedef {import("../../types/framework").GeneratedUiSchema} GeneratedUiSchema
+ * @typedef {import("../../types/framework").GeneratedWorkspaceManifest} GeneratedWorkspaceManifest
+ * @typedef {import("../../types/framework").PreviewRoots} PreviewRoots
+ * @typedef {import("../../types/framework").PreviewState} PreviewState
+ * @typedef {import("../../types/framework").ProjectUiManifest} ProjectUiManifest
+ */
+
+import { rememberControlValue } from "./control-store.js";
 import { formatValue } from "./formatting.js";
 import { controlKey, resolveControlDisplay } from "./schema-ui.js";
 
-function rememberControlValue(state, control, value) {
-  if (control.id) {
-    state.controls.set(control.id, value);
-  }
-  if (control.label) {
-    state.controls.set(control.label, value);
-  }
-  if (control.shortname) {
-    state.controls.set(control.shortname, value);
-  }
-}
-
+/**
+ * @param {HTMLElement | null | undefined} node
+ * @param {string | null | undefined} value
+ * @returns {void}
+ */
 function setText(node, value) {
   if (node) {
     node.textContent = value || "";
   }
 }
 
+/**
+ * @param {GeneratedMeter} meter
+ * @returns {string}
+ */
 function initialMeterValueText(meter) {
   const unit = meter.unit || "dB";
   if (meter.mode === "gr") {
@@ -30,6 +41,12 @@ function initialMeterValueText(meter) {
   return `-72.0 ${unit}`;
 }
 
+/**
+ * @param {GeneratedControl} control
+ * @param {ProjectUiManifest} ui
+ * @param {PreviewState} state
+ * @returns {HTMLElement}
+ */
 function buildToggle(control, ui, state) {
   const card = document.createElement("article");
   card.className = "control-card toggle-card";
@@ -42,7 +59,7 @@ function buildToggle(control, ui, state) {
   title.textContent = control.label;
   const value = document.createElement("div");
   value.className = "value";
-  value.textContent = formatValue(control, control.init || 0, ui);
+  value.textContent = formatValue(control, control.init ?? 0, ui);
   copy.append(title, value);
 
   const wrapper = document.createElement("label");
@@ -67,6 +84,12 @@ function buildToggle(control, ui, state) {
   return card;
 }
 
+/**
+ * @param {GeneratedControl} control
+ * @param {ProjectUiManifest} ui
+ * @param {PreviewState} state
+ * @returns {HTMLElement}
+ */
 function buildSlider(control, ui, state) {
   const display = resolveControlDisplay(ui, control);
   const card = document.createElement("article");
@@ -80,32 +103,34 @@ function buildSlider(control, ui, state) {
   title.textContent = control.label;
   const value = document.createElement("div");
   value.className = "value";
-  value.textContent = formatValue(control, control.init, ui);
+  value.textContent = formatValue(control, control.init ?? 0, ui);
   header.append(title, value);
 
   const slider = document.createElement("input");
   slider.type = "range";
-  slider.min = control.min;
-  slider.max = control.max;
-  slider.step = control.step || 0.01;
-  slider.value = control.init;
+  slider.min = String(control.min ?? 0);
+  slider.max = String(control.max ?? 1);
+  slider.step = String(control.step ?? 0.01);
+  slider.value = String(control.init ?? control.min ?? 0);
   slider.setAttribute("data-control-id", controlKey(control));
+
+  const enumLabels = display.enumLabels;
 
   slider.addEventListener("input", () => {
     const nextValue = Number(slider.value);
     value.textContent = formatValue(control, nextValue, ui);
     rememberControlValue(state, control, nextValue);
     if (enumRail) {
-      syncEnumRail(enumRail, display.enumLabels, nextValue);
+      syncEnumRail(enumRail, enumLabels ?? [], nextValue);
     }
     state.refreshSurfaceViews?.();
   });
 
   rememberControlValue(state, control, Number(control.init));
   let enumRail = null;
-  if (display.enumLabels?.length) {
+  if (enumLabels?.length) {
     card.classList.add("mode-card");
-    enumRail = buildEnumRail(display.enumLabels, Number(control.init));
+    enumRail = buildEnumRail(enumLabels, Number(control.init ?? 0));
   }
 
   card.append(header, slider);
@@ -115,6 +140,11 @@ function buildSlider(control, ui, state) {
   return card;
 }
 
+/**
+ * @param {string[]} labels
+ * @param {number} value
+ * @returns {HTMLElement}
+ */
 function buildEnumRail(labels, value) {
   const rail = document.createElement("div");
   rail.className = "control-enum-rail";
@@ -122,6 +152,12 @@ function buildEnumRail(labels, value) {
   return rail;
 }
 
+/**
+ * @param {HTMLElement} rail
+ * @param {string[]} labels
+ * @param {number} value
+ * @returns {void}
+ */
 function syncEnumRail(rail, labels, value) {
   rail.innerHTML = "";
   const activeIndex = Math.round(Number(value));
@@ -136,6 +172,12 @@ function syncEnumRail(rail, labels, value) {
   });
 }
 
+/**
+ * @param {HTMLElement} root
+ * @param {GeneratedWorkspaceManifest | null | undefined} workspace
+ * @param {string | null | undefined} activeAppKey
+ * @returns {void}
+ */
 function renderWorkspaceNav(root, workspace, activeAppKey) {
   root.innerHTML = "";
   if (!workspace?.apps?.length) {
@@ -153,11 +195,17 @@ function renderWorkspaceNav(root, workspace, activeAppKey) {
   });
 }
 
-function renderShellChrome(roots, schema) {
+/**
+ * @param {PreviewRoots} roots
+ * @param {GeneratedUiSchema} schema
+ * @param {Document} [doc=document]
+ * @returns {void}
+ */
+function renderShellChrome(roots, schema, doc = document) {
   const shell = schema.ui?.shell;
-  document.body.dataset.themeGroup = schema.ui?.themeGroup || "utility";
-  document.body.dataset.layoutProfile = schema.ui?.layoutProfile || "default";
-  document.body.dataset.uiVariant = schema.ui?.variant || schema.project?.key || "default";
+  doc.body.dataset.themeGroup = schema.ui?.themeGroup || "utility";
+  doc.body.dataset.layoutProfile = schema.ui?.layoutProfile || "default";
+  doc.body.dataset.uiVariant = schema.ui?.variant || schema.project?.key || "default";
 
   setText(roots.eyebrow, shell?.eyebrow);
   setText(roots.title, shell?.hero?.title || schema.project?.name);
@@ -173,6 +221,12 @@ function renderShellChrome(roots, schema) {
   setText(roots.benchmarksDescription, shell?.sections?.benchmarks?.description);
 }
 
+/**
+ * @param {HTMLElement} root
+ * @param {GeneratedUiSchema} schema
+ * @param {PreviewState} state
+ * @returns {void}
+ */
 function renderControls(root, schema, state) {
   root.innerHTML = "";
   state.controls.clear();
@@ -185,6 +239,12 @@ function renderControls(root, schema, state) {
   });
 }
 
+/**
+ * @param {HTMLElement} root
+ * @param {GeneratedUiSchema} schema
+ * @param {PreviewState} state
+ * @returns {void}
+ */
 function renderMeters(root, schema, state) {
   root.innerHTML = "";
   state.meterViews.clear();
@@ -214,14 +274,20 @@ function renderMeters(root, schema, state) {
   });
 }
 
+/**
+ * @param {HTMLElement} root
+ * @param {BenchmarkReport | null | undefined} report
+ * @returns {void}
+ */
 function renderBenchmarks(root, report) {
   root.innerHTML = "";
-  if (!report?.results?.length) {
+  const results = report?.results ?? [];
+  if (!results.length) {
     root.innerHTML = "<article class=\"benchmark-card\"><h3>No Benchmarks</h3><p>Run <code>npm run benchmark</code> to refresh the compile target snapshot for this workspace.</p></article>";
     return;
   }
 
-  report.results.forEach((entry) => {
+  results.forEach((entry) => {
     const card = document.createElement("article");
     card.className = "benchmark-card";
     card.innerHTML = `
@@ -233,6 +299,11 @@ function renderBenchmarks(root, report) {
   });
 }
 
+/**
+ * @param {PreviewRoots} roots
+ * @param {string} message
+ * @returns {void}
+ */
 function renderPreviewError(roots, message) {
   document.body.dataset.previewError = "true";
   setText(roots.title, "Preview Error");

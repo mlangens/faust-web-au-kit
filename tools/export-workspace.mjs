@@ -1,19 +1,17 @@
-import { execFileSync } from "node:child_process";
-import path from "node:path";
-
+import { runNodeTool, stripFlagWithValue } from "./lib/export-process-tools.mjs";
 import { loadWorkspaceRuntime } from "./lib/project-tools.mjs";
 
-const forwardedArgs = process.argv.slice(2).filter((token, index, argv) => token !== "--app" && argv[index - 1] !== "--app");
+const forwardedArgs = stripFlagWithValue(process.argv.slice(2), "--app");
 const workspaceRuntime = loadWorkspaceRuntime(forwardedArgs);
 
 for (const appEntry of workspaceRuntime.appEntries) {
-  execFileSync(process.execPath, [
-    path.join(workspaceRuntime.root, "tools", "export-targets.mjs"),
+  runNodeTool(workspaceRuntime.root, "tools/export-targets.mjs", [
     ...forwardedArgs,
     "--app",
     appEntry.key
   ], {
     cwd: workspaceRuntime.root,
+    description: `Export ${appEntry.key}`,
     stdio: "inherit"
   });
 }

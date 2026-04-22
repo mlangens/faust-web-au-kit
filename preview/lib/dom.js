@@ -1,23 +1,46 @@
+// @ts-check
+
+/**
+ * @typedef {import("../../types/framework").PreviewRoots} PreviewRoots
+ */
+
+/**
+ * @param {Document} doc
+ * @param {string} selector
+ * @returns {HTMLElement}
+ */
+function requireElement(doc, selector) {
+  const element = doc.querySelector(selector);
+  if (!(element instanceof HTMLElement)) {
+    throw new Error(`Missing preview shell element: ${selector}`);
+  }
+  return element;
+}
+
+/**
+ * @param {Document} [doc=document]
+ * @returns {PreviewRoots}
+ */
 function getPreviewRoots(doc = document) {
   return {
-    eyebrow: doc.querySelector("#heroEyebrow"),
-    title: doc.querySelector("#productTitle"),
-    description: doc.querySelector("#projectDescription"),
-    status: doc.querySelector("#projectStatus"),
-    nav: doc.querySelector("#previewNav"),
-    surfacePanel: doc.querySelector("#surfacePanel"),
-    surfacesTitle: doc.querySelector("#surfacesTitle"),
-    surfacesDescription: doc.querySelector("#surfacesDescription"),
-    surfaces: doc.querySelector("#surfaces"),
-    controlsTitle: doc.querySelector("#controlsTitle"),
-    controlsDescription: doc.querySelector("#controlsDescription"),
-    controls: doc.querySelector("#controls"),
-    metersTitle: doc.querySelector("#metersTitle"),
-    metersDescription: doc.querySelector("#metersDescription"),
-    meters: doc.querySelector("#meters"),
-    benchmarksTitle: doc.querySelector("#benchmarksTitle"),
-    benchmarksDescription: doc.querySelector("#benchmarksDescription"),
-    benchmarks: doc.querySelector("#benchmarks")
+    eyebrow: requireElement(doc, "#heroEyebrow"),
+    title: requireElement(doc, "#productTitle"),
+    description: requireElement(doc, "#projectDescription"),
+    status: requireElement(doc, "#projectStatus"),
+    nav: requireElement(doc, "#previewNav"),
+    surfacePanel: requireElement(doc, "#surfacePanel"),
+    surfacesTitle: requireElement(doc, "#surfacesTitle"),
+    surfacesDescription: requireElement(doc, "#surfacesDescription"),
+    surfaces: requireElement(doc, "#surfaces"),
+    controlsTitle: requireElement(doc, "#controlsTitle"),
+    controlsDescription: requireElement(doc, "#controlsDescription"),
+    controls: requireElement(doc, "#controls"),
+    metersTitle: requireElement(doc, "#metersTitle"),
+    metersDescription: requireElement(doc, "#metersDescription"),
+    meters: requireElement(doc, "#meters"),
+    benchmarksTitle: requireElement(doc, "#benchmarksTitle"),
+    benchmarksDescription: requireElement(doc, "#benchmarksDescription"),
+    benchmarks: requireElement(doc, "#benchmarks")
   };
 }
 

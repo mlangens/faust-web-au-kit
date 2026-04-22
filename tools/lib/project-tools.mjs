@@ -2,7 +2,9 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
+import { readJsonFileSync } from "./fs-tools.mjs";
 import { resolveProjectUi } from "./ui-family-tools.mjs";
 
 /**
@@ -14,15 +16,34 @@ import { resolveProjectUi } from "./ui-family-tools.mjs";
  * @typedef {import("../../types/framework").ProjectRuntime} ProjectRuntime
  * @typedef {import("../../types/framework").ResolvedAppEntry} ResolvedAppEntry
  * @typedef {import("../../types/framework").ResolvedSuite} ResolvedSuite
+ * @typedef {import("../../types/framework").ResolvedSuiteEntry} ResolvedSuiteEntry
  * @typedef {import("../../types/framework").SuiteRuntime} SuiteRuntime
+ * @typedef {import("../../types/framework").Vst3TuidPart} Vst3TuidPart
  * @typedef {import("../../types/framework").WorkspaceManifest} WorkspaceManifest
  * @typedef {import("../../types/framework").WorkspacePathConfig} WorkspacePathConfig
  * @typedef {import("../../types/framework").WorkspaceRuntime} WorkspaceRuntime
+ * @typedef {Omit<ResolvedAppEntry, "previewPath">} WorkspaceAppEntryBase
  */
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const defaultWorkspaceFile = path.resolve(root, "fwak.workspace.json");
 const defaultCatalogsDir = path.resolve(root, "ui", "catalog");
+const defaultSuiteId = "northline-suite";
+const controlKinds = new Set(["button", "checkbox", "hslider", "nentry", "vslider"]);
+/** @type {ReadonlyMap<string, string>} */
+const clapFeatureMacroByName = new Map([
+  ["analyzer", "CLAP_PLUGIN_FEATURE_ANALYZER"],
+  ["audio-effect", "CLAP_PLUGIN_FEATURE_AUDIO_EFFECT"],
+  ["compressor", "CLAP_PLUGIN_FEATURE_COMPRESSOR"],
+  ["drum-machine", "CLAP_PLUGIN_FEATURE_DRUM_MACHINE"],
+  ["instrument", "CLAP_PLUGIN_FEATURE_INSTRUMENT"],
+  ["limiter", "CLAP_PLUGIN_FEATURE_LIMITER"],
+  ["mastering", "CLAP_PLUGIN_FEATURE_MASTERING"],
+  ["mixing", "CLAP_PLUGIN_FEATURE_MIXING"],
+  ["stereo", "CLAP_PLUGIN_FEATURE_STEREO"],
+  ["synthesizer", "CLAP_PLUGIN_FEATURE_SYNTHESIZER"],
+  ["utility", "CLAP_PLUGIN_FEATURE_UTILITY"]
+]);
 
 /**
  * @param {string} filePath
@@ -125,10 +146,10 @@ function resolveCatalogFile(catalogIdOrPath, rootDir = root) {
  * @param {string} [rootDir]
  * @returns {{ catalogFile: string, catalog: CatalogManifest }}
  */
-function loadCatalogRuntime(catalogIdOrPath = "northline-suite", rootDir = root) {
+function loadCatalogRuntime(catalogIdOrPath = defaultSuiteId, rootDir = root) {
   const catalogFile = resolveCatalogFile(catalogIdOrPath, rootDir);
   /** @type {CatalogManifest} */
-  const catalog = /** @type {CatalogManifest} */ (JSON.parse(fs.readFileSync(catalogFile, "utf8")));
+  const catalog = readJsonFileSync(catalogFile);
   return {
     catalogFile,
     catalog
@@ -144,9 +165,10 @@ function loadWorkspaceRuntime(argv = process.argv.slice(2)) {
   const workspaceArg = typeof args.workspace === "string" ? args.workspace : defaultWorkspaceFile;
   const workspaceFile = path.resolve(root, workspaceArg);
   /** @type {WorkspaceManifest} */
-  const workspace = /** @type {WorkspaceManifest} */ (JSON.parse(fs.readFileSync(workspaceFile, "utf8")));
+  const workspace = readJsonFileSync(workspaceFile);
   const paths = workspacePathConfig(workspace);
   const workspaceApps = workspace.apps ?? [];
+  /** @type {WorkspaceAppEntryBase[]} */
   const appEntries = workspaceApps.map((entry) => {
     const key = String(entry.key ?? slugify(entry.name ?? path.basename(entry.manifest ?? "")));
     if (!entry.manifest) {
@@ -220,7 +242,7 @@ function resolveWorkspaceApp(workspaceRuntime, args = workspaceRuntime.args) {
 function createProjectRuntime(workspaceRuntime, appEntry) {
   const projectFile = appEntry.manifestPath;
   /** @type {ProjectManifest} */
-  const rawProject = /** @type {ProjectManifest} */ (JSON.parse(fs.readFileSync(projectFile, "utf8")));
+  const rawProject = readJsonFileSync(projectFile);
   const uiRuntime = resolveProjectUi(rawProject.ui, { root });
   const project = { ...rawProject };
   if (uiRuntime.hasProjectUi) {
@@ -281,10 +303,11 @@ function resolveWorkspaceSuite(workspaceRuntime, catalogIdOrPath) {
       ? catalogIdOrPath
       : typeof workspaceRuntime.args.suite === "string"
         ? workspaceRuntime.args.suite
-        : "northline-suite";
+        : defaultSuiteId;
   const { catalogFile, catalog } = loadCatalogRuntime(suiteArg);
   const appByKey = new Map(workspaceRuntime.appEntries.map((entry) => [entry.key, entry]));
   const suiteProducts = catalog.products ?? [];
+  /** @type {ResolvedSuiteEntry[]} */
   const suiteEntries = suiteProducts.map((product, index) => {
     const key = String(product.id ?? "");
     if (!key) {
@@ -331,6 +354,7 @@ function loadProjectRuntime(argv = process.argv.slice(2)) {
 function loadSuiteRuntime(argv = process.argv.slice(2)) {
   const workspaceRuntime = loadWorkspaceRuntime(argv);
   const suite = resolveWorkspaceSuite(workspaceRuntime);
+  /** @type {ProjectRuntime[]} */
   const apps = suite.entries.map((entry) => ({
     ...createProjectRuntime(workspaceRuntime, entry.appEntry),
     suiteProduct: entry.product,
@@ -363,7 +387,7 @@ function gatherControls(items, acc = []) {
       gatherControls(item.items, acc);
       continue;
     }
-    if (item.type === "hslider" || item.type === "vslider" || item.type === "nentry" || item.type === "checkbox" || item.type === "button") {
+    if (item.type && controlKinds.has(item.type)) {
       acc.push(/** @type {FaustControlItem} */ (item));
     }
   }
@@ -385,21 +409,8 @@ function findMetaValue(control, key) {
  * @returns {string}
  */
 function clapFeatureMacro(name) {
-  const featureMap = new Map([
-    ["analyzer", "CLAP_PLUGIN_FEATURE_ANALYZER"],
-    ["audio-effect", "CLAP_PLUGIN_FEATURE_AUDIO_EFFECT"],
-    ["compressor", "CLAP_PLUGIN_FEATURE_COMPRESSOR"],
-    ["drum-machine", "CLAP_PLUGIN_FEATURE_DRUM_MACHINE"],
-    ["instrument", "CLAP_PLUGIN_FEATURE_INSTRUMENT"],
-    ["limiter", "CLAP_PLUGIN_FEATURE_LIMITER"],
-    ["mastering", "CLAP_PLUGIN_FEATURE_MASTERING"],
-    ["mixing", "CLAP_PLUGIN_FEATURE_MIXING"],
-    ["stereo", "CLAP_PLUGIN_FEATURE_STEREO"],
-    ["synthesizer", "CLAP_PLUGIN_FEATURE_SYNTHESIZER"],
-    ["utility", "CLAP_PLUGIN_FEATURE_UTILITY"]
-  ]);
   const normalized = String(name ?? "").trim().toLowerCase();
-  const macro = featureMap.get(normalized);
+  const macro = clapFeatureMacroByName.get(normalized);
   if (!macro) {
     throw new Error(`Unsupported CLAP feature "${name}"`);
   }
@@ -407,7 +418,7 @@ function clapFeatureMacro(name) {
 }
 
 /**
- * @param {unknown[]} parts
+ * @param {ReadonlyArray<Vst3TuidPart>} parts
  * @returns {string}
  */
 function encodeVst3Tuid(parts) {

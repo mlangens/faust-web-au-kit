@@ -5,21 +5,30 @@ import path from "node:path";
 import test from "node:test";
 import { promisify } from "node:util";
 
+import { loadProjectRuntime } from "../../tools/lib/project-tools.mjs";
 import { loadGeneratedProject, loadGeneratedWorkspace } from "../support/generated-projects.mjs";
 
 const execFileAsync = promisify(execFile);
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
 
-async function runExport(args = []) {
-  await execFileAsync(process.execPath, ["./tools/export-targets.mjs", ...args], {
-    cwd: root
+async function runNodeTool(scriptPath, args = [], options = {}) {
+  await execFileAsync(process.execPath, [scriptPath, ...args], {
+    cwd: root,
+    encoding: "utf8",
+    ...options
   });
 }
 
-async function runPrepare() {
-  await execFileAsync(process.execPath, ["./tools/prepare-test-artifacts.mjs"], {
-    cwd: root
-  });
+async function runExport(args = [], options = {}) {
+  await runNodeTool("./tools/export-targets.mjs", args, options);
+}
+
+async function runExportWorkspace(args = [], options = {}) {
+  await runNodeTool("./tools/export-workspace.mjs", args, options);
+}
+
+async function runPrepare(options = {}) {
+  await runNodeTool("./tools/prepare-test-artifacts.mjs", [], options);
 }
 
 function createScratchWorkspace(appKeys) {
@@ -144,6 +153,31 @@ test("native export profile skips non-native sidecar targets while keeping schem
   }
 });
 
+test("workspace export ignores forwarded app selection and refreshes every app", { timeout: 120000 }, async () => {
+  const appKeys = ["seed-tone", "mirror-field"];
+  const { scratchRoot, workspaceFile } = createScratchWorkspace(appKeys);
+
+  try {
+    await runExportWorkspace(["--workspace", workspaceFile, "--app", "seed-tone", "--export-profile", "schema"]);
+
+    for (const appKey of appKeys) {
+      const runtime = loadProjectRuntime(["--workspace", workspaceFile, "--app", appKey]);
+      assert.equal(fs.existsSync(path.join(runtime.outputDir, "project_config.h")), true);
+      assert.equal(fs.existsSync(path.join(runtime.outputDir, "ui_schema.json")), true);
+      assert.equal(fs.existsSync(path.join(runtime.targetDir, `${runtime.sourceBase}.ui.json`)), true);
+      assert.equal(fs.existsSync(path.join(runtime.targetDir, `${runtime.sourceBase}.c`)), false);
+    }
+
+    const workspaceManifest = JSON.parse(
+      fs.readFileSync(path.join(path.dirname(loadProjectRuntime(["--workspace", workspaceFile]).generatedAppsDir), "workspace_manifest.json"), "utf8")
+    );
+    assert.equal(workspaceManifest.apps.length, appKeys.length);
+    assert.deepEqual(workspaceManifest.apps.map((app) => app.key), appKeys);
+  } finally {
+    fs.rmSync(scratchRoot, { recursive: true, force: true });
+  }
+});
+
 test("native ui manifests carry hero status, enum labels, and toggle display labels", { timeout: 120000 }, async () => {
   const { scratchRoot, workspaceFile, generatedApps } = createScratchWorkspace(["pulse-pad", "mirror-field", "limiter-lab"]);
 
@@ -172,6 +206,34 @@ test("native ui manifests carry hero status, enum labels, and toggle display lab
     assert.equal(mirrorHeader.includes("\"Orbit\""), true);
 
     assert.equal(limiterHeader.includes("\"Modern\", \"Vintage\", 0, 0u"), true);
+  } finally {
+    fs.rmSync(scratchRoot, { recursive: true, force: true });
+  }
+});
+
+test("export-targets times out instead of hanging when faust stalls", { timeout: 120000 }, async () => {
+  const scratchRoot = fs.mkdtempSync(path.join(path.dirname(loadGeneratedProject().runtime.outputDir), "export-timeout."));
+  const shimDir = path.join(scratchRoot, "bin");
+
+  fs.mkdirSync(shimDir, { recursive: true });
+  fs.writeFileSync(path.join(shimDir, "faust"), "#!/bin/sh\nsleep 1\n", "utf8");
+  fs.chmodSync(path.join(shimDir, "faust"), 0o755);
+
+  try {
+    await assert.rejects(
+      runExport(["--export-profile", "schema"], {
+        env: {
+          ...process.env,
+          FWAK_EXPORT_TIMEOUT_MS: "10",
+          PATH: `${shimDir}${path.delimiter}${process.env.PATH ?? ""}`
+        }
+      }),
+      (error) => {
+        const diagnostic = `${error.message}\n${error.stderr ?? ""}`;
+        assert.match(diagnostic, /timed out after 10ms/i);
+        return true;
+      }
+    );
   } finally {
     fs.rmSync(scratchRoot, { recursive: true, force: true });
   }

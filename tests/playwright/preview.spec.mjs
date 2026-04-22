@@ -34,6 +34,102 @@ async function setToggleValue(page, controlId, checked) {
   }, checked);
 }
 
+async function expectPreviewRouteLoaded(page, fixture, controlPattern) {
+  await expect(page.locator("body")).toHaveAttribute("data-project-key", fixture.schema.project.key);
+  await expect(page.getByRole("heading", { name: fixture.schema.project.name })).toBeVisible();
+  await expect(page.locator('#previewNav a.is-active')).toHaveText(fixture.schema.project.name);
+  await expect(page.locator("#controls .control-card")).toHaveCount(fixture.schema.controls.length);
+  await expect(page.locator("#meters .meter-card")).toHaveCount(fixture.schema.meters.length);
+  await expect(page.locator("#controls")).toContainText(controlPattern);
+}
+
+const routeSmokeCases = [
+  {
+    title: "atlas curve preview loads the flagship-eq scaffold route",
+    route: "/?app=atlas-curve",
+    fixture: atlasCurve,
+    controlPattern: /Low Cut|Low Shelf|Bell Freq|Bell Gain|Bell Q|High Shelf|Analyzer/
+  },
+  {
+    title: "room bloom preview loads the reverb scaffold route",
+    route: "/?app=room-bloom",
+    fixture: roomBloom,
+    controlPattern: /Space|Size|Pre-Delay|Decay|Diffusion|Mix/
+  },
+  {
+    title: "ember drive preview loads the multiband-saturation scaffold route",
+    route: "/?app=ember-drive",
+    fixture: emberDrive,
+    controlPattern: /Low Drive|Mid Drive|High Drive|Glue|Output Trim/
+  },
+  {
+    title: "relay tape preview loads the modulation-delay scaffold route",
+    route: "/?app=relay-tape",
+    fixture: relayTape,
+    controlPattern: /Time|Feedback|Smear|Mod Depth|Mod Rate|Freeze/
+  },
+  {
+    title: "contour forge preview loads the routable-filter scaffold route",
+    route: "/?app=contour-forge",
+    fixture: contourForge,
+    controlPattern: /Mode|Cutoff|Resonance|Drive|Env Amount|LFO Depth|Routing/
+  },
+  {
+    title: "mirror field preview loads the modular-synth scaffold route",
+    route: "/?app=mirror-field",
+    fixture: mirrorField,
+    controlPattern: /Blend|Shape|Tone|Contour|Motion|Mod Amount|Detune/
+  },
+  {
+    title: "seed tone preview loads the simple-synth scaffold route",
+    route: "/?app=seed-tone",
+    fixture: seedTone,
+    controlPattern: /Wave|Cutoff|Resonance|Color|Sub|Noise|Motion/
+  },
+  {
+    title: "span pair preview loads the dual-filter scaffold route",
+    route: "/?app=span-pair",
+    fixture: spanPair,
+    controlPattern: /Mode|Routing|Filter A Cutoff|Filter B Cutoff|Spacing|Link|Drive/
+  },
+  {
+    title: "pocket cut preview loads the mini-filter scaffold route",
+    route: "/?app=pocket-cut",
+    fixture: pocketCut,
+    controlPattern: /Mode|Cutoff|Resonance|Envelope Follow|Drive|Mix/
+  },
+  {
+    title: "press deck preview loads the new compressor-oriented scaffold route",
+    route: "/?app=press-deck",
+    fixture: pressDeck,
+    controlPattern: /Threshold|Ratio|Attack|Release|Knee|Mix/
+  },
+  {
+    title: "headroom preview loads the mastering-limiter scaffold route",
+    route: "/?app=headroom",
+    fixture: headroom,
+    controlPattern: /Ceiling|Lookahead|Release|Audition/
+  },
+  {
+    title: "latch line preview loads the gate-expander scaffold route",
+    route: "/?app=latch-line",
+    fixture: latchLine,
+    controlPattern: /Threshold|Range|Hold|Hysteresis|Detector HP|Detector LP/
+  },
+  {
+    title: "silk guard preview loads the de-esser scaffold route",
+    route: "/?app=silk-guard",
+    fixture: silkGuard,
+    controlPattern: /Threshold|Range|Band Frequency|Lookahead|Split\/Wide/
+  },
+  {
+    title: "split stack preview loads the multiband-dynamics scaffold route",
+    route: "/?app=split-stack",
+    fixture: splitStack,
+    controlPattern: /Low Crossover|High Crossover|Low Threshold|Mid Threshold|High Threshold/
+  }
+];
+
 test("default preview renders the current limiter schema surface", async ({ page }) => {
   await page.goto("/");
 
@@ -149,16 +245,12 @@ test("pulse pad preview renders the shared synth parity surfaces", async ({ page
   await expect(keyboardSurface).toContainText("0.72");
 });
 
-test("atlas curve preview loads the flagship-eq scaffold route", async ({ page }) => {
-  await page.goto("/?app=atlas-curve");
-
-  await expect(page.locator("body")).toHaveAttribute("data-project-key", atlasCurve.schema.project.key);
-  await expect(page.getByRole("heading", { name: atlasCurve.schema.project.name })).toBeVisible();
-  await expect(page.locator('#previewNav a.is-active')).toHaveText(atlasCurve.schema.project.name);
-  await expect(page.locator("#controls .control-card")).toHaveCount(atlasCurve.schema.controls.length);
-  await expect(page.locator("#meters .meter-card")).toHaveCount(atlasCurve.schema.meters.length);
-  await expect(page.locator("#controls")).toContainText(/Low Cut|Low Shelf|Bell Freq|Bell Gain|Bell Q|High Shelf|Analyzer/);
-});
+for (const routeCase of routeSmokeCases) {
+  test(routeCase.title, async ({ page }) => {
+    await page.goto(routeCase.route);
+    await expectPreviewRouteLoaded(page, routeCase.fixture, routeCase.controlPattern);
+  });
+}
 
 test("atlas curve preview renders the shared graph editor surface", async ({ page }) => {
   await page.goto("/?app=atlas-curve");
@@ -188,17 +280,6 @@ test("atlas curve preview renders the shared graph editor surface", async ({ pag
   await expect(popover.locator("h4")).toHaveText("Presence");
 });
 
-test("room bloom preview loads the reverb scaffold route", async ({ page }) => {
-  await page.goto("/?app=room-bloom");
-
-  await expect(page.locator("body")).toHaveAttribute("data-project-key", roomBloom.schema.project.key);
-  await expect(page.getByRole("heading", { name: roomBloom.schema.project.name })).toBeVisible();
-  await expect(page.locator('#previewNav a.is-active')).toHaveText(roomBloom.schema.project.name);
-  await expect(page.locator("#controls .control-card")).toHaveCount(roomBloom.schema.controls.length);
-  await expect(page.locator("#meters .meter-card")).toHaveCount(roomBloom.schema.meters.length);
-  await expect(page.locator("#controls")).toContainText(/Space|Size|Pre-Delay|Decay|Diffusion|Mix/);
-});
-
 test("room bloom preview renders the shared macro field surface", async ({ page }) => {
   await page.goto("/?app=room-bloom");
 
@@ -214,17 +295,6 @@ test("room bloom preview renders the shared macro field surface", async ({ page 
   await expect(fieldSurface.locator(".field-popover")).toContainText("84 %");
 });
 
-test("ember drive preview loads the multiband-saturation scaffold route", async ({ page }) => {
-  await page.goto("/?app=ember-drive");
-
-  await expect(page.locator("body")).toHaveAttribute("data-project-key", emberDrive.schema.project.key);
-  await expect(page.getByRole("heading", { name: emberDrive.schema.project.name })).toBeVisible();
-  await expect(page.locator('#previewNav a.is-active')).toHaveText(emberDrive.schema.project.name);
-  await expect(page.locator("#controls .control-card")).toHaveCount(emberDrive.schema.controls.length);
-  await expect(page.locator("#meters .meter-card")).toHaveCount(emberDrive.schema.meters.length);
-  await expect(page.locator("#controls")).toContainText(/Low Drive|Mid Drive|High Drive|Glue|Output Trim/);
-});
-
 test("ember drive preview renders the shared multiband creative surfaces", async ({ page }) => {
   await page.goto("/?app=ember-drive");
 
@@ -237,17 +307,6 @@ test("ember drive preview renders the shared multiband creative surfaces", async
   await expect(inspectorSurface.locator(".linked-band-card")).toHaveCount(3);
   await expect(dockSurface.locator(".mod-slot-card")).toHaveCount(4);
   await expect(dockSurface.locator(".mod-source-chip")).toHaveCount(4);
-});
-
-test("relay tape preview loads the modulation-delay scaffold route", async ({ page }) => {
-  await page.goto("/?app=relay-tape");
-
-  await expect(page.locator("body")).toHaveAttribute("data-project-key", relayTape.schema.project.key);
-  await expect(page.getByRole("heading", { name: relayTape.schema.project.name })).toBeVisible();
-  await expect(page.locator('#previewNav a.is-active')).toHaveText(relayTape.schema.project.name);
-  await expect(page.locator("#controls .control-card")).toHaveCount(relayTape.schema.controls.length);
-  await expect(page.locator("#meters .meter-card")).toHaveCount(relayTape.schema.meters.length);
-  await expect(page.locator("#controls")).toContainText(/Time|Feedback|Smear|Mod Depth|Mod Rate|Freeze/);
 });
 
 test("relay tape preview renders the shared timeline, graph, and motion dock", async ({ page }) => {
@@ -267,17 +326,6 @@ test("relay tape preview renders the shared timeline, graph, and motion dock", a
   await expect(timelineSurface).toContainText("520.00 ms");
 });
 
-test("contour forge preview loads the routable-filter scaffold route", async ({ page }) => {
-  await page.goto("/?app=contour-forge");
-
-  await expect(page.locator("body")).toHaveAttribute("data-project-key", contourForge.schema.project.key);
-  await expect(page.getByRole("heading", { name: contourForge.schema.project.name })).toBeVisible();
-  await expect(page.locator('#previewNav a.is-active')).toHaveText(contourForge.schema.project.name);
-  await expect(page.locator("#controls .control-card")).toHaveCount(contourForge.schema.controls.length);
-  await expect(page.locator("#meters .meter-card")).toHaveCount(contourForge.schema.meters.length);
-  await expect(page.locator("#controls")).toContainText(/Mode|Cutoff|Resonance|Drive|Env Amount|LFO Depth|Routing/);
-});
-
 test("contour forge preview renders the shared filter, routing, and modulation surfaces", async ({ page }) => {
   await page.goto("/?app=contour-forge");
 
@@ -293,17 +341,6 @@ test("contour forge preview renders the shared filter, routing, and modulation s
   await setRangeValue(page, "Routing", 1);
 
   await expect(routingSurface.locator(".routing-matrix__cell.is-active")).toHaveCount(3);
-});
-
-test("mirror field preview loads the modular-synth scaffold route", async ({ page }) => {
-  await page.goto("/?app=mirror-field");
-
-  await expect(page.locator("body")).toHaveAttribute("data-project-key", mirrorField.schema.project.key);
-  await expect(page.getByRole("heading", { name: mirrorField.schema.project.name })).toBeVisible();
-  await expect(page.locator('#previewNav a.is-active')).toHaveText(mirrorField.schema.project.name);
-  await expect(page.locator("#controls .control-card")).toHaveCount(mirrorField.schema.controls.length);
-  await expect(page.locator("#meters .meter-card")).toHaveCount(mirrorField.schema.meters.length);
-  await expect(page.locator("#controls")).toContainText(/Blend|Shape|Tone|Contour|Motion|Mod Amount|Detune/);
 });
 
 test("mirror field preview renders the shared synth stack, rack, dock, and keyboard surfaces", async ({ page }) => {
@@ -325,17 +362,6 @@ test("mirror field preview renders the shared synth stack, rack, dock, and keybo
   await expect(keyboardSurface.locator(".keyboard-key.is-active")).toHaveCount(2);
 });
 
-test("seed tone preview loads the simple-synth scaffold route", async ({ page }) => {
-  await page.goto("/?app=seed-tone");
-
-  await expect(page.locator("body")).toHaveAttribute("data-project-key", seedTone.schema.project.key);
-  await expect(page.getByRole("heading", { name: seedTone.schema.project.name })).toBeVisible();
-  await expect(page.locator('#previewNav a.is-active')).toHaveText(seedTone.schema.project.name);
-  await expect(page.locator("#controls .control-card")).toHaveCount(seedTone.schema.controls.length);
-  await expect(page.locator("#meters .meter-card")).toHaveCount(seedTone.schema.meters.length);
-  await expect(page.locator("#controls")).toContainText(/Wave|Cutoff|Resonance|Color|Sub|Noise|Motion/);
-});
-
 test("seed tone preview renders the shared section grid surface", async ({ page }) => {
   await page.goto("/?app=seed-tone");
 
@@ -350,17 +376,6 @@ test("seed tone preview renders the shared section grid surface", async ({ page 
 
   await expect(toneSection).toContainText("4200 Hz");
   await expect(toneSection).toContainText("9.0 dB");
-});
-
-test("span pair preview loads the dual-filter scaffold route", async ({ page }) => {
-  await page.goto("/?app=span-pair");
-
-  await expect(page.locator("body")).toHaveAttribute("data-project-key", spanPair.schema.project.key);
-  await expect(page.getByRole("heading", { name: spanPair.schema.project.name })).toBeVisible();
-  await expect(page.locator('#previewNav a.is-active')).toHaveText(spanPair.schema.project.name);
-  await expect(page.locator("#controls .control-card")).toHaveCount(spanPair.schema.controls.length);
-  await expect(page.locator("#meters .meter-card")).toHaveCount(spanPair.schema.meters.length);
-  await expect(page.locator("#controls")).toContainText(/Mode|Routing|Filter A Cutoff|Filter B Cutoff|Spacing|Link|Drive/);
 });
 
 test("span pair preview renders the shared dual-filter and routing surfaces", async ({ page }) => {
@@ -383,17 +398,6 @@ test("span pair preview renders the shared dual-filter and routing surfaces", as
   await expect(routingSurface.locator(".routing-matrix__cell.is-active")).toHaveCount(3);
 });
 
-test("pocket cut preview loads the mini-filter scaffold route", async ({ page }) => {
-  await page.goto("/?app=pocket-cut");
-
-  await expect(page.locator("body")).toHaveAttribute("data-project-key", pocketCut.schema.project.key);
-  await expect(page.getByRole("heading", { name: pocketCut.schema.project.name })).toBeVisible();
-  await expect(page.locator('#previewNav a.is-active')).toHaveText(pocketCut.schema.project.name);
-  await expect(page.locator("#controls .control-card")).toHaveCount(pocketCut.schema.controls.length);
-  await expect(page.locator("#meters .meter-card")).toHaveCount(pocketCut.schema.meters.length);
-  await expect(page.locator("#controls")).toContainText(/Mode|Cutoff|Resonance|Envelope Follow|Drive|Mix/);
-});
-
 test("pocket cut preview renders the shared compact filter surfaces", async ({ page }) => {
   await page.goto("/?app=pocket-cut");
 
@@ -412,17 +416,6 @@ test("pocket cut preview renders the shared compact filter surfaces", async ({ p
   await expect(outputSurface).toContainText("64 %");
 });
 
-test("press deck preview loads the new compressor-oriented scaffold route", async ({ page }) => {
-  await page.goto("/?app=press-deck");
-
-  await expect(page.locator("body")).toHaveAttribute("data-project-key", pressDeck.schema.project.key);
-  await expect(page.getByRole("heading", { name: pressDeck.schema.project.name })).toBeVisible();
-  await expect(page.locator('#previewNav a.is-active')).toHaveText(pressDeck.schema.project.name);
-  await expect(page.locator("#controls .control-card")).toHaveCount(pressDeck.schema.controls.length);
-  await expect(page.locator("#meters .meter-card")).toHaveCount(pressDeck.schema.meters.length);
-  await expect(page.locator("#controls")).toContainText(/Threshold|Ratio|Attack|Release|Knee|Mix/);
-});
-
 test("press deck preview renders the shared history and detector surfaces", async ({ page }) => {
   await page.goto("/?app=press-deck");
 
@@ -439,17 +432,6 @@ test("press deck preview renders the shared history and detector surfaces", asyn
   await expect(hpChip).toContainText("420 Hz");
 });
 
-test("headroom preview loads the mastering-limiter scaffold route", async ({ page }) => {
-  await page.goto("/?app=headroom");
-
-  await expect(page.locator("body")).toHaveAttribute("data-project-key", headroom.schema.project.key);
-  await expect(page.getByRole("heading", { name: headroom.schema.project.name })).toBeVisible();
-  await expect(page.locator('#previewNav a.is-active')).toHaveText(headroom.schema.project.name);
-  await expect(page.locator("#controls .control-card")).toHaveCount(headroom.schema.controls.length);
-  await expect(page.locator("#meters .meter-card")).toHaveCount(headroom.schema.meters.length);
-  await expect(page.locator("#controls")).toContainText(/Ceiling|Lookahead|Release|Audition/);
-});
-
 test("headroom preview renders the shared limiter transfer curve", async ({ page }) => {
   await page.goto("/?app=headroom");
 
@@ -463,17 +445,6 @@ test("headroom preview renders the shared limiter transfer curve", async ({ page
   await setRangeValue(page, "Drive", 8);
 
   await expect(transferSurface).toContainText("8.0 dB");
-});
-
-test("latch line preview loads the gate-expander scaffold route", async ({ page }) => {
-  await page.goto("/?app=latch-line");
-
-  await expect(page.locator("body")).toHaveAttribute("data-project-key", latchLine.schema.project.key);
-  await expect(page.getByRole("heading", { name: latchLine.schema.project.name })).toBeVisible();
-  await expect(page.locator('#previewNav a.is-active')).toHaveText(latchLine.schema.project.name);
-  await expect(page.locator("#controls .control-card")).toHaveCount(latchLine.schema.controls.length);
-  await expect(page.locator("#meters .meter-card")).toHaveCount(latchLine.schema.meters.length);
-  await expect(page.locator("#controls")).toContainText(/Threshold|Range|Hold|Hysteresis|Detector HP|Detector LP/);
 });
 
 test("latch line preview renders the shared gate curve and detector editor", async ({ page }) => {
@@ -492,17 +463,6 @@ test("latch line preview renders the shared gate curve and detector editor", asy
   await expect(hpChip).toContainText("320 Hz");
 });
 
-test("silk guard preview loads the de-esser scaffold route", async ({ page }) => {
-  await page.goto("/?app=silk-guard");
-
-  await expect(page.locator("body")).toHaveAttribute("data-project-key", silkGuard.schema.project.key);
-  await expect(page.getByRole("heading", { name: silkGuard.schema.project.name })).toBeVisible();
-  await expect(page.locator('#previewNav a.is-active')).toHaveText(silkGuard.schema.project.name);
-  await expect(page.locator("#controls .control-card")).toHaveCount(silkGuard.schema.controls.length);
-  await expect(page.locator("#meters .meter-card")).toHaveCount(silkGuard.schema.meters.length);
-  await expect(page.locator("#controls")).toContainText(/Threshold|Range|Band Frequency|Lookahead|Split\/Wide/);
-});
-
 test("silk guard preview renders the shared de-ess history and focus filter", async ({ page }) => {
   await page.goto("/?app=silk-guard");
 
@@ -517,17 +477,6 @@ test("silk guard preview renders the shared de-ess history and focus filter", as
   await setRangeValue(page, "Center Frequency", 7200);
 
   await expect(focusChip).toContainText("7200 Hz");
-});
-
-test("split stack preview loads the multiband-dynamics scaffold route", async ({ page }) => {
-  await page.goto("/?app=split-stack");
-
-  await expect(page.locator("body")).toHaveAttribute("data-project-key", splitStack.schema.project.key);
-  await expect(page.getByRole("heading", { name: splitStack.schema.project.name })).toBeVisible();
-  await expect(page.locator('#previewNav a.is-active')).toHaveText(splitStack.schema.project.name);
-  await expect(page.locator("#controls .control-card")).toHaveCount(splitStack.schema.controls.length);
-  await expect(page.locator("#meters .meter-card")).toHaveCount(splitStack.schema.meters.length);
-  await expect(page.locator("#controls")).toContainText(/Low Crossover|High Crossover|Low Threshold|Mid Threshold|High Threshold/);
 });
 
 test("split stack preview renders the shared multiband editor and linked inspector", async ({ page }) => {

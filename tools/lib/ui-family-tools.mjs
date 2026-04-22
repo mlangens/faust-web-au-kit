@@ -4,6 +4,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { readJsonFileSync } from "./fs-tools.mjs";
+
 /**
  * @typedef {import("../../types/framework").JsonObject} JsonObject
  * @typedef {import("../../types/framework").JsonValue} JsonValue
@@ -11,6 +13,7 @@ import { fileURLToPath } from "node:url";
  * @typedef {import("../../types/framework").ProjectUiRuntime} ProjectUiRuntime
  * @typedef {import("../../types/framework").UiFamilyManifest} UiFamilyManifest
  * @typedef {import("../../types/framework").UiFamilyRuntime} UiFamilyRuntime
+ * @typedef {import("../../types/framework").UiFamilyVariantConfig} UiFamilyVariantConfig
  */
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -33,7 +36,9 @@ function cloneValue(value) {
     return value.map((entry) => /** @type {JsonValue} */ (cloneValue(entry) ?? null));
   }
   if (isPlainObject(value)) {
-    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, cloneValue(entry)]));
+    return /** @type {JsonObject} */ (
+      Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, cloneValue(entry)]))
+    );
   }
   return value;
 }
@@ -77,7 +82,7 @@ function mergeObjects(base, override) {
 
 /**
  * @param {UiFamilyManifest} manifest
- * @returns {{ body: JsonObject, defaults: JsonObject, variants: JsonObject }}
+ * @returns {{ body: ProjectUiManifest, defaults: ProjectUiManifest, variants: Record<string, UiFamilyVariantConfig> }}
  */
 function normalizeFamilyManifest(manifest) {
   const body =
@@ -101,9 +106,9 @@ function normalizeFamilyManifest(manifest) {
   }
 
   return {
-    body,
-    defaults,
-    variants
+    body: /** @type {ProjectUiManifest} */ (body),
+    defaults: /** @type {ProjectUiManifest} */ (defaults),
+    variants: /** @type {Record<string, UiFamilyVariantConfig>} */ (variants)
   };
 }
 
@@ -129,7 +134,7 @@ function loadUiFamilyManifest(family, options = {}) {
   }
 
   /** @type {UiFamilyManifest} */
-  const manifest = /** @type {UiFamilyManifest} */ (JSON.parse(fs.readFileSync(manifestPath, "utf8")));
+  const manifest = readJsonFileSync(manifestPath);
   if (!isPlainObject(manifest)) {
     throw new Error(`UI family manifest "${family}" must contain a JSON object.`);
   }
@@ -145,10 +150,10 @@ function loadUiFamilyManifest(family, options = {}) {
 }
 
 /**
- * @param {JsonObject} variants
+ * @param {Record<string, UiFamilyVariantConfig>} variants
  * @param {string | null} variantName
  * @param {string[]} [stack]
- * @returns {JsonObject}
+ * @returns {UiFamilyVariantConfig}
  */
 function resolveVariantConfig(variants, variantName, stack = []) {
   if (!variantName) {
@@ -171,7 +176,7 @@ function resolveVariantConfig(variants, variantName, stack = []) {
       ? resolveVariantConfig(variants, baseName.trim(), [...stack, variantName])
       : {};
   const { extends: _ignored, ...variantBody } = variant;
-  return mergeUiLayers(inherited, variantBody);
+  return /** @type {UiFamilyVariantConfig} */ (mergeUiLayers(inherited, variantBody));
 }
 
 /**
@@ -179,7 +184,9 @@ function resolveVariantConfig(variants, variantName, stack = []) {
  * @returns {JsonObject}
  */
 function extractInlineOverrides(projectUi) {
-  return Object.fromEntries(Object.entries(projectUi).filter(([key]) => !reservedUiKeys.has(key)));
+  return /** @type {JsonObject} */ (
+    Object.fromEntries(Object.entries(projectUi).filter(([key]) => !reservedUiKeys.has(key)))
+  );
 }
 
 /**

@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "core/plugin_metering.h"
+#include "core/plugin_parameters.h"
 #include "faust/gui/CInterface.h"
 #include FWAK_GENERATED_C_TARGET_PATH
 
@@ -12,80 +14,10 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-#define FWAK_FOURCC(a, b, c, d)                                                                                       \
-    (((uint32_t)(uint8_t)(a) << 24) | ((uint32_t)(uint8_t)(b) << 16) | ((uint32_t)(uint8_t)(c) << 8) |             \
-     ((uint32_t)(uint8_t)(d)))
-
 typedef struct {
     uint32_t id;
     float value;
 } FwakSavedParameter;
-
-static const char* gDriveTargetLabels[] = {"Both", "Mid", "Side"};
-static const char* gDriveFocusLabels[] = {"Full", "Low", "Mid", "High"};
-static const char* gAnalyzerZoneLabels[FWAK_ANALYZER_ZONE_COUNT] = {
-    "Drive Low Saturation",
-    "Drive Mid Saturation",
-    "Drive High Saturation"
-};
-
-void cplug_libraryLoad() {}
-void cplug_libraryUnload() {}
-
-int fwak_find_parameter_index_by_label(const char* label)
-{
-    int index = 0;
-    for (; index < FWAK_PARAMETER_COUNT; ++index) {
-        if (strcmp(label, gFwakParameters[index].label) == 0) {
-            return index;
-        }
-    }
-    return -1;
-}
-
-int fwak_find_parameter_index_by_id(uint32_t paramId)
-{
-    int index = 0;
-    for (; index < FWAK_PARAMETER_COUNT; ++index) {
-        if (gFwakParameters[index].id == paramId) {
-            return index;
-        }
-    }
-    return -1;
-}
-
-static int fwak_find_analyzer_zone_index_by_label(const char* label)
-{
-    int index = 0;
-    for (; index < FWAK_ANALYZER_ZONE_COUNT; ++index) {
-        if (strcmp(label, gAnalyzerZoneLabels[index]) == 0) {
-            return index;
-        }
-    }
-    return -1;
-}
-
-static int fwak_find_meter_index_by_label(const char* label)
-{
-    int index = 0;
-    for (; index < FWAK_METER_COUNT; ++index) {
-        if (strcmp(label, FWAK_METER_MANIFEST[index].label) == 0) {
-            return index;
-        }
-    }
-    return -1;
-}
-
-static int fwak_find_meter_index_by_id(const char* meterId)
-{
-    int index = 0;
-    for (; index < FWAK_METER_COUNT; ++index) {
-        if (strcmp(meterId, FWAK_METER_MANIFEST[index].id) == 0) {
-            return index;
-        }
-    }
-    return -1;
-}
 
 static float fwak_clampf(float value, float minValue, float maxValue)
 {
@@ -98,62 +30,6 @@ static float fwak_clampf(float value, float minValue, float maxValue)
     return value;
 }
 
-static bool fwak_parameter_has_enum_labels(const FwakParameterInfo* info)
-{
-    return info != NULL && info->enumLabels != NULL && info->enumLabelCount > 0u;
-}
-
-static const char* fwak_parameter_off_label(const FwakParameterInfo* info)
-{
-    return info != NULL && info->offLabel != NULL && info->offLabel[0] != '\0' ? info->offLabel : "Off";
-}
-
-static const char* fwak_parameter_on_label(const FwakParameterInfo* info)
-{
-    return info != NULL && info->onLabel != NULL && info->onLabel[0] != '\0' ? info->onLabel : "On";
-}
-
-static float fwak_quantize_parameter_value(const FwakParameterInfo* info, float value)
-{
-    if (!info) {
-        return value;
-    }
-
-    if (info->flags & CPLUG_FLAG_PARAMETER_IS_BOOL) {
-        return value >= 0.5f ? 1.0f : 0.0f;
-    }
-
-    if (fwak_parameter_has_enum_labels(info) || info->displayKind == FWAK_PARAM_DISPLAY_DRIVE_TARGET ||
-        info->displayKind == FWAK_PARAM_DISPLAY_DRIVE_FOCUS) {
-        return roundf(value);
-    }
-
-    return value;
-}
-
-static float fwak_atomic_load_float(const _Atomic float* value)
-{
-    return atomic_load_explicit(value, memory_order_relaxed);
-}
-
-static void fwak_atomic_store_float(_Atomic float* destination, float value)
-{
-    atomic_store_explicit(destination, value, memory_order_relaxed);
-}
-
-static float fwak_linear_to_db(float value)
-{
-    return 20.0f * log10f(fmaxf(value, 1.0e-6f));
-}
-
-static float fwak_decay_for_frames(double sampleRate, uint32_t frames, double tauSeconds)
-{
-    if (sampleRate <= 0.0 || tauSeconds <= 0.0) {
-        return 0.0f;
-    }
-    return expf(-(float)frames / (float)(sampleRate * tauSeconds));
-}
-
 static float fwak_compute_filter_coeff(double sampleRate, double cutoffHz)
 {
     if (sampleRate <= 0.0 || cutoffHz <= 0.0) {
@@ -162,81 +38,8 @@ static float fwak_compute_filter_coeff(double sampleRate, double cutoffHz)
     return 1.0f - expf((float)(-2.0 * M_PI * cutoffHz / sampleRate));
 }
 
-static void fwak_reset_metering(FwakPlugin* plugin)
-{
-    plugin->meterInputEnvelope = 0.0f;
-    plugin->meterOutputEnvelope = 0.0f;
-    plugin->meterGainReductionEnvelope = 0.0f;
-    fwak_atomic_store_float(&plugin->meterInputPeakDb, -72.0f);
-    fwak_atomic_store_float(&plugin->meterOutputPeakDb, -72.0f);
-    fwak_atomic_store_float(&plugin->meterGainReductionDb, 0.0f);
-}
-
-static void fwak_reset_analyzer_history(FwakPlugin* plugin)
-{
-    uint32_t index = 0;
-    for (; index < FWAK_ANALYZER_HISTORY_LENGTH; ++index) {
-        fwak_atomic_store_float(&plugin->analyzerInputMin[index], 0.0f);
-        fwak_atomic_store_float(&plugin->analyzerInputMax[index], 0.0f);
-        fwak_atomic_store_float(&plugin->analyzerOutputMin[index], 0.0f);
-        fwak_atomic_store_float(&plugin->analyzerOutputMax[index], 0.0f);
-        fwak_atomic_store_float(&plugin->analyzerGainReductionDb[index], 0.0f);
-        fwak_atomic_store_float(&plugin->analyzerDriveLowSaturation[index], 0.0f);
-        fwak_atomic_store_float(&plugin->analyzerDriveMidSaturation[index], 0.0f);
-        fwak_atomic_store_float(&plugin->analyzerDriveHighSaturation[index], 0.0f);
-    }
-    atomic_store_explicit(&plugin->analyzerWriteIndex, 0u, memory_order_relaxed);
-}
-
-static void fwak_push_analyzer_history(
-    FwakPlugin* plugin,
-    float inputMin,
-    float inputMax,
-    float outputMin,
-    float outputMax,
-    float gainReductionDb,
-    float driveLowSaturation,
-    float driveMidSaturation,
-    float driveHighSaturation)
-{
-    const uint32_t writeIndex = atomic_load_explicit(&plugin->analyzerWriteIndex, memory_order_relaxed);
-    fwak_atomic_store_float(&plugin->analyzerInputMin[writeIndex], inputMin);
-    fwak_atomic_store_float(&plugin->analyzerInputMax[writeIndex], inputMax);
-    fwak_atomic_store_float(&plugin->analyzerOutputMin[writeIndex], outputMin);
-    fwak_atomic_store_float(&plugin->analyzerOutputMax[writeIndex], outputMax);
-    fwak_atomic_store_float(&plugin->analyzerGainReductionDb[writeIndex], gainReductionDb);
-    fwak_atomic_store_float(&plugin->analyzerDriveLowSaturation[writeIndex], driveLowSaturation);
-    fwak_atomic_store_float(&plugin->analyzerDriveMidSaturation[writeIndex], driveMidSaturation);
-    fwak_atomic_store_float(&plugin->analyzerDriveHighSaturation[writeIndex], driveHighSaturation);
-    atomic_store_explicit(
-        &plugin->analyzerWriteIndex,
-        (writeIndex + 1u) % FWAK_ANALYZER_HISTORY_LENGTH,
-        memory_order_release);
-}
-
-static void fwak_update_meter_values(FwakPlugin* plugin, float sliceInputPeak, float sliceOutputPeak, uint32_t frames)
-{
-    const float peakDecay = fwak_decay_for_frames(plugin->sampleRate, frames, 0.085);
-    const float grDecay = fwak_decay_for_frames(plugin->sampleRate, frames, 0.120);
-    const float inputEnvelope = fmaxf(sliceInputPeak, plugin->meterInputEnvelope * peakDecay);
-    const float outputEnvelope = fmaxf(sliceOutputPeak, plugin->meterOutputEnvelope * peakDecay);
-    const float gainReduction = fmaxf(0.0f, fwak_linear_to_db(inputEnvelope) - fwak_linear_to_db(outputEnvelope));
-
-    plugin->meterInputEnvelope = inputEnvelope;
-    plugin->meterOutputEnvelope = outputEnvelope;
-    plugin->meterGainReductionEnvelope = fmaxf(gainReduction, plugin->meterGainReductionEnvelope * grDecay);
-    fwak_atomic_store_float(&plugin->meterInputPeakDb, fwak_linear_to_db(plugin->meterInputEnvelope));
-    fwak_atomic_store_float(&plugin->meterOutputPeakDb, fwak_linear_to_db(plugin->meterOutputEnvelope));
-    fwak_atomic_store_float(&plugin->meterGainReductionDb, plugin->meterGainReductionEnvelope);
-}
-
-static void fwak_bind_parameter_zone(FwakPlugin* plugin, const char* label, float* zone)
-{
-    const int parameterIndex = fwak_find_parameter_index_by_label(label);
-    if (parameterIndex >= 0) {
-        plugin->zones[parameterIndex] = zone;
-    }
-}
+void cplug_libraryLoad() {}
+void cplug_libraryUnload() {}
 
 static void fwak_ui_open_box(void* ui, const char* label)
 {
@@ -251,12 +54,12 @@ static void fwak_ui_close_box(void* ui)
 
 static void fwak_ui_add_button(void* ui, const char* label, float* zone)
 {
-    fwak_bind_parameter_zone((FwakPlugin*)ui, label, zone);
+    fwak_bind_parameter_zone_by_label((FwakPlugin*)ui, label, zone);
 }
 
 static void fwak_ui_add_checkbox(void* ui, const char* label, float* zone)
 {
-    fwak_bind_parameter_zone((FwakPlugin*)ui, label, zone);
+    fwak_bind_parameter_zone_by_label((FwakPlugin*)ui, label, zone);
 }
 
 static void fwak_ui_add_slider(
@@ -272,7 +75,7 @@ static void fwak_ui_add_slider(
     (void)maxValue;
     (void)step;
     *zone = init;
-    fwak_bind_parameter_zone((FwakPlugin*)ui, label, zone);
+    fwak_bind_parameter_zone_by_label((FwakPlugin*)ui, label, zone);
 }
 
 static void fwak_ui_add_num_entry(
@@ -289,16 +92,7 @@ static void fwak_ui_add_num_entry(
 
 static void fwak_ui_add_bargraph(void* ui, const char* label, float* zone, float minValue, float maxValue)
 {
-    FwakPlugin* plugin = (FwakPlugin*)ui;
-    const int analyzerIndex = fwak_find_analyzer_zone_index_by_label(label);
-    if (analyzerIndex >= 0) {
-        plugin->analyzerZones[analyzerIndex] = zone;
-    } else {
-        const int meterIndex = fwak_find_meter_index_by_label(label);
-        if (meterIndex >= 0) {
-            plugin->meterZones[meterIndex] = zone;
-        }
-    }
+    fwak_bind_visual_zone_by_label((FwakPlugin*)ui, label, zone);
     (void)minValue;
     (void)maxValue;
 }
@@ -357,16 +151,6 @@ static void fwak_allocate_audio_buffers(FwakPlugin* plugin, uint32_t maxBlockSiz
 
     free(plugin->monoOutputScratch);
     plugin->monoOutputScratch = (float*)calloc(maxBlockSize, sizeof(float));
-}
-
-static void fwak_apply_cached_parameters(FwakPlugin* plugin)
-{
-    int index = 0;
-    for (; index < FWAK_PARAMETER_COUNT; ++index) {
-        if (plugin->zones[index]) {
-            *plugin->zones[index] = plugin->paramValues[index];
-        }
-    }
 }
 
 static void fwak_process_audio_slice(
@@ -480,7 +264,7 @@ static void fwak_process_audio_slice(
         fwak_clampf(sliceInputMax, -1.0f, 1.0f),
         fwak_clampf(sliceOutputMin, -1.0f, 1.0f),
         fwak_clampf(sliceOutputMax, -1.0f, 1.0f),
-        fwak_atomic_load_float(&plugin->meterGainReductionDb),
+        fwak_get_meter_gain_reduction_db(plugin),
         fwak_clampf(driveLowSaturation, 0.0f, 1.0f),
         fwak_clampf(driveMidSaturation, 0.0f, 1.0f),
         fwak_clampf(driveHighSaturation, 0.0f, 1.0f));
@@ -521,7 +305,7 @@ void* cplug_createPlugin(CplugHostContext* ctx)
         fmin(18000.0, plugin->sampleRate * 0.45));
     fwak_reset_metering(plugin);
     fwak_reset_analyzer_history(plugin);
-    fwak_apply_cached_parameters(plugin);
+    fwak_apply_cached_parameter_values(plugin);
     return plugin;
 }
 
@@ -584,226 +368,6 @@ void cplug_getOutputBusName(void* userPlugin, uint32_t busIndex, char* buffer, s
     snprintf(buffer, bufferLength, "%s", busIndex == 0 ? "Output" : "");
 }
 
-uint32_t cplug_getNumParameters(void* userPlugin)
-{
-    (void)userPlugin;
-    return FWAK_PARAMETER_COUNT;
-}
-
-uint32_t cplug_getParameterID(void* userPlugin, uint32_t paramIndex)
-{
-    (void)userPlugin;
-    return gFwakParameters[paramIndex].id;
-}
-
-uint32_t cplug_getParameterFlags(void* userPlugin, uint32_t paramId)
-{
-    (void)userPlugin;
-    {
-        const int parameterIndex = fwak_find_parameter_index_by_id(paramId);
-        return parameterIndex >= 0 ? gFwakParameters[parameterIndex].flags : 0u;
-    }
-}
-
-void cplug_getParameterRange(void* userPlugin, uint32_t paramId, double* minValue, double* maxValue)
-{
-    (void)userPlugin;
-    {
-        const int parameterIndex = fwak_find_parameter_index_by_id(paramId);
-        if (parameterIndex >= 0) {
-            *minValue = gFwakParameters[parameterIndex].minValue;
-            *maxValue = gFwakParameters[parameterIndex].maxValue;
-        }
-    }
-}
-
-void cplug_getParameterName(void* userPlugin, uint32_t paramId, char* buffer, size_t bufferLength)
-{
-    (void)userPlugin;
-    {
-        const int parameterIndex = fwak_find_parameter_index_by_id(paramId);
-        snprintf(buffer, bufferLength, "%s", parameterIndex >= 0 ? gFwakParameters[parameterIndex].label : "");
-    }
-}
-
-double cplug_getParameterValue(void* userPlugin, uint32_t paramId)
-{
-    FwakPlugin* plugin = (FwakPlugin*)userPlugin;
-    const int parameterIndex = fwak_find_parameter_index_by_id(paramId);
-    return parameterIndex >= 0 ? plugin->paramValues[parameterIndex] : 0.0;
-}
-
-double cplug_getDefaultParameterValue(void* userPlugin, uint32_t paramId)
-{
-    (void)userPlugin;
-    {
-        const int parameterIndex = fwak_find_parameter_index_by_id(paramId);
-        return parameterIndex >= 0 ? gFwakParameters[parameterIndex].defaultValue : 0.0;
-    }
-}
-
-static const char* fwak_parameter_value_to_enum_label(const FwakParameterInfo* info, float value)
-{
-    if (!info) {
-        return NULL;
-    }
-
-    if (fwak_parameter_has_enum_labels(info)) {
-        const int discreteValue = (int)lrintf(value);
-        const int baseValue = (int)lrint(info->minValue);
-        const int enumIndex = discreteValue - baseValue;
-        return (enumIndex >= 0 && enumIndex < (int)info->enumLabelCount) ? info->enumLabels[enumIndex] : NULL;
-    }
-
-    {
-        const int discreteValue = (int)lrintf(value);
-
-        if (info->displayKind == FWAK_PARAM_DISPLAY_DRIVE_TARGET) {
-            return (discreteValue >= 0 && discreteValue < (int)(sizeof(gDriveTargetLabels) / sizeof(gDriveTargetLabels[0])))
-                       ? gDriveTargetLabels[discreteValue]
-                       : NULL;
-        }
-
-        if (info->displayKind == FWAK_PARAM_DISPLAY_DRIVE_FOCUS) {
-            return (discreteValue >= 0 && discreteValue < (int)(sizeof(gDriveFocusLabels) / sizeof(gDriveFocusLabels[0])))
-                       ? gDriveFocusLabels[discreteValue]
-                       : NULL;
-        }
-    }
-
-    return NULL;
-}
-
-void cplug_setParameterValue(void* userPlugin, uint32_t paramId, double value)
-{
-    FwakPlugin* plugin = (FwakPlugin*)userPlugin;
-    const int parameterIndex = fwak_find_parameter_index_by_id(paramId);
-    if (parameterIndex >= 0) {
-        const FwakParameterInfo* info = &gFwakParameters[parameterIndex];
-        float clampedValue = fwak_clampf((float)value, (float)info->minValue, (float)info->maxValue);
-        clampedValue = fwak_quantize_parameter_value(info, clampedValue);
-        plugin->paramValues[parameterIndex] = clampedValue;
-        if (plugin->zones[parameterIndex]) {
-            *plugin->zones[parameterIndex] = clampedValue;
-        }
-    }
-}
-
-double cplug_denormaliseParameterValue(void* userPlugin, uint32_t paramId, double normalisedValue)
-{
-    (void)userPlugin;
-    {
-        const int parameterIndex = fwak_find_parameter_index_by_id(paramId);
-        if (parameterIndex >= 0) {
-            const FwakParameterInfo* info = &gFwakParameters[parameterIndex];
-            const double span = info->maxValue - info->minValue;
-            return info->minValue + span * normalisedValue;
-        }
-    }
-    return 0.0;
-}
-
-double cplug_normaliseParameterValue(void* userPlugin, uint32_t paramId, double denormalisedValue)
-{
-    (void)userPlugin;
-    {
-        const int parameterIndex = fwak_find_parameter_index_by_id(paramId);
-        if (parameterIndex >= 0) {
-            const FwakParameterInfo* info = &gFwakParameters[parameterIndex];
-            const double span = info->maxValue - info->minValue;
-            if (span <= 0.0) {
-                return 0.0;
-            }
-            return (denormalisedValue - info->minValue) / span;
-        }
-    }
-    return 0.0;
-}
-
-static double fwak_parameter_string_to_enum_value(const FwakParameterInfo* info, const char* stringValue)
-{
-    if (!info || !stringValue) {
-        return NAN;
-    }
-
-    if (fwak_parameter_has_enum_labels(info)) {
-        uint32_t index = 0;
-        for (; index < info->enumLabelCount; ++index) {
-            if (strcmp(stringValue, info->enumLabels[index]) == 0) {
-                return info->minValue + (double)index;
-            }
-        }
-    }
-
-    if (info->displayKind == FWAK_PARAM_DISPLAY_DRIVE_TARGET) {
-        int index = 0;
-        for (; index < (int)(sizeof(gDriveTargetLabels) / sizeof(gDriveTargetLabels[0])); ++index) {
-            if (strcmp(stringValue, gDriveTargetLabels[index]) == 0) {
-                return index;
-            }
-        }
-    }
-
-    if (info->displayKind == FWAK_PARAM_DISPLAY_DRIVE_FOCUS) {
-        int index = 0;
-        for (; index < (int)(sizeof(gDriveFocusLabels) / sizeof(gDriveFocusLabels[0])); ++index) {
-            if (strcmp(stringValue, gDriveFocusLabels[index]) == 0) {
-                return index;
-            }
-        }
-    }
-
-    return NAN;
-}
-
-double cplug_parameterStringToValue(void* userPlugin, uint32_t paramId, const char* stringValue)
-{
-    (void)userPlugin;
-    const int parameterIndex = fwak_find_parameter_index_by_id(paramId);
-    if (parameterIndex >= 0) {
-        const FwakParameterInfo* info = &gFwakParameters[parameterIndex];
-        if (info->flags & CPLUG_FLAG_PARAMETER_IS_BOOL) {
-            return (strcmp(stringValue, fwak_parameter_on_label(info)) == 0 || strcmp(stringValue, "On") == 0 ||
-                    strcmp(stringValue, "1") == 0)
-                       ? 1.0
-                       : 0.0;
-        }
-
-        {
-            const double enumValue = fwak_parameter_string_to_enum_value(info, stringValue);
-            if (!isnan(enumValue)) {
-                return enumValue;
-            }
-        }
-    }
-    return atof(stringValue);
-}
-
-void cplug_parameterValueToString(void* userPlugin, uint32_t paramId, char* buffer, size_t bufferLength, double value)
-{
-    (void)userPlugin;
-    {
-        const int parameterIndex = fwak_find_parameter_index_by_id(paramId);
-        if (parameterIndex >= 0) {
-            const FwakParameterInfo* info = &gFwakParameters[parameterIndex];
-            const char* enumLabel = fwak_parameter_value_to_enum_label(info, (float)value);
-            if (info->flags & CPLUG_FLAG_PARAMETER_IS_BOOL) {
-                snprintf(buffer, bufferLength, "%s", value >= 0.5 ? fwak_parameter_on_label(info) : fwak_parameter_off_label(info));
-            } else if (enumLabel) {
-                snprintf(buffer, bufferLength, "%s", enumLabel);
-            } else if (strcmp(info->unit, "Hz") == 0) {
-                snprintf(buffer, bufferLength, "%.0f %s", value, info->unit);
-            } else if (info->unit[0] != '\0') {
-                snprintf(buffer, bufferLength, "%.2f %s", value, info->unit);
-            } else {
-                snprintf(buffer, bufferLength, "%.2f", value);
-            }
-            return;
-        }
-    }
-    buffer[0] = '\0';
-}
-
 uint32_t cplug_getLatencyInSamples(void* userPlugin)
 {
     const FwakPlugin* plugin = (const FwakPlugin*)userPlugin;
@@ -832,7 +396,7 @@ void cplug_setSampleRateAndBlockSize(void* userPlugin, double sampleRate, uint32
     fwak_allocate_audio_buffers(plugin, maxBlockSize);
 
     FWAK_DSP_INSTANCE_INIT_FN((FWAK_DSP_TYPE*)plugin->dsp, (int)(sampleRate * FWAK_OVERSAMPLING_FACTOR));
-    fwak_apply_cached_parameters(plugin);
+    fwak_apply_cached_parameter_values(plugin);
 }
 
 void cplug_process(void* userPlugin, CplugProcessContext* ctx)
@@ -904,77 +468,6 @@ void cplug_loadState(void* userPlugin, const void* stateCtx, cplug_readProc read
     for (; index < bytesRead / (int64_t)sizeof(FwakSavedParameter); ++index) {
         cplug_setParameterValue(userPlugin, values[index].id, values[index].value);
     }
-}
-
-float fwak_get_meter_input_peak_db(const FwakPlugin* plugin)
-{
-    return fwak_atomic_load_float(&plugin->meterInputPeakDb);
-}
-
-float fwak_get_meter_output_peak_db(const FwakPlugin* plugin)
-{
-    return fwak_atomic_load_float(&plugin->meterOutputPeakDb);
-}
-
-float fwak_get_meter_gain_reduction_db(const FwakPlugin* plugin)
-{
-    return fwak_atomic_load_float(&plugin->meterGainReductionDb);
-}
-
-double fwak_get_meter_value(const FwakPlugin* plugin, const char* meterId)
-{
-    const int meterIndex = fwak_find_meter_index_by_id(meterId);
-    if (meterIndex >= 0 && plugin->meterZones[meterIndex]) {
-        return *plugin->meterZones[meterIndex];
-    }
-    if (strcmp(meterId, "inputPeak") == 0) {
-        return fwak_get_meter_input_peak_db(plugin);
-    }
-    if (strcmp(meterId, "outputPeak") == 0) {
-        return fwak_get_meter_output_peak_db(plugin);
-    }
-    if (strcmp(meterId, "gainReduction") == 0) {
-        return fwak_get_meter_gain_reduction_db(plugin);
-    }
-    return 0.0;
-}
-
-void fwak_copy_analyzer_snapshot(const FwakPlugin* plugin, FwakAnalyzerSnapshot* snapshot)
-{
-    uint32_t index = 0;
-    if (!snapshot) {
-        return;
-    }
-
-    for (; index < FWAK_ANALYZER_HISTORY_LENGTH; ++index) {
-        snapshot->inputMin[index] = fwak_atomic_load_float(&plugin->analyzerInputMin[index]);
-        snapshot->inputMax[index] = fwak_atomic_load_float(&plugin->analyzerInputMax[index]);
-        snapshot->outputMin[index] = fwak_atomic_load_float(&plugin->analyzerOutputMin[index]);
-        snapshot->outputMax[index] = fwak_atomic_load_float(&plugin->analyzerOutputMax[index]);
-        snapshot->gainReductionDb[index] = fwak_atomic_load_float(&plugin->analyzerGainReductionDb[index]);
-        snapshot->driveLowSaturation[index] = fwak_atomic_load_float(&plugin->analyzerDriveLowSaturation[index]);
-        snapshot->driveMidSaturation[index] = fwak_atomic_load_float(&plugin->analyzerDriveMidSaturation[index]);
-        snapshot->driveHighSaturation[index] = fwak_atomic_load_float(&plugin->analyzerDriveHighSaturation[index]);
-    }
-
-    snapshot->writeIndex = atomic_load_explicit(&plugin->analyzerWriteIndex, memory_order_acquire);
-}
-
-bool fwak_has_analyzer_zones(const FwakPlugin* plugin)
-{
-    int index = 0;
-
-    if (!plugin) {
-        return false;
-    }
-
-    for (; index < FWAK_ANALYZER_ZONE_COUNT; ++index) {
-        if (plugin->analyzerZones[index]) {
-            return true;
-        }
-    }
-
-    return false;
 }
 
 void fwak_begin_parameter_edit(FwakPlugin* plugin, uint32_t paramId)

@@ -4,10 +4,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { readJsonFileSync } from "./lib/fs-tools.mjs";
+
 /**
  * @typedef {import("../types/framework").CatalogManifest} CatalogManifest
  * @typedef {import("../types/framework").ProjectManifest} ProjectManifest
  * @typedef {import("../types/framework").WorkspaceManifest} WorkspaceManifest
+ * @typedef {{ recursive?: boolean, allowIndex?: boolean }} CheckNamedFilesOptions
  */
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -28,14 +31,6 @@ function normalizePath(filePath) {
 }
 
 /**
- * @param {string} filePath
- * @returns {unknown}
- */
-function loadJson(filePath) {
-  return JSON.parse(fs.readFileSync(filePath, "utf8"));
-}
-
-/**
  * @param {string} value
  * @returns {boolean}
  */
@@ -46,7 +41,7 @@ function isKebabCase(value) {
 /**
  * @param {string[]} errors
  * @param {string} relativeDir
- * @param {{ recursive?: boolean, allowIndex?: boolean }} [options]
+ * @param {CheckNamedFilesOptions} [options]
  */
 function checkNamedFiles(errors, relativeDir, options = {}) {
   const absoluteDir = path.join(root, relativeDir);
@@ -83,15 +78,16 @@ function checkNamedFiles(errors, relativeDir, options = {}) {
 }
 
 /** @type {WorkspaceManifest} */
-const workspace = /** @type {WorkspaceManifest} */ (loadJson(workspaceFile));
+const workspace = readJsonFileSync(workspaceFile);
 /** @type {string[]} */
 const errors = [];
+/** @type {Set<string>} */
+const appKeys = new Set();
 
 if (!Array.isArray(workspace.apps) || workspace.apps.length === 0) {
   errors.push(`Workspace "${normalizePath(workspaceFile)}" must declare at least one app.`);
 }
 
-const appKeys = new Set();
 for (const entry of workspace.apps ?? []) {
   const key = String(entry.key ?? "");
   const manifest = String(entry.manifest ?? "");
@@ -119,7 +115,7 @@ for (const entry of workspace.apps ?? []) {
   }
 
   /** @type {ProjectManifest} */
-  const project = /** @type {ProjectManifest} */ (loadJson(manifestPath));
+  const project = readJsonFileSync(manifestPath);
   if (project.name !== key) {
     errors.push(`App manifest "${expectedManifest}" must set "name" to "${key}", found "${project.name}".`);
   }
@@ -134,7 +130,7 @@ for (const catalogName of fs.readdirSync(path.join(root, "ui", "catalog"))) {
   }
   const catalogPath = path.join(root, "ui", "catalog", catalogName);
   /** @type {CatalogManifest} */
-  const catalog = /** @type {CatalogManifest} */ (loadJson(catalogPath));
+  const catalog = readJsonFileSync(catalogPath);
   const catalogId = String(catalog.id ?? catalogName.replace(/\.json$/u, ""));
   if (!isKebabCase(catalogId)) {
     errors.push(`Catalog "${normalizePath(catalogPath)}" must use a kebab-case id.`);

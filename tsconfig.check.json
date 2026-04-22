@@ -2,8 +2,20 @@
   "extends": "./tsconfig.base.json",
   "include": [
     "types/**/*.d.ts",
+    "preview/lib/control-store.js",
+    "preview/lib/dom.js",
+    "preview/lib/meters.js",
+    "preview/lib/preview-data.js",
+    "preview/lib/simulator-id.js",
+    "preview/lib/theme.js",
+    "preview/lib/value-scale.js",
     "tools/check-framework-structure.mjs",
+    "tools/lib/fs-tools.mjs",
     "tools/lib/project-tools.mjs",
-    "tools/lib/ui-family-tools.mjs"
+    "tools/lib/ui-family-tools.mjs",
+    "tools/list-suite-runtimes.mjs",
+    "tools/preview-server.mjs",
+    "tools/print-runtime-env.mjs",
+    "tests/support/generated-projects.mjs"
   ]
 }

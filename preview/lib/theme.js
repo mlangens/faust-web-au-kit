@@ -1,3 +1,25 @@
+// @ts-check
+
+/**
+ * @typedef {import("../../types/framework").ProjectUiManifest} ProjectUiManifest
+ */
+
+/**
+ * @param {ProjectUiManifest | null | undefined} ui
+ * @returns {string}
+ */
+function simulatorIdFromUi(ui) {
+  const simulator = ui?.simulator;
+  if (!simulator || typeof simulator !== "object" || Array.isArray(simulator)) {
+    return "default";
+  }
+  return typeof simulator.id === "string" && simulator.id.trim().length > 0 ? simulator.id : "default";
+}
+
+/**
+ * @param {string} token
+ * @returns {string}
+ */
 function tokenToCssVariable(token) {
   if (token.startsWith("--")) {
     return token;
@@ -9,6 +31,11 @@ function tokenToCssVariable(token) {
     .toLowerCase()}`;
 }
 
+/**
+ * @param {ProjectUiManifest | null | undefined} ui
+ * @param {Document} [doc=document]
+ * @returns {void}
+ */
 function applyTheme(ui, doc = document) {
   const root = doc.documentElement;
   const body = doc.body;
@@ -21,7 +48,7 @@ function applyTheme(ui, doc = document) {
   body.dataset.uiFamily = ui?.family || "default";
   body.dataset.uiVariant = ui?.variant || ui?.family || "default";
   body.dataset.uiThemeGroup = ui?.themeGroup || "default";
-  body.dataset.simulatorId = ui?.simulator?.id || "default";
+  body.dataset.simulatorId = simulatorIdFromUi(ui);
 }
 
 export { applyTheme };

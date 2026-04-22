@@ -24,6 +24,10 @@ option(FWAK_BUILD_STANDALONE "Build the standalone app" ON)
 set(FWAK_BUNDLE_NAME ${FWAK_ARTIFACT_STEM})
 set(FWAK_PRODUCT_COPYRIGHT "${FWAK_COMPANY_NAME}")
 set(FWAK_SHARED_PLUGIN_SOURCES
+  src/core/plugin_metering.c
+  src/core/plugin_parameters.c
+  src/gui/plugin_analyzer_view.m
+  src/gui/plugin_gui_shared.m
   src/plugin_core.c
   src/plugin_gui.m
 )

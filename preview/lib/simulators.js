@@ -1,75 +1,11 @@
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
-}
-
-function readControlValue(state, key, fallback = 0) {
-  return state.controls.get(key) ?? fallback;
-}
-
-function pickControlValue(state, keys, fallback = 0) {
-  for (const key of keys) {
-    if (state.controls.has(key)) {
-      return state.controls.get(key);
-    }
-  }
-  return fallback;
-}
-
-function normalizeUnitValue(value, max = 100) {
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) {
-    return 0;
-  }
-  if (Math.abs(numeric) <= 1 && max > 1) {
-    return clamp(numeric, 0, 1);
-  }
-  return clamp(numeric / max, 0, 1);
-}
-
-function normalizeBipolarUnitValue(value, max = 100) {
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) {
-    return 0.5;
-  }
-  if (Math.abs(numeric) <= 1) {
-    return clamp((numeric + 1) / 2, 0, 1);
-  }
-  return clamp((numeric + max) / (max * 2), 0, 1);
-}
-
-function normalizeFrequencyValue(value, min = 20, max = 20000) {
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) {
-    return 0;
-  }
-  if (numeric >= 0 && numeric <= 1) {
-    return clamp(numeric, 0, 1);
-  }
-  const safeMin = Math.max(min, 1);
-  const safeMax = Math.max(max, safeMin + 1);
-  return clamp(
-    (Math.log10(Math.max(numeric, safeMin)) - Math.log10(safeMin)) / (Math.log10(safeMax) - Math.log10(safeMin)),
-    0,
-    1
-  );
-}
-
-function averageNormalizedControlValue(state, schema) {
-  if (!schema.controls?.length) {
-    return 0.4;
-  }
-
-  const total = schema.controls.reduce((sum, control) => {
-    const currentValue = state.controls.get(control.id) ?? state.controls.get(control.label) ?? control.init ?? 0;
-    const range = Number(control.max) - Number(control.min);
-    if (!Number.isFinite(range) || range === 0) {
-      return sum;
-    }
-    return sum + clamp((Number(currentValue) - Number(control.min)) / range, 0, 1);
-  }, 0);
-
-  return total / schema.controls.length;
-}
+import {
+  averageNormalizedControlValue,
+  pickStoredControlValue as pickControlValue,
+  readStoredControlValue as readControlValue
+} from "./control-store.js";
+import { setMeter } from "./meters.js";
+import { normalizeSimulatorId } from "./simulator-id.js";
+import { clamp, normalizeBipolarUnitValue, normalizeFrequencyValue, normalizeUnitValue } from "./value-scale.js";
 
 function buildLimiterLabSimulator() {
   return (state, id) => {
@@ -691,65 +627,6 @@ function buildDefaultSimulator(schema) {
   };
 }
 
-function normalizeSimulatorId(schema) {
-  const rawId = String(schema.ui?.simulator?.id || schema.project?.key || schema.ui?.family || "default").toLowerCase();
-
-  if (rawId === "limiterlab" || rawId === "limiter-lab") {
-    return "limiter-lab";
-  }
-  if (rawId === "pulsepad" || rawId === "pulse-pad") {
-    return "pulse-pad";
-  }
-  if (rawId === "eq" || rawId === "equalizer" || rawId === "spectral-eq") {
-    return "eq";
-  }
-  if (rawId === "space" || rawId === "reverb") {
-    return "space";
-  }
-  if (rawId === "creative" || rawId === "creative-effect" || rawId === "delay") {
-    return "creative";
-  }
-  if (rawId === "filter" || rawId === "utility-effect") {
-    return "filter";
-  }
-  if (rawId === "dynamics") {
-    return "dynamics";
-  }
-  if (rawId === "instrument" || rawId === "synth" || rawId === "synthesizer") {
-    return "instrument";
-  }
-  if (rawId === "utility" || rawId === "default") {
-    return "default";
-  }
-
-  if (schema.project?.key === "limiter-lab") {
-    return "limiter-lab";
-  }
-  if (schema.project?.key === "pulse-pad") {
-    return "pulse-pad";
-  }
-  if (schema.ui?.variant === "spectral-eq") {
-    return "eq";
-  }
-  if (schema.ui?.group === "space") {
-    return "space";
-  }
-  if (schema.ui?.group === "creative-effect") {
-    return "creative";
-  }
-  if (schema.ui?.group === "utility-effect") {
-    return "filter";
-  }
-  if (schema.ui?.group === "mix" || schema.ui?.group === "mastering" || schema.ui?.themeGroup === "dynamics") {
-    return "dynamics";
-  }
-  if (schema.ui?.group === "instrument" || schema.ui?.themeGroup === "instrument") {
-    return "instrument";
-  }
-
-  return "default";
-}
-
 function createSimulator(schema) {
   const simulatorId = normalizeSimulatorId(schema);
   const factories = {
@@ -768,17 +645,6 @@ function createSimulator(schema) {
     id: simulatorId,
     measure: (factories[simulatorId] || factories.default)()
   };
-}
-
-function setMeter(fill, label, rawValue, meter) {
-  const unit = meter.unit || "dB";
-  const percent = meter.mode === "gr"
-    ? clamp(rawValue / meter.max, 0, 1) * 100
-    : unit === "%"
-      ? clamp(rawValue / meter.max, 0, 1) * 100
-      : clamp((rawValue + 72) / meter.max, 0, 1) * 100;
-  fill.style.width = `${percent}%`;
-  label.textContent = `${Number(rawValue).toFixed(1)} ${unit}`;
 }
 
 export { createSimulator, setMeter };

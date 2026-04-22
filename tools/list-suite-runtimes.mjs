@@ -1,14 +1,23 @@
+// @ts-check
+
 import { loadSuiteRuntime } from "./lib/project-tools.mjs";
+
+/**
+ * @typedef {import("../types/framework").SuiteRuntimeListApp} SuiteRuntimeListApp
+ * @typedef {import("../types/framework").SuiteRuntimeListFormat} SuiteRuntimeListFormat
+ * @typedef {import("../types/framework").SuiteRuntimeListPayload} SuiteRuntimeListPayload
+ */
 
 const suiteRuntime = loadSuiteRuntime();
 const format = String(suiteRuntime.args.format ?? "tsv").toLowerCase();
 
+/** @type {SuiteRuntimeListPayload} */
 const payload = {
   id: suiteRuntime.suiteId,
   name: suiteRuntime.suiteName,
   catalogFile: suiteRuntime.suiteFile,
   workspaceVersion: suiteRuntime.workspace.version,
-  apps: suiteRuntime.apps.map((runtime) => ({
+  apps: suiteRuntime.apps.map((runtime) => /** @type {SuiteRuntimeListApp} */ ({
     key: runtime.appKey,
     name: runtime.project.productName,
     artifactStem: runtime.project.artifactStem,

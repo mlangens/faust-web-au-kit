@@ -1,11 +1,15 @@
+// @ts-check
+
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const port = Number(process.env.PORT || 4173);
 const host = "127.0.0.1";
 
+/** @type {ReadonlyMap<string, string>} */
 const mimeTypes = new Map([
   [".css", "text/css; charset=utf-8"],
   [".html", "text/html; charset=utf-8"],
@@ -14,6 +18,10 @@ const mimeTypes = new Map([
   [".svg", "image/svg+xml; charset=utf-8"]
 ]);
 
+/**
+ * @param {string} requestPath
+ * @returns {string | null}
+ */
 function resolveFile(requestPath) {
   const pathname = requestPath === "/" ? "/preview/index.html" : requestPath;
   const cleanPath = path.normalize(pathname).replace(/^(\.\.[/\\])+/, "");
@@ -24,7 +32,12 @@ function resolveFile(requestPath) {
   return absolutePath;
 }
 
-const server = http.createServer((request, response) => {
+/**
+ * @param {import("node:http").IncomingMessage} request
+ * @param {import("node:http").ServerResponse} response
+ * @returns {void}
+ */
+function handleRequest(request, response) {
   const parsedUrl = new URL(request.url || "/", `http://${host}:${port}`);
   const filePath = resolveFile(parsedUrl.pathname || "/");
 
@@ -38,7 +51,9 @@ const server = http.createServer((request, response) => {
   const contentType = mimeTypes.get(extension) || "application/octet-stream";
   response.writeHead(200, { "Content-Type": contentType });
   fs.createReadStream(filePath).pipe(response);
-});
+}
+
+const server = http.createServer(handleRequest);
 
 server.listen(port, host, () => {
   console.log(`Preview server running at http://${host}:${port}/`);

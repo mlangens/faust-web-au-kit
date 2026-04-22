@@ -1,11 +1,15 @@
+import { readSchemaControlValue as readControlValue, resolveControl, resolveMeter } from "../control-store.js";
 import { formatValue } from "../formatting.js";
+import { formatMeterValue, meterPercent } from "../meters.js";
+import {
+  clamp,
+  normalizeFrequencyValue,
+  normalizeRangeValue as normalizeBipolarValue,
+  normalizeUnitValue
+} from "../value-scale.js";
 
 function asObject(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
-}
-
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
 }
 
 function humanizeId(value) {
@@ -14,71 +18,6 @@ function humanizeId(value) {
     .replaceAll("_", " ")
     .replace(/\b\w/g, (match) => match.toUpperCase())
     .trim();
-}
-
-function resolveControl(schema, key) {
-  return schema.controls.find((entry) => [entry.id, entry.label, entry.shortname].includes(key)) ?? null;
-}
-
-function resolveMeter(schema, key) {
-  return schema.meters.find((entry) => [entry.id, entry.label].includes(key)) ?? null;
-}
-
-function readControlValue(schema, state, key, fallback = 0) {
-  const control = resolveControl(schema, key);
-  if (!control) {
-    return fallback;
-  }
-
-  for (const candidate of [control.id, control.label, control.shortname]) {
-    if (candidate && state.controls.has(candidate)) {
-      return state.controls.get(candidate);
-    }
-  }
-
-  return control.init ?? fallback;
-}
-
-function normalizeUnitValue(value, max = 100) {
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) {
-    return 0;
-  }
-  if (Math.abs(numeric) <= 1 && max > 1) {
-    return clamp(numeric, 0, 1);
-  }
-  return clamp(numeric / max, 0, 1);
-}
-
-function normalizeBipolarValue(value, min, max) {
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) {
-    return 0.5;
-  }
-  const safeMin = Number.isFinite(Number(min)) ? Number(min) : -1;
-  const safeMax = Number.isFinite(Number(max)) ? Number(max) : 1;
-  if (safeMax === safeMin) {
-    return 0.5;
-  }
-  return clamp((numeric - safeMin) / (safeMax - safeMin), 0, 1);
-}
-
-function normalizeFrequencyValue(value, min = 20, max = 20000) {
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) {
-    return 0;
-  }
-  if (numeric >= 0 && numeric <= 1) {
-    return clamp(numeric, 0, 1);
-  }
-
-  const safeMin = Math.max(Number(min) || 20, 1);
-  const safeMax = Math.max(Number(max) || 20000, safeMin + 1);
-  return clamp(
-    (Math.log10(Math.max(numeric, safeMin)) - Math.log10(safeMin)) / (Math.log10(safeMax) - Math.log10(safeMin)),
-    0,
-    1
-  );
 }
 
 function controlValueText(schema, state, label) {
@@ -232,25 +171,6 @@ function measureMeterValue(schema, state, meterId, fallback = 0) {
   }
   const value = state.simulator?.measure ? state.simulator.measure(state, meter.id, meter) : fallback;
   return { meter, value };
-}
-
-function meterPercent(value, meter) {
-  if (!meter) {
-    return clamp(Number(value) || 0, 0, 1);
-  }
-
-  const max = Number(meter.max) || 78;
-  if (meter.mode === "gr" || meter.unit === "%" || meter.mode === "depth") {
-    return clamp(Number(value) / max, 0, 1);
-  }
-  return clamp((Number(value) + 72) / max, 0, 1);
-}
-
-function formatMeterValue(value, meter) {
-  if (!meter) {
-    return String(value ?? "");
-  }
-  return `${Number(value).toFixed(1)} ${meter.unit || "dB"}`;
 }
 
 function normalizeControlValue(control, value) {
