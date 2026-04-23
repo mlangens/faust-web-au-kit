@@ -45,6 +45,16 @@ stage_bundle() {
   cp -R "$source_path" "$destination_path"
 }
 
+append_bundle_relative_paths() {
+  local artifact_stem="$1"
+  local manifest_path="$2"
+
+  printf '%s\n' "Library/Audio/Plug-Ins/Components/${artifact_stem}.component" >> "$manifest_path"
+  printf '%s\n' "Library/Audio/Plug-Ins/VST3/${artifact_stem}.vst3" >> "$manifest_path"
+  printf '%s\n' "Library/Audio/Plug-Ins/CLAP/${artifact_stem}.clap" >> "$manifest_path"
+  printf '%s\n' "Applications/${artifact_stem}.app" >> "$manifest_path"
+}
+
 remove_bundle() {
   local destination_path="$1"
 

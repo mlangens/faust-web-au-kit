@@ -2,25 +2,44 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+ORIGINAL_ARGS=("$@")
+SCOPE="user"
 
-source "$ROOT_DIR/scripts/lib/bundles.zsh"
-source "$ROOT_DIR/scripts/lib/lock.zsh"
+while (( $# > 0 )); do
+  case "$1" in
+    --scope)
+      [[ $# -ge 2 ]] || { echo "Missing value for --scope" >&2; exit 1; }
+      SCOPE="$2"
+      shift 2
+      ;;
+    *)
+      if (( $# > 1 )) && [[ "$2" != --* ]]; then
+        shift 2
+      else
+        shift
+      fi
+      ;;
+  esac
+done
+
+case "$SCOPE" in
+  user|system)
+    ;;
+  *)
+    echo "Unsupported scope \"$SCOPE\". Use user or system." >&2
+    exit 1
+    ;;
+esac
+
+source "$ROOT_DIR/scripts/lib/packages.zsh"
 source "$ROOT_DIR/scripts/lib/runtime.zsh"
 
-load_app_runtime "$ROOT_DIR" "$@"
-INSTALL_LOCK_DIR="${TMPDIR:-/tmp}/${FWAK_APP_KEY}.user-install.lock"
+load_app_runtime "$ROOT_DIR" "${ORIGINAL_ARGS[@]}"
+PKG_PATH="$FWAK_DIST_DIR/${FWAK_ARTIFACT_STEM}-${FWAK_PROJECT_VERSION}.pkg"
+INSTALL_TARGET="$(installer_target_for_scope "$SCOPE")"
 
 cd "$ROOT_DIR"
-./scripts/build-native.sh "$@" >/dev/null
+./scripts/package-installer.sh "${ORIGINAL_ARGS[@]}"
+run_package_installer "$PKG_PATH" "$INSTALL_TARGET" "Installing ${FWAK_APP_NAME}"
 
-ensure_user_install_dirs
-
-acquire_lock "$INSTALL_LOCK_DIR"
-trap 'release_lock "$INSTALL_LOCK_DIR"' EXIT
-
-install_bundle "$FWAK_BUILD_DIR/${FWAK_ARTIFACT_STEM}.component" "$HOME/Library/Audio/Plug-Ins/Components/${FWAK_ARTIFACT_STEM}.component"
-install_bundle "$FWAK_BUILD_DIR/${FWAK_ARTIFACT_STEM}.vst3" "$HOME/Library/Audio/Plug-Ins/VST3/${FWAK_ARTIFACT_STEM}.vst3"
-install_bundle "$FWAK_BUILD_DIR/${FWAK_ARTIFACT_STEM}.clap" "$HOME/Library/Audio/Plug-Ins/CLAP/${FWAK_ARTIFACT_STEM}.clap"
-install_bundle "$FWAK_BUILD_DIR/${FWAK_ARTIFACT_STEM}.app" "$HOME/Applications/${FWAK_ARTIFACT_STEM}.app"
-
-echo "Installed ${FWAK_APP_NAME} bundles into ~/Library/Audio/Plug-Ins and ~/Applications."
+echo "Installed ${FWAK_APP_NAME} (${FWAK_PROJECT_VERSION}) via macOS package into ${SCOPE} scope."

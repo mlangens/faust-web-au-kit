@@ -82,11 +82,14 @@ npm run build:au -- --app pulse-pad
 npm run build:native
 npm run install:local
 npm run install:clone-suite
+npm run uninstall:local
 npm run uninstall:clone-suite
 npm run validate:au
 npm run doctor:au
 npm run package:installer
+npm run package:uninstaller
 npm run package:clone-suite-installer
+npm run package:clone-suite-uninstaller
 npm run preview
 ```
 
@@ -107,19 +110,25 @@ What they do:
 - `npm run build:native`
   Builds AUv2, CLAP, VST3, and standalone outputs for the selected app.
 - `npm run install:local`
-  Installs the selected app into `~/Library/Audio/Plug-Ins` and `~/Applications`.
+  Builds the selected app’s unsigned macOS installer package and installs it with `installer`. The default target is the current user’s `~/Library/Audio/Plug-Ins` and `~/Applications`; pass `-- --scope system` to target `/Library` and `/Applications`.
 - `npm run install:clone-suite`
-  Builds and installs the ordered Northline clone suite into `~/Library/Audio/Plug-Ins` and `~/Applications`.
+  Builds the ordered Northline clone suite installer package and installs it with `installer`. The default target is the current user scope; pass `-- --scope system` to target `/Library` and `/Applications`.
+- `npm run uninstall:local`
+  Builds the selected app’s matching unsigned macOS uninstaller package and runs it with `installer`. The default target is the current user scope; pass `-- --scope both` to remove both user and system installs.
 - `npm run uninstall:clone-suite`
-  Removes the ordered Northline clone suite from the user install scope by default. Pass `-- --scope both` to also remove system installs.
+  Builds the ordered Northline clone suite uninstaller package and runs it with `installer`. The default target is the current user scope; pass `-- --scope both` to also remove system installs.
 - `npm run validate:au`
   Rebuilds, installs, and runs `auval` for the selected app.
 - `npm run doctor:au`
   Reports user vs system AU installs, versions, hashes, and a compact `auval` summary for the selected app.
 - `npm run package:installer`
   Builds a namespaced unsigned macOS installer for the selected app.
+- `npm run package:uninstaller`
+  Builds a namespaced unsigned macOS uninstaller package for the selected app.
 - `npm run package:clone-suite-installer`
   Builds one unsigned macOS installer containing the full Northline clone suite into `dist/suites/northline-suite/`.
+- `npm run package:clone-suite-uninstaller`
+  Builds one unsigned macOS uninstaller containing the full Northline clone suite removal script into `dist/suites/northline-suite/`.
 - `npm run preview`
   Starts the shared preview server. Use `/` for the default app or `/?app=<app-key>` for any other registered app.
 
@@ -160,14 +169,17 @@ For app-specific native regression, pass an app key through the native scripts:
 npm run build:au -- --app pulse-pad
 npm run validate:au -- --app pulse-pad
 npm run package:installer -- --app pulse-pad
+npm run package:uninstaller -- --app pulse-pad
 ```
 
 For suite-oriented native flows:
 
 ```sh
 npm run install:clone-suite
+npm run uninstall:local -- --app pulse-pad --scope both
 npm run uninstall:clone-suite -- --scope both
 npm run package:clone-suite-installer
+npm run package:clone-suite-uninstaller
 ```
 
 ## Outputs
@@ -180,10 +192,12 @@ For `Limiter Lab`, the shared conventions now produce:
 - `build/apps/limiter-lab/LimiterLab.vst3`
 - `build/apps/limiter-lab/LimiterLab.app`
 - `dist/apps/limiter-lab/LimiterLab-0.3.0.pkg`
+- `dist/apps/limiter-lab/LimiterLab-0.3.0-uninstaller.pkg`
 
 For the bulk Northline path, the framework also produces:
 
 - `dist/suites/northline-suite/northline-suite-0.3.0.pkg`
+- `dist/suites/northline-suite/northline-suite-0.3.0-uninstaller.pkg`
 
 The preview server also publishes `generated/workspace_manifest.json`, which the web preview uses to render app navigation and route-aware schema loading.
 
@@ -194,21 +208,21 @@ Logic can be confused by duplicate AU installs in both `/Library` and `~/Library
 Recommended local flow:
 
 1. Build or validate the selected app.
-2. Install locally with `npm run install:local`.
+2. Install with `npm run install:local` so the generated `.pkg` is applied through macOS `installer`.
 3. Run `npm run doctor:au`.
-4. If the user and system copies differ, either remove the stale copy or install the fresh `.pkg` so `/Library` matches the current build.
+4. If the user and system copies differ, either remove the stale copy with `npm run uninstall:local -- --scope both` or reinstall with `npm run install:local -- --scope system` so `/Library` matches the current build.
 
 Recommended suite flow:
 
-1. Install the clone suite locally with `npm run install:clone-suite`.
-2. If you need a system-wide test build, generate `npm run package:clone-suite-installer` and install the resulting `.pkg`.
+1. Install the clone suite with `npm run install:clone-suite` for the current user, or pass `-- --scope system` for `/Library` and `/Applications`.
+2. Generate `npm run package:clone-suite-installer` or `npm run package:clone-suite-uninstaller` when you want standalone package artifacts for manual testing outside the npm wrappers.
 3. Clean out stale copies with `npm run uninstall:clone-suite -- --scope both` before re-testing host scans if needed.
 
 ## Practical Caveats
 
 - The native runtime layer is still macOS-first today.
 - The generated preview is development tooling only; shipped plugin bundles do not embed a web runtime.
-- The installer is unsigned and intended for local testing until a signed/notarized distribution path is added.
+- The installer and uninstaller packages are unsigned and intended for local testing until a signed/notarized distribution path is added.
 - AU validation passes, but the thin AUv2 wrapper still emits non-fatal warnings about CFString parameter naming and layout reporting.
 
 ## Research Note

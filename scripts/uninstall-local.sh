@@ -32,21 +32,20 @@ case "$SCOPE" in
 esac
 
 source "$ROOT_DIR/scripts/lib/packages.zsh"
+source "$ROOT_DIR/scripts/lib/runtime.zsh"
 
-IFS=$'\t' read -r RESOLVED_SUITE_ID SUITE_NAME SUITE_VERSION < <(
-  node "$ROOT_DIR/tools/list-suite-runtimes.mjs" "${ORIGINAL_ARGS[@]}" --format summary
-)
-PKG_PATH="$ROOT_DIR/dist/suites/${RESOLVED_SUITE_ID}/${RESOLVED_SUITE_ID}-${SUITE_VERSION}-uninstaller.pkg"
+load_app_runtime "$ROOT_DIR" "${ORIGINAL_ARGS[@]}"
+PKG_PATH="$FWAK_DIST_DIR/${FWAK_ARTIFACT_STEM}-${FWAK_PROJECT_VERSION}-uninstaller.pkg"
 
 cd "$ROOT_DIR"
-./scripts/package-suite-uninstaller.sh "${ORIGINAL_ARGS[@]}"
+./scripts/package-uninstaller.sh "${ORIGINAL_ARGS[@]}"
 
 if [[ "$SCOPE" == "user" || "$SCOPE" == "both" ]]; then
-  run_package_installer "$PKG_PATH" "CurrentUserHomeDirectory" "Uninstalling ${SUITE_NAME}"
+  run_package_installer "$PKG_PATH" "CurrentUserHomeDirectory" "Uninstalling ${FWAK_APP_NAME}"
 fi
 
 if [[ "$SCOPE" == "system" || "$SCOPE" == "both" ]]; then
-  run_package_installer "$PKG_PATH" "/" "Uninstalling ${SUITE_NAME}"
+  run_package_installer "$PKG_PATH" "/" "Uninstalling ${FWAK_APP_NAME}"
 fi
 
-echo "Uninstalled ${SUITE_NAME} (${SUITE_VERSION}) from ${SCOPE} scope via macOS package."
+echo "Uninstalled ${FWAK_APP_NAME} (${FWAK_PROJECT_VERSION}) from ${SCOPE} scope via macOS package."

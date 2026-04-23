@@ -6,7 +6,32 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 source "$ROOT_DIR/scripts/lib/bundles.zsh"
 source "$ROOT_DIR/scripts/lib/runtime.zsh"
 
-load_app_runtime "$ROOT_DIR" "$@"
+SKIP_BUILD=0
+FORWARD_ARGS=()
+
+while (( $# > 0 )); do
+  case "$1" in
+    --skip-build)
+      SKIP_BUILD=1
+      shift
+      ;;
+    --scope)
+      [[ $# -ge 2 ]] || { echo "Missing value for --scope" >&2; exit 1; }
+      shift 2
+      ;;
+    *)
+      FORWARD_ARGS+=("$1")
+      if (( $# > 1 )) && [[ "$2" != --* ]]; then
+        FORWARD_ARGS+=("$2")
+        shift 2
+      else
+        shift
+      fi
+      ;;
+  esac
+done
+
+load_app_runtime "$ROOT_DIR" "${FORWARD_ARGS[@]}"
 
 DIST_DIR="$FWAK_DIST_DIR"
 PKG_PATH="$DIST_DIR/${FWAK_ARTIFACT_STEM}-${FWAK_PROJECT_VERSION}.pkg"
@@ -17,8 +42,10 @@ cleanup() {
 }
 trap cleanup EXIT
 
-cd "$ROOT_DIR"
-./scripts/build-native.sh "$@" >/dev/null
+if (( ! SKIP_BUILD )); then
+  cd "$ROOT_DIR"
+  ./scripts/build-native.sh "${FORWARD_ARGS[@]}" >/dev/null
+fi
 
 ensure_system_stage_dirs "$STAGE_DIR"
 mkdir -p "$DIST_DIR"

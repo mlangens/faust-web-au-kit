@@ -26,6 +26,10 @@ while (( $# > 0 )); do
       SKIP_BUILD=1
       shift
       ;;
+    --scope)
+      [[ $# -ge 2 ]] || { echo "Missing value for --scope" >&2; exit 1; }
+      shift 2
+      ;;
     *)
       echo "Unknown argument: $1" >&2
       exit 1
@@ -40,7 +44,7 @@ IFS=$'\t' read -r RESOLVED_SUITE_ID SUITE_NAME SUITE_VERSION < <(
 PACKAGE_LOCK_DIR="${TMPDIR:-/tmp}/${RESOLVED_SUITE_ID}.suite-package.lock"
 DIST_DIR="$ROOT_DIR/dist/suites/${RESOLVED_SUITE_ID}"
 PKG_PATH="$DIST_DIR/${RESOLVED_SUITE_ID}-${SUITE_VERSION}.pkg"
-PACKAGE_ID="io.github.mlangens.faust-web-au-kit.${RESOLVED_SUITE_ID}.installer"
+INSTALLER_PACKAGE_ID="io.github.mlangens.faust-web-au-kit.${RESOLVED_SUITE_ID}.installer"
 STAGE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/${RESOLVED_SUITE_ID}.pkgroot.XXXXXX")"
 
 cleanup() {
@@ -78,7 +82,7 @@ done < <(
 rm -f "$PKG_PATH"
 pkgbuild \
   --root "$STAGE_DIR" \
-  --identifier "$PACKAGE_ID" \
+  --identifier "$INSTALLER_PACKAGE_ID" \
   --version "$SUITE_VERSION" \
   "$PKG_PATH"
 
