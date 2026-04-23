@@ -45,6 +45,22 @@ function normalizeRangeValue(value, min = 0, max = 1, fallback = 0.5) {
 }
 
 /**
+ * @param {unknown} unit
+ * @param {number} [min=0]
+ * @param {number} [max=1]
+ * @returns {number}
+ */
+function denormalizeRangeValue(unit, min = 0, max = 1) {
+  const normalized = Number(unit);
+  const safeMin = Number.isFinite(Number(min)) ? Number(min) : 0;
+  const safeMax = Number.isFinite(Number(max)) ? Number(max) : 1;
+  if (!Number.isFinite(normalized) || safeMax === safeMin) {
+    return safeMin;
+  }
+  return safeMin + clamp(normalized, 0, 1) * (safeMax - safeMin);
+}
+
+/**
  * @param {unknown} value
  * @param {number} [max=100]
  * @returns {number}
@@ -84,4 +100,30 @@ function normalizeFrequencyValue(value, min = 20, max = 20000) {
   );
 }
 
-export { clamp, normalizeBipolarUnitValue, normalizeFrequencyValue, normalizeRangeValue, normalizeUnitValue };
+/**
+ * @param {unknown} unit
+ * @param {number} [min=20]
+ * @param {number} [max=20000]
+ * @returns {number}
+ */
+function denormalizeFrequencyValue(unit, min = 20, max = 20000) {
+  const normalized = Number(unit);
+  const safeMin = Math.max(Number(min) || 20, 1);
+  const safeMax = Math.max(Number(max) || 20000, safeMin + 1);
+  if (!Number.isFinite(normalized)) {
+    return safeMin;
+  }
+
+  const clamped = clamp(normalized, 0, 1);
+  return 10 ** (Math.log10(safeMin) + clamped * (Math.log10(safeMax) - Math.log10(safeMin)));
+}
+
+export {
+  clamp,
+  denormalizeFrequencyValue,
+  denormalizeRangeValue,
+  normalizeBipolarUnitValue,
+  normalizeFrequencyValue,
+  normalizeRangeValue,
+  normalizeUnitValue
+};

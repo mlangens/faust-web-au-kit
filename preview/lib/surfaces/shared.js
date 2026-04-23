@@ -1,8 +1,15 @@
-import { readSchemaControlValue as readControlValue, resolveControl, resolveMeter } from "../control-store.js";
+import {
+  readSchemaControlValue as readControlValue,
+  rememberControlValue,
+  resolveControl,
+  resolveMeter
+} from "../control-store.js";
 import { formatValue } from "../formatting.js";
 import { formatMeterValue, meterPercent } from "../meters.js";
 import {
   clamp,
+  denormalizeFrequencyValue,
+  denormalizeRangeValue,
   normalizeFrequencyValue,
   normalizeRangeValue as normalizeBipolarValue,
   normalizeUnitValue
@@ -54,6 +61,176 @@ function normalizePointAxis(schema, state, config, fallback = 0.5, invert = fals
   }
 
   return clamp(fallback, 0, 1);
+}
+
+function denormalizePointAxisValue(control, config, normalized, invert = false) {
+  if (!control) {
+    return Number.isFinite(Number(normalized)) ? Number(normalized) : 0;
+  }
+
+  const unit = clamp(invert ? 1 - Number(normalized) : Number(normalized), 0, 1);
+  if (control.unit === "Hz" || control.scale === "log" || config.scale === "log" || config.frequencyScale === "log") {
+    return denormalizeFrequencyValue(unit, config.min ?? control.min ?? 20, config.max ?? control.max ?? 20000);
+  }
+  return denormalizeRangeValue(unit, config.min ?? control.min ?? 0, config.max ?? control.max ?? 1);
+}
+
+function controlStepPrecision(step) {
+  const source = String(step ?? "");
+  if (!source.includes(".")) {
+    return 0;
+  }
+  return source.split(".")[1]?.length ?? 0;
+}
+
+function coerceControlValue(control, value) {
+  if (!control) {
+    return value;
+  }
+
+  if (control.isToggle || control.type === "checkbox" || control.type === "button") {
+    return Number(value) >= 0.5 ? 1 : 0;
+  }
+
+  let nextValue = Number(value);
+  if (!Number.isFinite(nextValue)) {
+    nextValue = Number(control.init ?? control.min ?? 0);
+  }
+
+  const min = Number(control.min);
+  const max = Number(control.max);
+  if (Number.isFinite(min)) {
+    nextValue = Math.max(min, nextValue);
+  }
+  if (Number.isFinite(max)) {
+    nextValue = Math.min(max, nextValue);
+  }
+
+  const step = Number(control.step);
+  if (Number.isFinite(step) && step > 0) {
+    const base = Number.isFinite(min) ? min : 0;
+    nextValue = base + Math.round((nextValue - base) / step) * step;
+    nextValue = Number(nextValue.toFixed(Math.max(4, controlStepPrecision(control.step))));
+  }
+
+  return nextValue;
+}
+
+function setSurfaceControlValue(sourceNode, schema, state, key, value) {
+  const control = resolveControl(schema, key);
+  if (!control) {
+    return null;
+  }
+
+  const nextValue = coerceControlValue(control, value);
+  const doc = sourceNode?.ownerDocument ?? null;
+  const input = doc
+    ? Array.from(doc.querySelectorAll("input[data-control-id]")).find(
+      (node) => node.getAttribute("data-control-id") === (control.id || control.label)
+    )
+    : null;
+
+  if (input instanceof HTMLInputElement) {
+    if (input.type === "checkbox") {
+      input.checked = Number(nextValue) >= 0.5;
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+      return nextValue;
+    }
+
+    input.value = String(nextValue);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    return nextValue;
+  }
+
+  rememberControlValue(state, control, nextValue);
+  state.refreshSurfaceViews?.();
+  return nextValue;
+}
+
+function resolveSurfacePoint(surface, event) {
+  const rect = surface.getBoundingClientRect();
+  return {
+    x: clamp((event.clientX - rect.left) / Math.max(rect.width, 1), 0, 1),
+    y: clamp((event.clientY - rect.top) / Math.max(rect.height, 1), 0, 1),
+    rect
+  };
+}
+
+function createSurfaceInteractionController(surface) {
+  let activeDrag = null;
+  surface.style.touchAction = "none";
+
+  function dragToken(event) {
+    return typeof event.pointerId === "number" ? event.pointerId : "mouse";
+  }
+
+  const finishDrag = (event) => {
+    if (!activeDrag || dragToken(event) !== activeDrag.pointerId) {
+      return;
+    }
+
+    if (typeof activeDrag.rawPointerId === "number") {
+      activeDrag.captureTarget.releasePointerCapture?.(activeDrag.rawPointerId);
+    }
+    activeDrag.options.onEnd?.({
+      event,
+      point: resolveSurfacePoint(surface, event),
+      startPoint: activeDrag.startPoint
+    });
+    surface.classList.remove("is-dragging");
+    activeDrag = null;
+  };
+
+  const moveDrag = (event) => {
+    if (!activeDrag || dragToken(event) !== activeDrag.pointerId) {
+      return;
+    }
+
+    event.preventDefault();
+    activeDrag.options.onMove?.({
+      event,
+      point: resolveSurfacePoint(surface, event),
+      startPoint: activeDrag.startPoint
+    });
+  };
+
+  window.addEventListener("pointermove", moveDrag);
+  window.addEventListener("pointerup", finishDrag);
+  window.addEventListener("pointercancel", finishDrag);
+  window.addEventListener("mousemove", moveDrag);
+  window.addEventListener("mouseup", finishDrag);
+
+  return {
+    startDrag(event, options) {
+      if (activeDrag) {
+        return false;
+      }
+      if (typeof event.button === "number" && event.button !== 0 && event.pointerType !== "touch") {
+        return false;
+      }
+
+      const captureTarget = options.captureTarget || event.currentTarget || surface;
+      activeDrag = {
+        pointerId: dragToken(event),
+        rawPointerId: typeof event.pointerId === "number" ? event.pointerId : null,
+        captureTarget,
+        startPoint: resolveSurfacePoint(surface, event),
+        options
+      };
+      surface.classList.add("is-dragging");
+      if (typeof event.pointerId === "number") {
+        captureTarget.setPointerCapture?.(event.pointerId);
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      options.onStart?.({
+        event,
+        point: activeDrag.startPoint,
+        startPoint: activeDrag.startPoint
+      });
+      return true;
+    }
+  };
 }
 
 function surfaceDescription(model) {
@@ -349,7 +526,18 @@ function resolveBandState(schema, state, band) {
 
 function resolveRegionBoundary(schema, state, config, fallback) {
   if (Number.isFinite(Number(config.fixed))) {
-    return clamp(Number(config.fixed), 0, 1);
+    const fixed = Number(config.fixed);
+    if (config.scale === "log") {
+      return normalizeFrequencyValue(fixed, config.min ?? 20, config.max ?? 20000);
+    }
+
+    const min = Number(config.min);
+    const max = Number(config.max);
+    if (Number.isFinite(min) && Number.isFinite(max) && (min !== 0 || max !== 1 || fixed < 0 || fixed > 1)) {
+      return normalizeBipolarValue(fixed, min, max);
+    }
+
+    return clamp(fixed, 0, 1);
   }
 
   const control = resolveControl(schema, config.control);
@@ -425,9 +613,11 @@ export {
   createCurvePath,
   createReadoutRows,
   createSurfaceScaffold,
+  createSurfaceInteractionController,
   createSvgElement,
   createTracePath,
   createTransferPath,
+  denormalizePointAxisValue,
   formatMeterValue,
   humanizeId,
   measureMeterValue,
@@ -448,5 +638,6 @@ export {
   resolveRegionState,
   resolveSurfaceModels,
   resolveToneColor,
+  setSurfaceControlValue,
   surfaceDescription
 };

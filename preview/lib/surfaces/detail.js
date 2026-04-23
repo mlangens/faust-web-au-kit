@@ -4,8 +4,10 @@ import {
   buildSummarySurface,
   clamp,
   controlValueText,
+  createSurfaceInteractionController,
   createReadoutRows,
   createSurfaceScaffold,
+  denormalizePointAxisValue,
   formatMeterValue,
   humanizeId,
   measureMeterValue,
@@ -18,7 +20,8 @@ import {
   readoutValueText,
   resolveActivity,
   resolveControl,
-  resolveToneColor
+  resolveToneColor,
+  setSurfaceControlValue
 } from "./shared.js";
 
 function buildModulationDockSurface(model, schema, state) {
@@ -181,6 +184,7 @@ function buildTimelineSurface(model, schema, state) {
   tapLayer.className = "timeline-tap-layer";
   const tapViews = new Map();
   let selectedTapId = String(model.config.selection || taps[0]?.id || "");
+  const interactions = createSurfaceInteractionController(canvas);
 
   taps.forEach((tap) => {
     const button = document.createElement("button");
@@ -192,6 +196,34 @@ function buildTimelineSurface(model, schema, state) {
       selectedTapId = String(tap.id);
       update();
     });
+    const startTapDrag = (event) => {
+      selectedTapId = String(tap.id);
+      update();
+
+      if (!tap.timeControl) {
+        return;
+      }
+
+      interactions.startDrag(event, {
+        captureTarget: button,
+        onMove: ({ point }) => {
+          const control = resolveControl(schema, tap.timeControl);
+          const nextTime = denormalizePointAxisValue(
+            control,
+            {
+              min: tap.xMin ?? control?.min ?? 0,
+              max: tap.xMax ?? control?.max ?? 1000,
+              scale: tap.frequencyScale
+            },
+            clamp(point.x, 0.04, 0.96),
+            false
+          );
+          setSurfaceControlValue(card, schema, state, tap.timeControl, nextTime);
+        }
+      });
+    };
+    button.addEventListener("pointerdown", startTapDrag);
+    button.addEventListener("mousedown", startTapDrag);
     const label = document.createElement("span");
     label.className = "timeline-tap__label";
     label.textContent = tap.label || humanizeId(tap.id);
@@ -357,6 +389,24 @@ function buildRoutingSurface(model, schema, state) {
   const columns = Array.isArray(model.config.columns) ? model.config.columns : [];
   const rows = Array.isArray(model.config.rows) ? model.config.rows : [];
   matrix.style.gridTemplateColumns = `120px repeat(${Math.max(columns.length, 1)}, minmax(0, 1fr))`;
+  const routeByCellKey = new Map();
+  routes.forEach((route) => {
+    (Array.isArray(route.cells) ? route.cells : []).forEach((cellDef) => {
+      routeByCellKey.set(`${cellDef.row}:${cellDef.column}`, route);
+    });
+  });
+
+  const activateRoute = (route) => {
+    if (!route?.control) {
+      return;
+    }
+    const matches = Array.isArray(route.matchValues) ? route.matchValues : [route.matchValue];
+    const nextValue = matches.find((value) => Number.isFinite(Number(value)));
+    if (!Number.isFinite(Number(nextValue))) {
+      return;
+    }
+    setSurfaceControlValue(card, schema, state, route.control, Number(nextValue));
+  };
 
   const corner = document.createElement("span");
   corner.className = "routing-matrix__corner";
@@ -375,9 +425,16 @@ function buildRoutingSurface(model, schema, state) {
     label.textContent = row.label || humanizeId(row.id || row);
     matrix.append(label);
     columns.forEach((column) => {
-      const cell = document.createElement("div");
+      const cell = document.createElement("button");
+      cell.type = "button";
       cell.className = "routing-matrix__cell";
       const key = `${row.id || row}:${column.id || column}`;
+      cell.dataset.rowId = row.id || row;
+      cell.dataset.columnId = column.id || column;
+      cell.setAttribute("aria-label", `${label.textContent} to ${column.label || humanizeId(column.id || column)}`);
+      cell.addEventListener("click", () => {
+        activateRoute(routeByCellKey.get(key));
+      });
       matrix.append(cell);
       cellViews.set(key, cell);
     });
@@ -389,6 +446,9 @@ function buildRoutingSurface(model, schema, state) {
     const chip = document.createElement("button");
     chip.type = "button";
     chip.className = "surface-band-chip";
+    chip.addEventListener("click", () => {
+      activateRoute(route);
+    });
     const label = document.createElement("strong");
     label.textContent = route.label || humanizeId(route.id);
     const value = document.createElement("span");

@@ -256,6 +256,7 @@ body::before {
     radial-gradient(circle at top, rgba(255, 255, 255, 0.42), transparent 42%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.08)),
     rgba(255, 255, 255, 0.42);
+  touch-action: none;
 }
 
 .graph-svg {
@@ -310,6 +311,8 @@ body::before {
   box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.68);
   cursor: pointer;
   transition: transform 140ms ease, box-shadow 140ms ease;
+  touch-action: none;
+  user-select: none;
 }
 
 .graph-band-handle.is-selected {
@@ -564,6 +567,8 @@ body::before {
     0 12px 22px rgba(20, 26, 20, 0.16);
   cursor: pointer;
   transition: transform 140ms ease, box-shadow 140ms ease;
+  touch-action: none;
+  user-select: none;
 }
 
 .field-node.is-selected {
@@ -598,6 +603,7 @@ body::before {
     linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.14)),
     rgba(255, 255, 255, 0.42);
   background-size: 12.5% 100%, auto, auto;
+  touch-action: none;
 }
 
 .region-block {
@@ -618,6 +624,8 @@ body::before {
     0 16px 28px rgba(20, 26, 20, 0.08);
   cursor: pointer;
   text-align: left;
+  touch-action: none;
+  user-select: none;
 }
 
 .region-block.is-selected {
@@ -662,6 +670,7 @@ body::before {
 
 .transfer-canvas {
   min-height: 320px;
+  touch-action: none;
 }
 
 .transfer-svg {
@@ -697,10 +706,14 @@ body::before {
   position: absolute;
   width: 18px;
   height: 18px;
+  border: 0;
   border-radius: 999px;
   background: var(--handle-color, var(--accent));
   box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.78);
   transform: translate(-50%, -50%);
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
 }
 
 .transfer-handle.is-active {
@@ -970,6 +983,7 @@ body::before {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.12)),
     rgba(255, 255, 255, 0.42);
+  touch-action: none;
 }
 
 .timeline-lane-labels {
@@ -1012,6 +1026,8 @@ body::before {
     0 0 0 5px rgba(255, 255, 255, 0.72),
     0 12px 20px rgba(20, 26, 20, 0.16);
   cursor: pointer;
+  touch-action: none;
+  user-select: none;
 }
 
 .timeline-tap.is-selected {
@@ -1059,8 +1075,12 @@ body::before {
 }
 
 .routing-matrix__cell {
+  padding: 0;
   border: 1px solid rgba(20, 26, 20, 0.08);
   background: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
 }
 
 .routing-matrix__cell.is-active {

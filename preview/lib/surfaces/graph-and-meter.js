@@ -7,9 +7,11 @@ import {
   createCurvePath,
   createReadoutRows,
   createSurfaceScaffold,
+  createSurfaceInteractionController,
   createSvgElement,
   createTracePath,
   createTransferPath,
+  denormalizePointAxisValue,
   formatMeterValue,
   humanizeId,
   measureMeterValue,
@@ -25,7 +27,8 @@ import {
   resolveBandState,
   resolveControl,
   resolveRegionState,
-  resolveToneColor
+  resolveToneColor,
+  setSurfaceControlValue
 } from "./shared.js";
 
 function buildGraphSurface(model, schema, state) {
@@ -89,6 +92,7 @@ function buildGraphSurface(model, schema, state) {
   handleLayer.className = "graph-handle-layer";
   const handleViews = new Map();
   let selectedBandId = String(model.config.selection || bands[0]?.id || "");
+  const interactions = createSurfaceInteractionController(canvas);
 
   bands.forEach((band) => {
     const button = document.createElement("button");
@@ -102,6 +106,67 @@ function buildGraphSurface(model, schema, state) {
       selectedBandId = String(band.id);
       update();
     });
+    const startBandDrag = (event) => {
+      selectedBandId = String(band.id);
+      update();
+
+      if (!band.xControl && !band.yControl && !band.qControl) {
+        return;
+      }
+
+      const bandState = resolveBandState(schema, state, band);
+      const shapeMode = Boolean(event.shiftKey && band.qControl);
+      interactions.startDrag(event, {
+        captureTarget: button,
+        onMove: ({ point, startPoint }) => {
+          if (shapeMode && band.qControl) {
+            const qControl = resolveControl(schema, band.qControl);
+            const nextQ = denormalizePointAxisValue(
+              qControl,
+              {
+                min: band.qMin ?? qControl?.min ?? 0,
+                max: band.qMax ?? qControl?.max ?? 8
+              },
+              clamp(bandState.qValue + (startPoint.y - point.y), 0, 1),
+              false
+            );
+            setSurfaceControlValue(card, schema, state, band.qControl, nextQ);
+            return;
+          }
+
+          if (band.xControl) {
+            const xControl = resolveControl(schema, band.xControl);
+            const nextX = denormalizePointAxisValue(
+              xControl,
+              {
+                min: band.xMin ?? xControl?.min ?? 0,
+                max: band.xMax ?? xControl?.max ?? 1,
+                scale: band.frequencyScale
+              },
+              clamp(point.x, 0.04, 0.96),
+              false
+            );
+            setSurfaceControlValue(card, schema, state, band.xControl, nextX);
+          }
+
+          if (band.yControl) {
+            const yControl = resolveControl(schema, band.yControl);
+            const nextY = denormalizePointAxisValue(
+              yControl,
+              {
+                min: band.yMin ?? yControl?.min ?? -1,
+                max: band.yMax ?? yControl?.max ?? 1
+              },
+              clamp(point.y, 0.04, 0.96),
+              true
+            );
+            setSurfaceControlValue(card, schema, state, band.yControl, nextY);
+          }
+        }
+      });
+    };
+    button.addEventListener("pointerdown", startBandDrag);
+    button.addEventListener("mousedown", startBandDrag);
 
     const label = document.createElement("span");
     label.className = "graph-band-label";
@@ -334,6 +399,7 @@ function buildFieldSurface(model, schema, state) {
 
   const nodeViews = new Map();
   let selectedNodeId = String(model.config.selection || nodes[0]?.id || "");
+  const interactions = createSurfaceInteractionController(canvas);
 
   nodes.forEach((node) => {
     const button = document.createElement("button");
@@ -345,6 +411,51 @@ function buildFieldSurface(model, schema, state) {
       selectedNodeId = String(node.id);
       update();
     });
+    const startNodeDrag = (event) => {
+      selectedNodeId = String(node.id);
+      update();
+
+      if (!node.xControl && !node.yControl) {
+        return;
+      }
+
+      interactions.startDrag(event, {
+        captureTarget: button,
+        onMove: ({ point }) => {
+          if (node.xControl) {
+            const xControl = resolveControl(schema, node.xControl);
+            const nextX = denormalizePointAxisValue(
+              xControl,
+              {
+                min: node.xMin ?? xControl?.min ?? 0,
+                max: node.xMax ?? xControl?.max ?? 1,
+                scale: node.frequencyScale
+              },
+              clamp(point.x, 0.08, 0.92),
+              false
+            );
+            setSurfaceControlValue(card, schema, state, node.xControl, nextX);
+          }
+
+          if (node.yControl) {
+            const yControl = resolveControl(schema, node.yControl);
+            const nextY = denormalizePointAxisValue(
+              yControl,
+              {
+                min: node.yMin ?? yControl?.min ?? 0,
+                max: node.yMax ?? yControl?.max ?? 1,
+                scale: node.frequencyScale
+              },
+              clamp(point.y, 0.08, 0.92),
+              true
+            );
+            setSurfaceControlValue(card, schema, state, node.yControl, nextY);
+          }
+        }
+      });
+    };
+    button.addEventListener("pointerdown", startNodeDrag);
+    button.addEventListener("mousedown", startNodeDrag);
 
     const label = document.createElement("span");
     label.className = "field-node-label";
@@ -549,15 +660,56 @@ function buildTransferSurface(model, schema, state) {
   curve.setAttribute("class", "transfer-curve-path");
   svg.append(curve);
   canvas.append(svg);
+  const interactions = createSurfaceInteractionController(canvas);
 
   const handleLayer = document.createElement("div");
   handleLayer.className = "transfer-handle-layer";
   const handleViews = new Map();
+  const normalizedTransferValue = (role, point) => {
+    switch (role) {
+      case "input":
+        return clamp((0.44 - clamp(point.x, 0.16, 0.48)) / 0.18, 0, 1);
+      case "drive":
+        return clamp((0.62 - clamp(point.y, 0.12, 0.76)) / 0.3, 0, 1);
+      case "ceiling":
+        return clamp((0.28 - clamp(point.y, 0.08, 0.28)) / 0.2, 0, 1);
+      default:
+        return clamp(1 - point.y, 0, 1);
+    }
+  };
   curveControls.forEach((entry) => {
     const handle = document.createElement("div");
     handle.className = "transfer-handle";
     handle.dataset.role = entry.role || entry.control || "control";
     handle.style.setProperty("--handle-color", resolveToneColor(entry.tone));
+    const startHandleDrag = (event) => {
+      if (!entry.control) {
+        return;
+      }
+
+      interactions.startDrag(event, {
+        captureTarget: handle,
+        onMove: ({ point }) => {
+          const control = resolveControl(schema, entry.control);
+          if (!control) {
+            return;
+          }
+          const nextValue = denormalizePointAxisValue(
+            control,
+            {
+              min: control.min,
+              max: control.max,
+              scale: control.scale
+            },
+            normalizedTransferValue(entry.role, point),
+            false
+          );
+          setSurfaceControlValue(card, schema, state, entry.control, nextValue);
+        }
+      });
+    };
+    handle.addEventListener("pointerdown", startHandleDrag);
+    handle.addEventListener("mousedown", startHandleDrag);
     const label = document.createElement("span");
     label.className = "transfer-handle__label";
     label.textContent = entry.label || humanizeId(entry.control || entry.role || "control");
@@ -839,6 +991,7 @@ function buildRegionSurface(model, schema, state) {
   editor.className = "region-editor";
   const regionViews = new Map();
   let selectedRegionId = String(model.config.selection || regions[0]?.id || "");
+  const interactions = createSurfaceInteractionController(editor);
 
   regions.forEach((region) => {
     const button = document.createElement("button");
@@ -850,6 +1003,84 @@ function buildRegionSurface(model, schema, state) {
       selectedRegionId = String(region.id);
       update();
     });
+    const startRegionDrag = (event) => {
+      selectedRegionId = String(region.id);
+      update();
+
+      const runtimeRegion = resolveRegionState(schema, state, region);
+      const buttonRect = button.getBoundingClientRect();
+      const edgeThreshold = Math.min(24, Math.max(12, buttonRect.width * 0.18));
+      const localX = event.clientX - buttonRect.left;
+      const minWidth = 0.06;
+      let dragMode = "select";
+
+      if (region.startControl && localX <= edgeThreshold) {
+        dragMode = "resize-start";
+      } else if (region.endControl && localX >= buttonRect.width - edgeThreshold) {
+        dragMode = "resize-end";
+      } else if (region.startControl && region.endControl) {
+        dragMode = "move";
+      } else if (region.endControl) {
+        dragMode = "resize-end";
+      } else if (region.startControl) {
+        dragMode = "resize-start";
+      }
+
+      if (dragMode === "select") {
+        return;
+      }
+
+      interactions.startDrag(event, {
+        captureTarget: button,
+        onMove: ({ point, startPoint }) => {
+          const delta = point.x - startPoint.x;
+          let nextStart = runtimeRegion.start;
+          let nextEnd = runtimeRegion.end;
+
+          if (dragMode === "resize-start") {
+            nextStart = clamp(runtimeRegion.start + delta, 0, runtimeRegion.end - minWidth);
+          } else if (dragMode === "resize-end") {
+            nextEnd = clamp(runtimeRegion.end + delta, runtimeRegion.start + minWidth, 1);
+          } else if (dragMode === "move") {
+            const width = runtimeRegion.end - runtimeRegion.start;
+            nextStart = clamp(runtimeRegion.start + delta, 0, 1 - width);
+            nextEnd = nextStart + width;
+          }
+
+          if (region.startControl) {
+            const startControl = resolveControl(schema, region.startControl);
+            const nextStartValue = denormalizePointAxisValue(
+              startControl,
+              {
+                min: region.xMin ?? startControl?.min ?? 20,
+                max: region.xMax ?? startControl?.max ?? 20000,
+                scale: region.frequencyScale
+              },
+              nextStart,
+              false
+            );
+            setSurfaceControlValue(card, schema, state, region.startControl, nextStartValue);
+          }
+
+          if (region.endControl) {
+            const endControl = resolveControl(schema, region.endControl);
+            const nextEndValue = denormalizePointAxisValue(
+              endControl,
+              {
+                min: region.xMin ?? endControl?.min ?? 20,
+                max: region.xMax ?? endControl?.max ?? 20000,
+                scale: region.frequencyScale
+              },
+              nextEnd,
+              false
+            );
+            setSurfaceControlValue(card, schema, state, region.endControl, nextEndValue);
+          }
+        }
+      });
+    };
+    button.addEventListener("pointerdown", startRegionDrag);
+    button.addEventListener("mousedown", startRegionDrag);
 
     const label = document.createElement("strong");
     label.className = "region-block__label";
