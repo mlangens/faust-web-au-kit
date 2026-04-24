@@ -1,5 +1,8 @@
 import { expect, test } from "@playwright/test";
 
+import { summarizeControlLayout } from "../../preview/lib/control-panels.js";
+import { normalizeSchema } from "../../preview/lib/schema-ui.js";
+import { createSimulator } from "../../preview/lib/simulators.js";
 import { loadGeneratedProject, loadGeneratedWorkspace } from "../support/generated-projects.mjs";
 
 const atlasCurve = loadGeneratedProject("atlas-curve");
@@ -72,12 +75,35 @@ async function dragLocatorToCanvasRatio(page, locator, canvas, xRatio, yRatio) {
 }
 
 async function expectPreviewRouteLoaded(page, fixture, controlPattern) {
+  const normalized = normalizeSchema(fixture.schema);
+  const controlSummary = summarizeControlLayout(fixture.schema);
+  const expectedSurfaceIds = (fixture.schema.ui?.surfacePresetIds ?? []).filter((surfaceId) => surfaceId !== "meter-stack");
+  const simulator = createSimulator(normalized);
+
   await expect(page.locator("body")).toHaveAttribute("data-project-key", fixture.schema.project.key);
+  await expect(page.locator("body")).toHaveAttribute("data-ui-family", normalized.ui.family);
+  await expect(page.locator("body")).toHaveAttribute("data-ui-variant", normalized.ui.variant);
+  await expect(page.locator("body")).toHaveAttribute("data-ui-theme-group", normalized.ui.themeGroup);
+  await expect(page.locator("body")).toHaveAttribute("data-layout-profile", normalized.ui.layoutProfile);
+  await expect(page.locator("body")).toHaveAttribute("data-simulator-id", simulator.id);
+  if (fixture.schema.ui?.catalog?.referenceProduct) {
+    await expect(page.locator("body")).toHaveAttribute("data-reference-product", fixture.schema.ui.catalog.referenceProduct);
+  }
   await expect(page.getByRole("heading", { name: fixture.schema.project.name })).toBeVisible();
   await expect(page.locator('#previewNav a.is-active')).toHaveText(fixture.schema.project.name);
-  await expect(page.locator("#controls .control-card")).toHaveCount(fixture.schema.controls.length);
+  await expect(page.locator("#controls .control-card")).toHaveCount(controlSummary.visibleControls.length);
   await expect(page.locator("#meters .meter-card")).toHaveCount(fixture.schema.meters.length);
-  await expect(page.locator("#controls")).toContainText(controlPattern);
+  await expect(page.locator("#controls")).toHaveAttribute("data-control-layout", "sectioned");
+  await expect(page.locator("#controls")).toHaveAttribute("data-control-count", String(fixture.schema.controls.length));
+  await expect(page.locator("#controls")).toHaveAttribute("data-visible-control-count", String(controlSummary.visibleControls.length));
+  expect(await page.locator("#controls .control-section").count()).toBeGreaterThan(0);
+  await expect(page.locator("body")).toContainText(controlPattern);
+  await expect(page.locator("#surfaces .surface-card")).toHaveCount(expectedSurfaceIds.length);
+
+  const renderedSurfaceIds = await page.locator("#surfaces .surface-card").evaluateAll(
+    (nodes) => nodes.map((node) => node.getAttribute("data-surface-id"))
+  );
+  expect(renderedSurfaceIds).toEqual(expectedSurfaceIds);
 }
 
 const routeSmokeCases = [
@@ -187,6 +213,32 @@ test("default preview renders the current limiter schema surface", async ({ page
   }
 });
 
+test("default preview renders grouped non-slider control widgets", async ({ page }) => {
+  await page.goto("/");
+
+  const driveTargetCard = page.locator('.control-card[data-control-id="Drive Target"]');
+  const tubeDriveCard = page.locator('.control-card[data-control-id="Tube Drive"]');
+  const attackCard = page.locator('.control-card[data-control-id="Attack"]');
+  const vintageCard = page.locator('.control-card[data-control-id="Vintage Response"]');
+  const attackValue = attackCard.locator(".value");
+  const initialAttack = await attackValue.textContent();
+
+  await expect(page.locator("#controls")).toHaveAttribute("data-control-layout", "sectioned");
+  await expect(driveTargetCard).toHaveAttribute("data-control-widget", "segment");
+  await expect(tubeDriveCard).toHaveAttribute("data-control-widget", "fader");
+  await expect(attackCard).toHaveAttribute("data-control-widget", "dial");
+  await expect(vintageCard).toHaveAttribute("data-control-widget", "toggle");
+
+  await driveTargetCard.locator(".control-segment-chip").filter({ hasText: "Side" }).click();
+  await expect(driveTargetCard.locator(".value")).toHaveText("Side");
+
+  await vintageCard.locator(".control-segment-chip").filter({ hasText: "Vintage" }).click();
+  await expect(vintageCard.locator(".value")).toHaveText("Vintage");
+
+  await dragLocatorBy(page, attackCard.locator(".control-dial__knob"), 0, -42);
+  await expect(attackValue).not.toHaveText(initialAttack ?? "");
+});
+
 test("default preview interactions expose the new drive routing controls and toggle state", async ({ page }) => {
   await page.goto("/");
 
@@ -210,11 +262,16 @@ test("default preview renders the shared limiter surfaces", async ({ page }) => 
   const transferSurface = page.locator('.surface-card[data-surface-id="transfer-curve"]');
   const transferCanvas = transferSurface.locator(".transfer-canvas");
   const driveHandle = transferSurface.locator('.transfer-handle[data-role="drive"]');
+  const attackRow = transferSurface.locator(".surface-value-row").filter({ hasText: "Attack" });
   const outputSurface = page.locator('.surface-card[data-surface-id="output-popover"]');
   const outputTrimRow = outputSurface.locator(".surface-value-row").filter({ hasText: "Output Trim" });
   const vintageRow = outputSurface.locator(".surface-value-row").filter({ hasText: "Vintage Response" });
   const tubeDriveValue = page.locator('.control-card[data-control-id="Tube Drive"] .value');
+  const attackValue = page.locator('.control-card[data-control-id="Attack"] .value');
+  const outputTrimValue = page.locator('.control-card[data-control-id="Output Trim"] .value');
   const initialTubeDrive = await tubeDriveValue.textContent();
+  const initialAttack = await attackValue.textContent();
+  const initialOutputTrim = await outputTrimValue.textContent();
 
   await expect(page.locator("#surfaces .surface-card")).toHaveCount(3);
   await expect(page.locator("#surfaces .surface-card--summary")).toHaveCount(0);
@@ -228,23 +285,25 @@ test("default preview renders the shared limiter surfaces", async ({ page }) => 
   await expect(historySurface.locator(".surface-metric-row")).toContainText("Focus: High");
 
   await dragLocatorToCanvasRatio(page, driveHandle, transferCanvas, 0.68, 0.2);
-  await setRangeValue(page, "Attack", 4.2);
+  await dragLocatorBy(page, attackRow, 84, 0);
   await expect(tubeDriveValue).not.toHaveText(initialTubeDrive ?? "");
-  await expect(transferSurface).toContainText("4.20 ms");
+  await expect(attackValue).not.toHaveText(initialAttack ?? "");
 
-  await setRangeValue(page, "Output Trim", 1.5);
-  await setToggleValue(page, "Vintage Response", true);
-  await expect(outputTrimRow.locator("strong")).toHaveText("1.5 dB");
+  await dragLocatorBy(page, outputTrimRow, 92, 0);
+  await vintageRow.click();
+  await expect(outputTrimValue).not.toHaveText(initialOutputTrim ?? "");
+  await expect(outputTrimRow.locator("strong")).toContainText("dB");
   await expect(vintageRow.locator("strong")).toHaveText("Vintage");
 });
 
 test("pulse pad preview loads the alternate generated project and its meter layout", async ({ page }) => {
   await page.goto("/?app=pulse-pad");
+  const controlSummary = summarizeControlLayout(pulsePad.schema);
 
   await expect(page.locator("body")).toHaveAttribute("data-project-key", pulsePad.schema.project.key);
   await expect(page.getByRole("heading", { name: pulsePad.schema.project.name })).toBeVisible();
   await expect(page.locator('#previewNav a.is-active')).toHaveText(pulsePad.schema.project.name);
-  await expect(page.locator("#controls .control-card")).toHaveCount(pulsePad.schema.controls.length);
+  await expect(page.locator("#controls .control-card")).toHaveCount(controlSummary.visibleControls.length);
   await expect(page.locator("#meters .meter-card")).toHaveCount(pulsePad.schema.meters.length);
 
   for (const meter of pulsePad.schema.meters) {
@@ -272,7 +331,10 @@ test("pulse pad preview renders the shared synth parity surfaces", async ({ page
   const graphCanvas = graphSurface.locator(".graph-canvas");
   const motionHandle = graphSurface.locator('.graph-band-handle[data-band-id="motion-band"]');
   const motionValue = page.locator('.control-card[data-control-id="Motion"] .value');
+  const attackRow = keyboardSurface.locator(".surface-value-row").filter({ hasText: "Attack" });
+  const attackValue = page.locator('.control-card[data-control-id="Attack"] .value');
   const initialMotion = await motionValue.textContent();
+  const initialAttack = await attackValue.textContent();
 
   await expect(page.locator("#surfaces .surface-card")).toHaveCount(5);
   await expect(stackSurface.locator(".module-card")).toHaveCount(3);
@@ -282,12 +344,28 @@ test("pulse pad preview renders the shared synth parity surfaces", async ({ page
   await expect(keyboardSurface.locator(".keyboard-key")).toHaveCount(8);
 
   await dragLocatorToCanvasRatio(page, motionHandle, graphCanvas, 0.72, 0.2);
-  await setRangeValue(page, "Contour", 0.72);
+  await dragLocatorBy(page, attackRow, 84, 0);
   await setToggleValue(page, "gate", true);
 
   await expect(motionValue).not.toHaveText(initialMotion ?? "");
+  await expect(attackValue).not.toHaveText(initialAttack ?? "");
   await expect(dockSurface).toContainText("Held");
-  await expect(keyboardSurface).toContainText("0.72");
+  await expect(keyboardSurface.locator(".surface-value-row").filter({ hasText: "Attack" }).locator("strong")).not.toHaveText(initialAttack ?? "");
+});
+
+test("suite previews reserve surface-owned controls instead of duplicating them as shell cards", async ({ page }) => {
+  await page.goto("/?app=atlas-curve");
+  await expect(page.locator('.control-card[data-control-id="Bell Freq"]')).toHaveCount(0);
+  await expect(page.locator('.control-card[data-control-id="Bell Gain"]')).toHaveCount(0);
+  await expect(page.locator('.control-card[data-control-id="Bell Q"]')).toHaveCount(0);
+
+  await page.goto("/?app=relay-tape");
+  await expect(page.locator('.control-card[data-control-id="Time"]')).toHaveCount(0);
+  await expect(page.locator('.control-card[data-control-id="Feedback"]')).toHaveCount(0);
+
+  await page.goto("/?app=seed-tone");
+  await expect(page.locator('.control-card[data-control-id="Cutoff"]')).toHaveCount(0);
+  await expect(page.locator('.control-card[data-control-id="Drive"]')).toHaveCount(0);
 });
 
 for (const routeCase of routeSmokeCases) {
@@ -306,10 +384,7 @@ test("atlas curve preview renders the shared graph editor surface", async ({ pag
   const bellChip = eqSurface.locator(".surface-band-chip").filter({ hasText: /^Bell/ });
   const popover = eqSurface.locator(".graph-popover");
   const bellHandle = eqSurface.locator('.graph-band-handle[data-band-id="bell-band"]');
-  const bellFreqValue = page.locator('.control-card[data-control-id="Bell Freq"] .value');
-  const bellGainValue = page.locator('.control-card[data-control-id="Bell Gain"] .value');
-  const initialBellFreq = await bellFreqValue.textContent();
-  const initialBellGain = await bellGainValue.textContent();
+  const initialBellChip = await bellChip.textContent();
 
   await expect(surfacePanel).toBeVisible();
   await expect(surfacePanel).toContainText("Adaptive Curve Editor");
@@ -322,9 +397,7 @@ test("atlas curve preview renders the shared graph editor surface", async ({ pag
 
   await dragLocatorToCanvasRatio(page, bellHandle, graphCanvas, 0.68, 0.28);
 
-  await expect(bellFreqValue).not.toHaveText(initialBellFreq ?? "");
-  await expect(bellGainValue).not.toHaveText(initialBellGain ?? "");
-  await expect(bellChip).not.toContainText(initialBellFreq ?? "");
+  await expect(bellChip).not.toHaveText(initialBellChip ?? "");
   await expect(popover).toContainText("Bell Gain");
   await expect(popover.locator("h4")).toHaveText("Bell");
 
@@ -338,10 +411,8 @@ test("room bloom preview renders the shared macro field surface", async ({ page 
   const fieldSurface = page.locator('.surface-card[data-surface-id="reverb-space"]');
   const fieldCanvas = fieldSurface.locator(".field-canvas");
   const spreadNode = fieldSurface.locator('.field-node[data-node-id="spread-node"]');
-  const widthValue = page.locator('.control-card[data-control-id="Width"] .value');
-  const diffusionValue = page.locator('.control-card[data-control-id="Diffusion"] .value');
-  const initialWidth = await widthValue.textContent();
-  const initialDiffusion = await diffusionValue.textContent();
+  const fieldPopover = fieldSurface.locator(".field-popover");
+  const initialFieldPopover = await fieldPopover.textContent();
 
   await expect(page.locator("#surfaces .surface-card")).toHaveCount(2);
   await expect(fieldSurface.locator(".field-node")).toHaveCount(5);
@@ -349,9 +420,8 @@ test("room bloom preview renders the shared macro field surface", async ({ page 
 
   await dragLocatorToCanvasRatio(page, spreadNode, fieldCanvas, 0.84, 0.3);
 
-  await expect(widthValue).not.toHaveText(initialWidth ?? "");
-  await expect(diffusionValue).not.toHaveText(initialDiffusion ?? "");
-  await expect(fieldSurface.locator(".field-popover")).toContainText("Width");
+  await expect(fieldPopover).not.toHaveText(initialFieldPopover ?? "");
+  await expect(fieldPopover).toContainText("Width");
 });
 
 test("ember drive preview renders the shared multiband creative surfaces", async ({ page }) => {
@@ -361,8 +431,7 @@ test("ember drive preview renders the shared multiband creative surfaces", async
   const inspectorSurface = page.locator('.surface-card[data-surface-id="band-inspector"]');
   const dockSurface = page.locator('.surface-card[data-surface-id="modulation-dock"]');
   const lowBand = editorSurface.locator('.region-block[data-region-id="low-band"]');
-  const lowCrossoverValue = page.locator('.control-card[data-control-id="Low Crossover"] .value');
-  const initialLowCrossover = await lowCrossoverValue.textContent();
+  const initialLowBox = await lowBand.boundingBox();
 
   await expect(page.locator("#surfaces .surface-card")).toHaveCount(4);
   await expect(editorSurface.locator(".region-block")).toHaveCount(3);
@@ -372,7 +441,8 @@ test("ember drive preview renders the shared multiband creative surfaces", async
 
   await dragLocatorBy(page, lowBand, 72, 0);
 
-  await expect(lowCrossoverValue).not.toHaveText(initialLowCrossover ?? "");
+  const updatedLowBox = await lowBand.boundingBox();
+  expect(Math.abs((updatedLowBox?.width ?? 0) - (initialLowBox?.width ?? 0))).toBeGreaterThan(1);
 });
 
 test("relay tape preview renders the shared timeline, graph, and motion dock", async ({ page }) => {
@@ -383,8 +453,8 @@ test("relay tape preview renders the shared timeline, graph, and motion dock", a
   const dockSurface = page.locator('.surface-card[data-surface-id="modulation-dock"]');
   const timelineCanvas = timelineSurface.locator(".timeline-canvas");
   const mainTap = timelineSurface.locator('.timeline-tap[data-tap-id="main-echo"]');
-  const timeValue = page.locator('.control-card[data-control-id="Time"] .value');
-  const initialTime = await timeValue.textContent();
+  const mainChip = timelineSurface.locator(".surface-band-chip").filter({ hasText: /^Main/ });
+  const initialMainChip = await mainChip.textContent();
 
   await expect(page.locator("#surfaces .surface-card")).toHaveCount(4);
   await expect(timelineSurface.locator(".timeline-tap")).toHaveCount(5);
@@ -393,7 +463,7 @@ test("relay tape preview renders the shared timeline, graph, and motion dock", a
 
   await dragLocatorToCanvasRatio(page, mainTap, timelineCanvas, 0.74, 0.5);
 
-  await expect(timeValue).not.toHaveText(initialTime ?? "");
+  await expect(mainChip).not.toHaveText(initialMainChip ?? "");
   await expect(timelineSurface).toContainText(/ms/);
 });
 
@@ -404,6 +474,8 @@ test("contour forge preview renders the shared filter, routing, and modulation s
   const routingSurface = page.locator('.surface-card[data-surface-id="routing-matrix"]');
   const dockSurface = page.locator('.surface-card[data-surface-id="modulation-dock"]');
   const routingValue = page.locator('.control-card[data-control-id="Routing"] .value');
+  const motionSourceValue = page.locator('.control-card[data-control-id="Motion Source"] .value');
+  const initialMotionSource = await motionSourceValue.textContent();
 
   await expect(page.locator("#surfaces .surface-card")).toHaveCount(4);
   await expect(graphSurface.locator(".graph-band-handle")).toHaveCount(4);
@@ -411,8 +483,12 @@ test("contour forge preview renders the shared filter, routing, and modulation s
   await expect(dockSurface.locator(".mod-slot-card")).toHaveCount(3);
 
   await routingSurface.locator('.routing-matrix__cell[data-row-id="mid-side"][data-column-id="motion"]').click();
+  const motionSourceRow = dockSurface.locator(".surface-value-row").filter({ hasText: "Motion Source" });
+  await motionSourceRow.focus();
+  await motionSourceRow.press("ArrowLeft");
 
   await expect(routingValue).toHaveText("Mid/Side");
+  await expect(motionSourceValue).not.toHaveText(initialMotionSource ?? "");
   await expect(routingSurface.locator(".routing-matrix__cell.is-active")).toHaveCount(3);
 });
 
@@ -426,8 +502,8 @@ test("mirror field preview renders the shared synth stack, rack, dock, and keybo
   const keyboardSurface = page.locator('.surface-card[data-surface-id="keyboard-strip"]');
   const graphCanvas = graphSurface.locator(".graph-canvas");
   const motionHandle = graphSurface.locator('.graph-band-handle[data-band-id="motion-band"]');
-  const contourValue = page.locator('.control-card[data-control-id="Contour"] .value');
-  const initialContour = await contourValue.textContent();
+  const motionChip = graphSurface.locator(".surface-band-chip").filter({ hasText: /^Motion/ });
+  const initialMotionChip = await motionChip.textContent();
 
   await expect(page.locator("#surfaces .surface-card")).toHaveCount(5);
   await expect(stackSurface.locator(".module-card")).toHaveCount(3);
@@ -439,7 +515,7 @@ test("mirror field preview renders the shared synth stack, rack, dock, and keybo
   await dragLocatorToCanvasRatio(page, motionHandle, graphCanvas, 0.72, 0.22);
   await setRangeValue(page, "Voice Mode", 1);
 
-  await expect(contourValue).not.toHaveText(initialContour ?? "");
+  await expect(motionChip).not.toHaveText(initialMotionChip ?? "");
   await expect(keyboardSurface.locator(".keyboard-key.is-active")).toHaveCount(2);
 });
 
@@ -448,15 +524,21 @@ test("seed tone preview renders the shared section grid surface", async ({ page 
 
   const gridSurface = page.locator('.surface-card[data-surface-id="section-grid"]');
   const toneSection = gridSurface.locator(".section-grid-card").filter({ hasText: /^Tone/ });
+  const cutoffRow = toneSection.locator(".surface-value-row").filter({ hasText: "Cutoff" });
+  const driveRow = toneSection.locator(".surface-value-row").filter({ hasText: "Drive" });
+  const initialCutoff = await cutoffRow.locator("strong").textContent();
+  const initialDrive = await driveRow.locator("strong").textContent();
 
   await expect(page.locator("#surfaces .surface-card")).toHaveCount(1);
   await expect(gridSurface.locator(".section-grid-card")).toHaveCount(4);
 
-  await setRangeValue(page, "Cutoff", 4200);
-  await setRangeValue(page, "Drive", 9);
+  await dragLocatorBy(page, cutoffRow, 92, 0);
+  await dragLocatorBy(page, driveRow, 72, 0);
 
-  await expect(toneSection).toContainText("4200 Hz");
-  await expect(toneSection).toContainText("9.0 dB");
+  await expect(cutoffRow.locator("strong")).not.toHaveText(initialCutoff ?? "");
+  await expect(driveRow.locator("strong")).not.toHaveText(initialDrive ?? "");
+  await expect(toneSection).toContainText("Hz");
+  await expect(toneSection).toContainText("dB");
 });
 
 test("span pair preview renders the shared dual-filter and routing surfaces", async ({ page }) => {
@@ -468,9 +550,8 @@ test("span pair preview renders the shared dual-filter and routing surfaces", as
   const filterBChip = graphSurface.locator(".surface-band-chip").filter({ hasText: /^Filter B/ });
   const graphCanvas = graphSurface.locator(".graph-canvas");
   const filterBHandle = graphSurface.locator('.graph-band-handle[data-band-id="filter-b"]');
-  const cutoffValue = page.locator('.control-card[data-control-id="Filter B Cutoff"] .value');
   const routingValue = page.locator('.control-card[data-control-id="Routing"] .value');
-  const initialCutoff = await cutoffValue.textContent();
+  const initialFilterBChip = await filterBChip.textContent();
 
   await expect(page.locator("#surfaces .surface-card")).toHaveCount(3);
   await expect(graphSurface.locator(".graph-band-handle")).toHaveCount(2);
@@ -480,8 +561,7 @@ test("span pair preview renders the shared dual-filter and routing surfaces", as
   await dragLocatorToCanvasRatio(page, filterBHandle, graphCanvas, 0.74, 0.3);
   await routingSurface.locator('.routing-matrix__cell[data-row-id="cross"][data-column-id="filters"]').click();
 
-  await expect(cutoffValue).not.toHaveText(initialCutoff ?? "");
-  await expect(filterBChip).not.toContainText(initialCutoff ?? "");
+  await expect(filterBChip).not.toHaveText(initialFilterBChip ?? "");
   await expect(routingValue).toHaveText("Cross");
   await expect(routingSurface.locator(".routing-matrix__cell.is-active")).toHaveCount(3);
 });
@@ -494,19 +574,21 @@ test("pocket cut preview renders the shared compact filter surfaces", async ({ p
   const cutoffChip = graphSurface.locator(".surface-band-chip").filter({ hasText: /^Cutoff/ });
   const graphCanvas = graphSurface.locator(".graph-canvas");
   const cutoffHandle = graphSurface.locator('.graph-band-handle[data-band-id="cutoff-core"]');
-  const cutoffValue = page.locator('.control-card[data-control-id="Cutoff"] .value');
-  const initialCutoff = await cutoffValue.textContent();
+  const mixHandle = graphSurface.locator('.graph-band-handle[data-band-id="mix-band"]');
+  const mixRow = outputSurface.locator(".surface-value-row").filter({ hasText: "Mix" });
+  const initialCutoffChip = await cutoffChip.textContent();
+  const initialMix = await mixRow.locator("strong").textContent();
 
   await expect(page.locator("#surfaces .surface-card")).toHaveCount(2);
   await expect(graphSurface.locator(".graph-band-handle")).toHaveCount(3);
   await expect(outputSurface).toContainText("Envelope");
 
   await dragLocatorToCanvasRatio(page, cutoffHandle, graphCanvas, 0.68, 0.26);
-  await setRangeValue(page, "Mix", 64);
+  await dragLocatorToCanvasRatio(page, mixHandle, graphCanvas, 0.9, 0.18);
 
-  await expect(cutoffValue).not.toHaveText(initialCutoff ?? "");
-  await expect(cutoffChip).not.toContainText(initialCutoff ?? "");
-  await expect(outputSurface).toContainText("64 %");
+  await expect(cutoffChip).not.toHaveText(initialCutoffChip ?? "");
+  await expect(mixRow.locator("strong")).not.toHaveText(initialMix ?? "");
+  await expect(outputSurface).toContainText("%");
 });
 
 test("press deck preview renders the shared history and detector surfaces", async ({ page }) => {
@@ -517,8 +599,7 @@ test("press deck preview renders the shared history and detector surfaces", asyn
   const hpChip = detectorSurface.locator(".surface-band-chip").filter({ hasText: /^HP/ });
   const graphCanvas = detectorSurface.locator(".graph-canvas");
   const hpHandle = detectorSurface.locator('.graph-band-handle[data-band-id="detector-hp-band"]');
-  const hpValue = page.locator('.control-card[data-control-id="Detector HP"] .value');
-  const initialHp = await hpValue.textContent();
+  const initialHpChip = await hpChip.textContent();
 
   await expect(page.locator("#surfaces .surface-card")).toHaveCount(3);
   await expect(historySurface.locator(".trace-path")).toHaveCount(4);
@@ -526,8 +607,7 @@ test("press deck preview renders the shared history and detector surfaces", asyn
 
   await dragLocatorToCanvasRatio(page, hpHandle, graphCanvas, 0.44, 0.18);
 
-  await expect(hpValue).not.toHaveText(initialHp ?? "");
-  await expect(hpChip).not.toContainText(initialHp ?? "");
+  await expect(hpChip).not.toHaveText(initialHpChip ?? "");
 });
 
 test("headroom preview renders the shared limiter transfer curve", async ({ page }) => {
@@ -537,8 +617,8 @@ test("headroom preview renders the shared limiter transfer curve", async ({ page
   const transferSurface = page.locator('.surface-card[data-surface-id="transfer-curve"]');
   const transferCanvas = transferSurface.locator(".transfer-canvas");
   const driveHandle = transferSurface.locator('.transfer-handle[data-role="drive"]');
-  const driveValue = page.locator('.control-card[data-control-id="Drive"] .value');
-  const initialDrive = await driveValue.textContent();
+  const driveRow = transferSurface.locator(".surface-value-row").filter({ hasText: "Drive" });
+  const initialDrive = await driveRow.locator("strong").textContent();
 
   await expect(page.locator("#surfaces .surface-card")).toHaveCount(3);
   await expect(historySurface.locator(".trace-path")).toHaveCount(5);
@@ -546,7 +626,7 @@ test("headroom preview renders the shared limiter transfer curve", async ({ page
 
   await dragLocatorToCanvasRatio(page, driveHandle, transferCanvas, 0.68, 0.2);
 
-  await expect(driveValue).not.toHaveText(initialDrive ?? "");
+  await expect(driveRow.locator("strong")).not.toHaveText(initialDrive ?? "");
   await expect(transferSurface).toContainText("dB");
 });
 
@@ -558,8 +638,8 @@ test("latch line preview renders the shared gate curve and detector editor", asy
   const hpChip = detectorSurface.locator(".surface-band-chip").filter({ hasText: /^HP/ });
   const transferCanvas = transferSurface.locator(".transfer-canvas");
   const thresholdHandle = transferSurface.locator('.transfer-handle[data-role="input"]');
-  const thresholdValue = page.locator('.control-card[data-control-id="Threshold"] .value');
-  const initialThreshold = await thresholdValue.textContent();
+  const thresholdRow = transferSurface.locator(".surface-value-row").filter({ hasText: "Threshold" });
+  const initialThreshold = await thresholdRow.locator("strong").textContent();
 
   await expect(page.locator("#surfaces .surface-card")).toHaveCount(3);
   await expect(transferSurface.locator(".transfer-handle")).toHaveCount(3);
@@ -567,7 +647,7 @@ test("latch line preview renders the shared gate curve and detector editor", asy
 
   await dragLocatorToCanvasRatio(page, thresholdHandle, transferCanvas, 0.24, 0.72);
 
-  await expect(thresholdValue).not.toHaveText(initialThreshold ?? "");
+  await expect(thresholdRow.locator("strong")).not.toHaveText(initialThreshold ?? "");
   await expect(hpChip).toContainText("HP");
 });
 
@@ -579,8 +659,7 @@ test("silk guard preview renders the shared de-ess history and focus filter", as
   const focusChip = filterSurface.locator(".surface-band-chip").filter({ hasText: /^Focus/ });
   const graphCanvas = filterSurface.locator(".graph-canvas");
   const focusHandle = filterSurface.locator('.graph-band-handle[data-band-id="focus-band"]');
-  const focusValue = page.locator('.control-card[data-control-id="Center Frequency"] .value');
-  const initialFocus = await focusValue.textContent();
+  const initialFocusChip = await focusChip.textContent();
 
   await expect(page.locator("#surfaces .surface-card")).toHaveCount(3);
   await expect(historySurface.locator(".trace-path")).toHaveCount(5);
@@ -588,8 +667,7 @@ test("silk guard preview renders the shared de-ess history and focus filter", as
 
   await dragLocatorToCanvasRatio(page, focusHandle, graphCanvas, 0.66, 0.32);
 
-  await expect(focusValue).not.toHaveText(initialFocus ?? "");
-  await expect(focusChip).not.toContainText(initialFocus ?? "");
+  await expect(focusChip).not.toHaveText(initialFocusChip ?? "");
 });
 
 test("split stack preview renders the shared multiband editor and linked inspector", async ({ page }) => {
@@ -598,8 +676,9 @@ test("split stack preview renders the shared multiband editor and linked inspect
   const editorSurface = page.locator('.surface-card[data-surface-id="multiband-editor"]');
   const inspectorSurface = page.locator('.surface-card[data-surface-id="band-inspector"]');
   const lowBand = editorSurface.locator('.region-block[data-region-id="low-band"]');
-  const lowCrossoverValue = page.locator('.control-card[data-control-id="Low Crossover"] .value');
-  const initialLowCrossover = await lowCrossoverValue.textContent();
+  const attackRow = inspectorSurface.locator(".surface-value-row").filter({ hasText: "Attack" });
+  const initialLowBox = await lowBand.boundingBox();
+  const initialAttack = await attackRow.locator("strong").textContent();
 
   await expect(page.locator("#surfaces .surface-card")).toHaveCount(3);
   await expect(editorSurface.locator(".region-block")).toHaveCount(3);
@@ -607,8 +686,11 @@ test("split stack preview renders the shared multiband editor and linked inspect
   await expect(inspectorSurface).toContainText(/Attack|Release|Timing Spread|Band Link/);
 
   await dragLocatorBy(page, lowBand, 72, 0);
+  await dragLocatorBy(page, attackRow, 84, 0);
 
-  await expect(lowCrossoverValue).not.toHaveText(initialLowCrossover ?? "");
+  const updatedLowBox = await lowBand.boundingBox();
+  expect(Math.abs((updatedLowBox?.width ?? 0) - (initialLowBox?.width ?? 0))).toBeGreaterThan(1);
+  await expect(attackRow.locator("strong")).not.toHaveText(initialAttack ?? "");
 });
 
 test("preview falls back cleanly when benchmark data is unavailable", async ({ page }) => {

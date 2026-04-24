@@ -75,6 +75,102 @@
       }
     },
     "preview": {
+      "controls": {
+        "layout": "sectioned",
+        "sections": [
+          {
+            "id": "routing-modes",
+            "title": "Routing Modes",
+            "description": "Mode and routing stay in a shared strip so the utility lane leads with signal flow decisions first.",
+            "kind": "segmented-strip",
+            "items": [
+              {
+                "control": "Mode"
+              },
+              {
+                "control": "Routing"
+              }
+            ]
+          },
+          {
+            "id": "filter-a-shape",
+            "title": "Filter A",
+            "description": "The first filter keeps cutoff and resonance together as a compact paired module.",
+            "kind": "dial-grid",
+            "columns": 2,
+            "items": [
+              {
+                "control": "Filter A Cutoff",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Filter A Resonance",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "filter-b-shape",
+            "title": "Filter B",
+            "description": "The second filter mirrors the first so both sides read as balanced shared widgets.",
+            "kind": "dial-grid",
+            "columns": 2,
+            "items": [
+              {
+                "control": "Filter B Cutoff",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Filter B Resonance",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "span-coupling",
+            "title": "Span Coupling",
+            "description": "Spacing, link depth, and drive sit in a tight strip for the compact dual-filter utility flow.",
+            "kind": "fader-bank",
+            "columns": 3,
+            "items": [
+              {
+                "control": "Spacing",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Link",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Drive",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "mix-output",
+            "title": "Mix + Output",
+            "description": "Wet balance, trim, and bypass stay in their own closing bank instead of a leftover slider cluster.",
+            "kind": "fader-bank",
+            "columns": 3,
+            "items": [
+              {
+                "control": "Mix",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Output",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Bypass"
+              }
+            ]
+          }
+        ],
+        "supplementalTitle": "Supplemental Span Pair Controls",
+        "supplementalDescription": "Any newly added utility parameters stay reachable here until the compact span layout is revised."
+      },
       "surfaces": {
         "filter-canvas": {
           "title": "Paired filter canvas",

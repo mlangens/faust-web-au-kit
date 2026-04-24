@@ -2,6 +2,7 @@
   "extends": "./tsconfig.base.json",
   "include": [
     "types/**/*.d.ts",
+    "preview/lib/control-panels.js",
     "preview/lib/control-store.js",
     "preview/lib/dom.js",
     "preview/lib/formatting.js",

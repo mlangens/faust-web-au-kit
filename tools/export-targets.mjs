@@ -18,7 +18,10 @@ try {
     exportFaustTarget(runtime, stager, target);
   }
 
-  const uiJsonPath = exportJsonMetadata(runtime, stager);
+  const uiJsonPath = exportJsonMetadata(runtime, stager, {
+    allowCachedFallback: exportProfile === "preview",
+    preferCached: exportProfile === "preview"
+  });
   const uiArtifacts = buildUiManifestArtifacts(runtime, uiJsonPath);
   stager.stageTextArtifact("ui_manifest.h", uiArtifacts.header);
   stager.stageTextArtifact("ui_schema.json", `${JSON.stringify(uiArtifacts.schema, null, 2)}\n`);

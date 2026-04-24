@@ -69,6 +69,101 @@
       }
     },
     "preview": {
+      "controls": {
+        "layout": "sectioned",
+        "sections": [
+          {
+            "id": "voice-shape",
+            "title": "Voice Shape",
+            "description": "Shared dials keep the core oscillator color controls together before motion and staging take over.",
+            "kind": "dial-grid",
+            "columns": 4,
+            "items": [
+              {
+                "control": "Texture",
+                "widget": "dial"
+              },
+              {
+                "control": "Tone",
+                "widget": "dial"
+              },
+              {
+                "control": "Detune",
+                "widget": "dial"
+              },
+              {
+                "control": "Sub",
+                "widget": "dial"
+              }
+            ]
+          },
+          {
+            "id": "motion-envelope",
+            "title": "Contour and Motion",
+            "description": "Contour sweep, stereo movement, and envelope timing now read as one reusable motion cluster.",
+            "kind": "dial-grid",
+            "columns": 4,
+            "items": [
+              {
+                "control": "Contour",
+                "widget": "dial"
+              },
+              {
+                "control": "Motion",
+                "widget": "dial"
+              },
+              {
+                "control": "Attack",
+                "widget": "dial"
+              },
+              {
+                "control": "Release",
+                "widget": "dial"
+              }
+            ]
+          },
+        {
+          "id": "stage-field",
+          "title": "Stage and Field",
+          "description": "Drive and width move into a compact shared staging group instead of sitting in a flat slider row.",
+          "kind": "mixed-grid",
+          "columns": 2,
+          "items": [
+            {
+              "control": "Drive",
+              "widget": "fader"
+            },
+            {
+              "control": "Stereo Width",
+              "widget": "slider"
+            }
+          ]
+        },
+        {
+          "id": "performance-readout",
+          "title": "Performance Readout",
+          "description": "Keep the lightweight preview transport controls grouped instead of leaving hidden synth plumbing to the fallback panel.",
+          "kind": "mixed-grid",
+          "columns": 3,
+          "items": [
+            {
+              "control": "freq",
+              "widget": "dial"
+            },
+            {
+              "control": "gain",
+              "widget": "fader"
+            },
+            {
+              "control": "gate",
+              "widget": "toggle"
+            }
+          ]
+        }
+      ],
+        "supplementalTitle": "Performance Readout",
+        "supplementalDescription": "Pulse Pad's preview controls now favor grouped shared widgets for voice shape, motion contour, and output field."
+      },
       "surfaces": {
         "oscillator-stack": {
           "title": "Voice stack",

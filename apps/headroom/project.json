@@ -95,6 +95,104 @@
       }
     },
     "preview": {
+      "controls": {
+        "layout": "sectioned",
+        "sections": [
+          {
+            "id": "limiter-voice",
+            "title": "Limiter Voice",
+            "description": "Keep algorithm, style, detail, and audition choices in one shared segmented strip.",
+            "kind": "segmented-strip",
+            "items": [
+              {
+                "control": "Algorithm"
+              },
+              {
+                "control": "Style"
+              },
+              {
+                "control": "Detail"
+              },
+              {
+                "control": "Audition"
+              }
+            ]
+          },
+          {
+            "id": "clamp-staging",
+            "title": "Clamp Staging",
+            "description": "Use a shared fader bank for the main input-drive-ceiling-output lane.",
+            "kind": "fader-bank",
+            "columns": 4,
+            "items": [
+              {
+                "control": "Input Gain",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Drive",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Ceiling",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Output Trim",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "response-detail",
+            "title": "Response & Detail",
+            "description": "Move timing, clamp contour, and linking into a shared dial grid instead of a flat slider wall.",
+            "kind": "dial-grid",
+            "items": [
+              {
+                "control": "Lookahead",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Release",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Transient Preserve",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Low Guard",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Ceiling Shape",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Stereo Link"
+              }
+            ]
+          },
+          {
+            "id": "output-utilities",
+            "title": "Output Utilities",
+            "description": "Keep loudness matching and bypass in a compact shared toggle bank.",
+            "kind": "toggle-bank",
+            "items": [
+              {
+                "control": "Loudness Match",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Bypass"
+              }
+            ]
+          }
+        ],
+        "supplementalTitle": "Additional Controls",
+        "supplementalDescription": "Any limiter parameters not yet mapped into the grouped layout stay available here while the preview evolves."
+      },
       "surfaces": {
         "history-trace": {
           "title": "Mastering history",

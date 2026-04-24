@@ -98,6 +98,139 @@
       }
     },
     "preview": {
+      "controls": {
+        "layout": "sectioned",
+        "sections": [
+          {
+            "id": "editor-modes",
+            "title": "Editor Modes",
+            "description": "Mode, voicing, and cut slope stay grouped so Atlas reads like a guided flagship editor instead of a generic parameter pile.",
+            "kind": "segmented-strip",
+            "items": [
+              {
+                "control": "Mode"
+              },
+              {
+                "control": "Style"
+              },
+              {
+                "control": "Cut Slope"
+              }
+            ]
+          },
+          {
+            "id": "focus-guides",
+            "title": "Focus + Analyzer",
+            "description": "Band focus and analyzer perspective live in their own shared strip to keep the curve editor anchored around listening intent.",
+            "kind": "segmented-strip",
+            "items": [
+              {
+                "control": "Band Focus"
+              },
+              {
+                "control": "Analyzer"
+              }
+            ]
+          },
+          {
+            "id": "foundation-curve",
+            "title": "Foundation Curve",
+            "description": "Broad shaping moves cover the filter edge, shelves, air lift, and tilt before the tighter bell work begins.",
+            "kind": "dial-grid",
+            "columns": 3,
+            "items": [
+              {
+                "control": "Low Cut",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Low Shelf",
+                "surfaceOnly": true
+              },
+              {
+                "control": "High Shelf",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Air",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Tilt",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "bell-sculpt",
+            "title": "Bell Sculpt",
+            "description": "The primary bell keeps frequency, gain, and Q together as one reusable editor module.",
+            "kind": "dial-grid",
+            "columns": 3,
+            "items": [
+              {
+                "control": "Bell Freq",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Bell Gain",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Bell Q",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "presence-sculpt",
+            "title": "Presence Sculpt",
+            "description": "Presence shaping mirrors the bell cluster so both mid-band moves feel like matched flagship toolsets.",
+            "kind": "dial-grid",
+            "columns": 3,
+            "items": [
+              {
+                "control": "Presence Freq",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Presence Gain",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Presence Q",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "guidance-output",
+            "title": "Guidance + Output",
+            "description": "Adaptive guide depth, dynamic response, and trim stay in a compact strip with bypass close by.",
+            "kind": "fader-bank",
+            "columns": 4,
+            "items": [
+              {
+                "control": "Guide",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Dynamic",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Output Trim",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Bypass"
+              }
+            ]
+          }
+        ],
+        "supplementalTitle": "Supplemental Atlas Controls",
+        "supplementalDescription": "Any newly added editor helpers stay reachable here until Atlas gets another flagship control pass."
+      },
       "surfaces": {
         "eq-canvas": {
           "title": "Adaptive curve editor",

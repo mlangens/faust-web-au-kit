@@ -8,6 +8,7 @@ import {
   createReadoutRows,
   createSurfaceScaffold,
   denormalizePointAxisValue,
+  enhanceSurfaceReadoutRow,
   formatMeterValue,
   humanizeId,
   measureMeterValue,
@@ -79,6 +80,7 @@ function buildModulationDockSurface(model, schema, state) {
       label.textContent = item.label;
       const value = document.createElement("strong");
       row.append(label, value);
+      enhanceSurfaceReadoutRow(row, card, schema, state, item);
       list.append(row);
       return { item, value };
     });
@@ -508,6 +510,7 @@ function buildRoutingSurface(model, schema, state) {
         value.textContent = readoutValueText(schema, state, item);
       }
       row.append(label, value);
+      enhanceSurfaceReadoutRow(row, card, schema, state, item);
       detailList.append(row);
     });
   };
@@ -577,6 +580,7 @@ function buildSectionGridSurface(model, schema, state) {
       label.textContent = item.label;
       const value = document.createElement("strong");
       row.append(label, value);
+      enhanceSurfaceReadoutRow(row, card, schema, state, item);
       list.append(row);
       return { item, value };
     });
@@ -666,6 +670,7 @@ function buildModuleSurface(model, schema, state) {
       label.textContent = item.label;
       const value = document.createElement("strong");
       row.append(label, value);
+      enhanceSurfaceReadoutRow(row, card, schema, state, item);
       list.append(row);
       return { item, value };
     });
@@ -745,6 +750,7 @@ function buildKeyboardSurface(model, schema, state) {
     label.textContent = item.label;
     const value = document.createElement("strong");
     row.append(label, value);
+    enhanceSurfaceReadoutRow(row, card, schema, state, item);
     readoutList.append(row);
     return { item, value };
   });
@@ -792,6 +798,7 @@ function buildValueSurface(model, schema, state) {
       meta.textContent = item.meta;
     }
     row.append(label, value, meta);
+    enhanceSurfaceReadoutRow(row, card, schema, state, item);
     list.append(row);
     return { item, value, meta };
   });

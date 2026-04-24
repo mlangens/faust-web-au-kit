@@ -91,6 +91,111 @@
       }
     },
     "preview": {
+      "controls": {
+        "layout": "sectioned",
+        "sections": [
+          {
+            "id": "compression-voice",
+            "title": "Compression Voice",
+            "description": "Keep compressor mode, detector flavor, and audition paths in one shared segmented strip.",
+            "kind": "segmented-strip",
+            "items": [
+              {
+                "control": "Mode"
+              },
+              {
+                "control": "Character"
+              },
+              {
+                "control": "Detector Mode"
+              },
+              {
+                "control": "Detector Focus"
+              },
+              {
+                "control": "Audition"
+              }
+            ]
+          },
+          {
+            "id": "compression-staging",
+            "title": "Compression Staging",
+            "description": "Core input, threshold, ratio, knee, range, blend, and output moves now sit in a shared fader bank.",
+            "kind": "fader-bank",
+            "columns": 7,
+            "items": [
+              {
+                "control": "Input Gain"
+              },
+              {
+                "control": "Threshold"
+              },
+              {
+                "control": "Ratio"
+              },
+              {
+                "control": "Knee"
+              },
+              {
+                "control": "Range",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Mix",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Output",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "detector-response",
+            "title": "Detector Response",
+            "description": "Use the shared dial grid for timing, detector filtering, and stereo-link behavior.",
+            "kind": "dial-grid",
+            "columns": 5,
+            "items": [
+              {
+                "control": "Attack"
+              },
+              {
+                "control": "Release"
+              },
+              {
+                "control": "Detector HP",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Detector Tilt",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Stereo Link",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "output-utilities",
+            "title": "Output Utilities",
+            "description": "Keep global utility switches together in a compact toggle bank.",
+            "kind": "toggle-bank",
+            "items": [
+              {
+                "control": "Auto Trim",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Bypass"
+              }
+            ]
+          }
+        ],
+        "supplementalTitle": "Additional Controls",
+        "supplementalDescription": "Any compressor parameters not yet mapped into the grouped layout stay available here while the preview evolves."
+      },
       "surfaces": {
         "history-trace": {
           "title": "Compression history",

@@ -85,6 +85,141 @@
       }
     },
     "preview": {
+      "controls": {
+        "layout": "sectioned",
+        "sections": [
+          {
+            "id": "mode-routing",
+            "title": "Mode and Routing",
+            "description": "Shared segment strips keep delay voice and path choices readable before the time and color controls open up.",
+            "kind": "segmented-strip",
+            "items": [
+              {
+                "control": "Mode",
+                "widget": "segment"
+              },
+              {
+                "control": "Routing",
+                "widget": "segment"
+              }
+            ]
+          },
+          {
+            "id": "echo-core",
+            "title": "Echo Core",
+            "description": "Time spacing and feedback now sit in a single dial cluster that reads like a reusable delay core.",
+            "kind": "dial-grid",
+            "columns": 3,
+            "items": [
+              {
+                "control": "Time",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Offset",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Feedback",
+                "widget": "dial",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "color-bloom",
+            "title": "Color and Bloom",
+            "description": "Age, tone, and smear move into a shared color grid instead of another flat row of sliders.",
+            "kind": "dial-grid",
+            "columns": 3,
+            "items": [
+              {
+                "control": "Age",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Tone",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Smear",
+                "widget": "dial",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "motion-grid",
+            "title": "Motion",
+            "description": "Wow and flutter controls stay together as a shared motion grid for the delay voice.",
+            "kind": "dial-grid",
+            "columns": 3,
+            "items": [
+              {
+                "control": "Mod Depth",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Mod Rate",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Flutter",
+                "widget": "dial",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "output-stage",
+            "title": "Output Stage",
+            "description": "Field width, wet blend, and trim now share one bus-level stage instead of a flat footer grid.",
+            "kind": "mixed-grid",
+            "columns": 3,
+            "items": [
+              {
+                "control": "Width",
+                "widget": "slider",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Mix",
+                "widget": "fader",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Output",
+                "widget": "fader",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "hold-utilities",
+            "title": "Hold Utilities",
+            "description": "Freeze and bypass shift into shared toggles so they read like transport-style utilities.",
+            "kind": "toggle-bank",
+            "items": [
+              {
+                "control": "Freeze",
+                "widget": "toggle"
+              },
+              {
+                "control": "Bypass",
+                "widget": "toggle"
+              }
+            ]
+          }
+        ],
+        "supplementalTitle": "Delay Readout",
+        "supplementalDescription": "Relay Tape's preview now groups routing, echo timing, color, motion, and hold utilities into shared widgets."
+      },
       "surfaces": {
         "delay-timeline": {
           "title": "Delay timeline",

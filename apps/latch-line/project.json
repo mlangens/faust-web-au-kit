@@ -91,6 +91,113 @@
       }
     },
     "preview": {
+      "controls": {
+        "layout": "sectioned",
+        "sections": [
+          {
+            "id": "gate-routing",
+            "title": "Gate Routing",
+            "description": "Keep closure mode, detector voicing, and monitor paths together in one shared segmented strip.",
+            "kind": "segmented-strip",
+            "items": [
+              {
+                "control": "Mode"
+              },
+              {
+                "control": "Style"
+              },
+              {
+                "control": "Detector Mode"
+              },
+              {
+                "control": "Detector Focus"
+              },
+              {
+                "control": "Monitor"
+              }
+            ]
+          },
+          {
+            "id": "closure-staging",
+            "title": "Closure Staging",
+            "description": "Use a shared fader bank for threshold, range, floor, blend, and output moves.",
+            "kind": "fader-bank",
+            "columns": 5,
+            "items": [
+              {
+                "control": "Threshold",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Range",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Floor",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Mix",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Output",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "detector-response",
+            "title": "Detector Response",
+            "description": "Move timing, hysteresis, detector filtering, and linking into the shared dial grid.",
+            "kind": "dial-grid",
+            "items": [
+              {
+                "control": "Attack",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Hold",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Release",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Hysteresis",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Detector HP",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Detector Tilt",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Stereo Link",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "utility-toggles",
+            "title": "Utility Toggles",
+            "description": "Keep the hard bypass switch isolated in the shared toggle bank.",
+            "kind": "toggle-bank",
+            "columns": 1,
+            "items": [
+              {
+                "control": "Bypass"
+              }
+            ]
+          }
+        ],
+        "supplementalTitle": "Additional Controls",
+        "supplementalDescription": "Any gate parameters not yet mapped into the grouped layout stay available here while the preview evolves."
+      },
       "surfaces": {
         "transfer-curve": {
           "title": "Closure response",

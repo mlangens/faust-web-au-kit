@@ -12,6 +12,7 @@ import {
   createTracePath,
   createTransferPath,
   denormalizePointAxisValue,
+  enhanceSurfaceReadoutRow,
   formatMeterValue,
   humanizeId,
   measureMeterValue,
@@ -257,6 +258,7 @@ function buildGraphSurface(model, schema, state) {
       const value = document.createElement("strong");
       value.textContent = entry.value;
       row.append(label, value);
+      enhanceSurfaceReadoutRow(row, card, schema, state, entry);
       readoutList.append(row);
     });
 
@@ -330,6 +332,7 @@ function buildTraceSurface(model, schema, state) {
     label.textContent = entry.label || humanizeId(entry.id);
     const value = document.createElement("strong");
     row.append(label, value);
+    enhanceSurfaceReadoutRow(row, card, schema, state, entry);
     readouts.append(row);
     return { entry, value };
   });
@@ -593,6 +596,7 @@ function buildFieldSurface(model, schema, state) {
       const value = document.createElement("strong");
       value.textContent = entry.value;
       row.append(label, value);
+      enhanceSurfaceReadoutRow(row, card, schema, state, entry);
       readoutList.append(row);
     });
 
@@ -745,6 +749,7 @@ function buildTransferSurface(model, schema, state) {
     label.textContent = item.label || humanizeId(item.control || item.id || "item");
     const value = document.createElement("strong");
     row.append(label, value);
+    enhanceSurfaceReadoutRow(row, card, schema, state, item);
     list.append(row);
     return { item, value };
   });
@@ -899,6 +904,7 @@ function buildLinkedStripSurface(model, schema, state) {
       label.textContent = item.label || humanizeId(item.control || item.id || "item");
       const value = document.createElement("strong");
       row.append(label, value);
+      enhanceSurfaceReadoutRow(row, card, schema, state, item);
       valueList.append(row);
       return { item, value };
     });
@@ -939,6 +945,7 @@ function buildLinkedStripSurface(model, schema, state) {
     label.textContent = item.label || humanizeId(item.control || item.id || "item");
     const value = document.createElement("strong");
     row.append(label, value);
+    enhanceSurfaceReadoutRow(row, card, schema, state, item);
     globalList.append(row);
     return { item, value };
   });
@@ -1172,6 +1179,7 @@ function buildRegionSurface(model, schema, state) {
       const value = document.createElement("strong");
       value.textContent = entry.value;
       row.append(label, value);
+      enhanceSurfaceReadoutRow(row, card, schema, state, entry);
       readoutList.append(row);
     });
 

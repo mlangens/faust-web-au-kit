@@ -12,6 +12,7 @@
  */
 
 import { rememberControlValue } from "./control-store.js";
+import { renderControlPanels } from "./control-panels.js";
 import { formatValue } from "./formatting.js";
 import { controlKey, resolveControlDisplay } from "./schema-ui.js";
 
@@ -204,9 +205,32 @@ function renderWorkspaceNav(root, workspace, activeAppKey) {
  */
 function renderShellChrome(roots, schema, doc = document) {
   const shell = schema.ui?.shell;
+  const catalog = schema.ui?.catalog;
+  doc.body.dataset.uiFamily = schema.ui?.family || "utility";
+  doc.body.dataset.uiVariant = schema.ui?.variant || schema.project?.key || "default";
   doc.body.dataset.themeGroup = schema.ui?.themeGroup || "utility";
   doc.body.dataset.layoutProfile = schema.ui?.layoutProfile || "default";
-  doc.body.dataset.uiVariant = schema.ui?.variant || schema.project?.key || "default";
+  doc.body.dataset.uiThemeGroup = schema.ui?.themeGroup || "utility";
+  if (typeof catalog?.productId === "string" && catalog.productId) {
+    doc.body.dataset.catalogProductId = catalog.productId;
+  } else {
+    delete doc.body.dataset.catalogProductId;
+  }
+  if (typeof catalog?.prototypeRole === "string" && catalog.prototypeRole) {
+    doc.body.dataset.prototypeRole = catalog.prototypeRole;
+  } else {
+    delete doc.body.dataset.prototypeRole;
+  }
+  if (typeof catalog?.referenceProduct === "string" && catalog.referenceProduct) {
+    doc.body.dataset.referenceProduct = catalog.referenceProduct;
+  } else {
+    delete doc.body.dataset.referenceProduct;
+  }
+  if (Array.isArray(catalog?.featureAnchors) && catalog.featureAnchors.length) {
+    doc.body.dataset.featureAnchors = catalog.featureAnchors.join(" | ");
+  } else {
+    delete doc.body.dataset.featureAnchors;
+  }
 
   setText(roots.eyebrow, shell?.eyebrow);
   setText(roots.title, shell?.hero?.title || schema.project?.name);
@@ -229,15 +253,7 @@ function renderShellChrome(roots, schema, doc = document) {
  * @returns {void}
  */
 function renderControls(root, schema, state) {
-  root.innerHTML = "";
-  state.controls.clear();
-  root.dataset.themeGroup = schema.ui?.themeGroup || "utility";
-  root.dataset.layoutProfile = schema.ui?.layoutProfile || "default";
-  root.dataset.controlCount = String(schema.controls.length);
-
-  schema.controls.forEach((control) => {
-    root.append(control.isToggle ? buildToggle(control, schema.ui, state) : buildSlider(control, schema.ui, state));
-  });
+  renderControlPanels(root, schema, state);
 }
 
 /**

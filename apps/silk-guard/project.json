@@ -80,6 +80,101 @@
       }
     },
     "preview": {
+      "controls": {
+        "layout": "sectioned",
+        "sections": [
+          {
+            "id": "detection-routing",
+            "title": "Detection Routing",
+            "description": "Keep de-ess style, focus voicing, and monitor selection in one shared segmented strip.",
+            "kind": "segmented-strip",
+            "items": [
+              {
+                "control": "Detection Style"
+              },
+              {
+                "control": "Detection Focus"
+              },
+              {
+                "control": "Monitor"
+              }
+            ]
+          },
+          {
+            "id": "reduction-staging",
+            "title": "Reduction Staging",
+            "description": "Use a shared fader bank for threshold, sensitivity, depth, blend, and output moves.",
+            "kind": "fader-bank",
+            "items": [
+              {
+                "control": "Threshold"
+              },
+              {
+                "control": "Sensitivity",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Range"
+              },
+              {
+                "control": "Split Depth",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Mix",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Output",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "focus-response",
+            "title": "Focus Response",
+            "description": "Move center, width, timing, and link behavior into the shared dial grid.",
+            "kind": "dial-grid",
+            "items": [
+              {
+                "control": "Center Frequency",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Focus Width",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Attack"
+              },
+              {
+                "control": "Lookahead"
+              },
+              {
+                "control": "Release"
+              },
+              {
+                "control": "Stereo Link",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "utility-toggles",
+            "title": "Utility Toggles",
+            "description": "Keep the main bypass switch isolated in the shared toggle bank.",
+            "kind": "toggle-bank",
+            "columns": 1,
+            "items": [
+              {
+                "control": "Bypass"
+              }
+            ]
+          }
+        ],
+        "supplementalTitle": "Additional Controls",
+        "supplementalDescription": "Any de-ess parameters not yet mapped into the grouped layout stay available here while the preview evolves."
+      },
       "surfaces": {
         "history-trace": {
           "title": "De-ess history",

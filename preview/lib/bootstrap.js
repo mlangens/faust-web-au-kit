@@ -32,6 +32,7 @@ const state = {
  */
 function resetPreviewState(doc) {
   delete doc.body.dataset.previewError;
+  delete doc.body.dataset.simulatorId;
   state.controls.clear();
   state.meterViews.clear();
   state.surfaceViews = [];
@@ -86,6 +87,7 @@ async function bootstrapPreview(doc = document) {
   state.simulator = createSimulator(schema);
 
   applyTheme(schema.ui, doc);
+  doc.body.dataset.simulatorId = state.simulator.id;
   doc.body.dataset.projectKey = schema.project.key;
   renderWorkspaceNav(roots.nav, state.workspace, schema.project.key);
   renderShellChrome(roots, schema, doc);

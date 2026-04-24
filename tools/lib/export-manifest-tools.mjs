@@ -8,6 +8,7 @@ import {
   findMetaValue,
   formatFloatLiteral,
   gatherControls,
+  loadCatalogRuntime,
   normalizeRelativePath
 } from "./project-tools.mjs";
 import { writeFileAtomically } from "./fs-tools.mjs";
@@ -18,6 +19,10 @@ function generatedAppBenchmarkPath(appKey) {
 
 function generatedAppSchemaPath(appKey) {
   return `/generated/apps/${appKey}/ui_schema.json`;
+}
+
+function asObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
 
 function resolveUiState(runtime) {
@@ -76,6 +81,33 @@ function controlEnumLabels(resolvedUi, control) {
 function controlDisplay(resolvedUi, control) {
   const display = resolvedUi?.display?.controls?.[control.label];
   return display != null && typeof display === "object" ? display : null;
+}
+
+function resolveCatalogManifest(resolvedUi) {
+  const inlineCatalog = asObject(resolvedUi?.catalog);
+  const productId = typeof inlineCatalog.productId === "string" ? inlineCatalog.productId.trim() : "";
+  if (!productId) {
+    return inlineCatalog;
+  }
+
+  const { catalog } = loadCatalogRuntime();
+  const products = Array.isArray(catalog?.products) ? catalog.products : [];
+  const matchedProduct = products.find((product) => product?.id === productId);
+  if (!matchedProduct) {
+    return inlineCatalog;
+  }
+
+  return {
+    ...inlineCatalog,
+    referenceProduct:
+      typeof inlineCatalog.referenceProduct === "string" && inlineCatalog.referenceProduct.trim().length
+        ? inlineCatalog.referenceProduct
+        : matchedProduct.referenceProduct,
+    featureAnchors:
+      Array.isArray(inlineCatalog.featureAnchors) && inlineCatalog.featureAnchors.length
+        ? inlineCatalog.featureAnchors
+        : matchedProduct.featureAnchors
+  };
 }
 
 function buildProjectConfigArtifacts(runtime) {
@@ -296,7 +328,7 @@ ${meterLines.join(",\n")}
       variant: runtime.uiRuntime?.variant ?? null,
       group: resolvedUi?.group ?? null,
       accentPaletteId: resolvedUi?.accentPaletteId ?? resolvedUi?.presentation?.accentPaletteId ?? null,
-      catalog: resolvedUi?.catalog ?? {},
+      catalog: resolveCatalogManifest(resolvedUi),
       presentation: resolvedUi?.presentation ?? {},
       visualLanguage: resolvedUi?.visualLanguage ?? {},
       shell: resolvedUi?.shell ?? {},

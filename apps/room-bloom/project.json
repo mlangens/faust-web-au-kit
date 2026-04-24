@@ -85,6 +85,117 @@
       }
     },
     "preview": {
+      "controls": {
+        "layout": "sectioned",
+        "sections": [
+          {
+            "id": "scene-voicing",
+            "title": "Scene + Voicing",
+            "description": "Room selection and character stay up front so Room Bloom feels editor led before the deeper tail shaping starts.",
+            "kind": "segmented-strip",
+            "items": [
+              {
+                "control": "Space"
+              },
+              {
+                "control": "Character"
+              }
+            ]
+          },
+          {
+            "id": "entry-tail",
+            "title": "Entry + Tail",
+            "description": "Core bloom timing gathers size, pre-delay, decay, and bloom into one shared shaping cluster.",
+            "kind": "dial-grid",
+            "columns": 4,
+            "items": [
+              {
+                "control": "Size",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Pre-Delay",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Decay",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Bloom",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "field-shape",
+            "title": "Field Shape",
+            "description": "Stereo spread and tone filtering sit together so the ambience field reads like one editorial space panel.",
+            "kind": "dial-grid",
+            "columns": 4,
+            "items": [
+              {
+                "control": "Width",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Diffusion",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Low Cut",
+                "surfaceOnly": true
+              },
+              {
+                "control": "High Cut",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "duck-mix",
+            "title": "Duck + Output",
+            "description": "Ducking depth, release, wet balance, and final trim stay in a compact strip instead of a flat utility row.",
+            "kind": "fader-bank",
+            "columns": 4,
+            "items": [
+              {
+                "control": "Ducking",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Duck Release",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Mix",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Output",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "tail-utility",
+            "title": "Tail Utility",
+            "description": "Freeze and bypass stay together as the small utility bank for the reverb footer.",
+            "kind": "toggle-bank",
+            "items": [
+              {
+                "control": "Freeze",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Bypass"
+              }
+            ]
+          }
+        ],
+        "supplementalTitle": "Supplemental Room Controls",
+        "supplementalDescription": "Any additional ambience helpers stay available here until the Room Bloom editor layout expands again."
+      },
       "surfaces": {
         "reverb-space": {
           "title": "Reverb space",

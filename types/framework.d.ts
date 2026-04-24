@@ -106,6 +106,8 @@ export interface DisplayConfig extends JsonObject {
   offLabel?: string;
   precision?: number;
   suffix?: string;
+  widget?: string;
+  tone?: string;
 }
 
 export interface ProjectUiDisplayManifest extends JsonObject {
@@ -162,7 +164,33 @@ export interface PreviewSurfaceConfig extends JsonObject {
   voiceControl?: string | null;
 }
 
+export interface PreviewControlLayoutItem extends JsonObject {
+  control?: string;
+  label?: string;
+  widget?: string;
+  accent?: string;
+  span?: number;
+  surfaceOnly?: boolean;
+}
+
+export interface PreviewControlSection extends JsonObject {
+  id?: string;
+  title?: string;
+  description?: string;
+  kind?: string;
+  columns?: number;
+  items?: PreviewControlLayoutItem[];
+}
+
+export interface PreviewControlLayout extends JsonObject {
+  layout?: string;
+  sections?: PreviewControlSection[];
+  supplementalTitle?: string;
+  supplementalDescription?: string;
+}
+
 export interface ProjectUiPreviewManifest extends JsonObject {
+  controls?: PreviewControlLayout;
   surfaces?: Record<string, PreviewSurfaceConfig>;
   simulator?: ProjectUiSimulatorManifest | string | null;
 }
@@ -170,6 +198,8 @@ export interface ProjectUiPreviewManifest extends JsonObject {
 export interface ProjectUiCatalogManifest extends JsonObject {
   productId?: string;
   prototypeRole?: string;
+  referenceProduct?: string;
+  featureAnchors?: string[];
 }
 
 export interface GeneratedMeter extends JsonObject {

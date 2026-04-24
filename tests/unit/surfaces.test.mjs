@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { resolveControlLayout, summarizeControlLayout } from "../../preview/lib/control-panels.js";
 import { normalizeSchema } from "../../preview/lib/schema-ui.js";
 import { resolveSurfaceModels } from "../../preview/lib/surfaces.js";
 import { SURFACE_BUILDERS, resolveSurfaceBuilder } from "../../preview/lib/surfaces/registry.js";
@@ -22,6 +23,98 @@ test("normalizeSchema provides a default shared surfaces section", () => {
 
   assert.equal(schema.ui.shell.sections.surfaces.title, "Editor Surface");
   assert.match(schema.ui.shell.sections.surfaces.description, /shared ui family/i);
+});
+
+test("resolveControlLayout preserves grouped widget sections for the preview control shell", () => {
+  const layout = resolveControlLayout({
+    project: {
+      key: "atlas-curve"
+    },
+    ui: {
+      preview: {
+        controls: {
+          layout: "sectioned",
+          sections: [
+            {
+              id: "editor-modes",
+              title: "Editor Modes",
+              kind: "segmented-strip",
+              items: [
+                { control: "Mode" },
+                { control: "Style" }
+              ]
+            },
+            {
+              id: "curve-shape",
+              title: "Curve Shape",
+              kind: "dial-grid",
+              columns: 3,
+              items: [
+                { control: "Bell Freq", widget: "dial" },
+                { control: "Bell Gain", widget: "fader", span: 2, surfaceOnly: true }
+              ]
+            }
+          ],
+          supplementalTitle: "Extra Controls"
+        }
+      }
+    },
+    controls: [],
+    meters: []
+  });
+
+  assert.equal(layout.layout, "sectioned");
+  assert.equal(layout.sections?.length, 2);
+  assert.deepEqual(
+    layout.sections?.map((section) => ({ id: section.id, kind: section.kind })),
+    [
+      { id: "editor-modes", kind: "segmented-strip" },
+      { id: "curve-shape", kind: "dial-grid" }
+    ]
+  );
+  assert.deepEqual(layout.sections?.[1]?.items?.[1], {
+    control: "Bell Gain",
+    widget: "fader",
+    span: 2,
+    accent: undefined,
+    surfaceOnly: true
+  });
+  assert.equal(layout.supplementalTitle, "Extra Controls");
+});
+
+test("summarizeControlLayout separates visible shell controls from surface-owned controls", () => {
+  const summary = summarizeControlLayout({
+    project: {
+      key: "atlas-curve"
+    },
+    ui: {
+      preview: {
+        controls: {
+          layout: "sectioned",
+          sections: [
+            {
+              id: "shell",
+              items: [
+                { control: "Mode" },
+                { control: "Bell Freq", surfaceOnly: true },
+                { control: "Bell Gain", surfaceOnly: true }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    controls: [
+      { id: "Mode", label: "Mode", init: 0, min: 0, max: 2, step: 1, isToggle: false },
+      { id: "Bell Freq", label: "Bell Freq", init: 820, min: 20, max: 20000, step: 1, unit: "Hz", isToggle: false },
+      { id: "Bell Gain", label: "Bell Gain", init: 0, min: -12, max: 12, step: 0.1, unit: "dB", isToggle: false }
+    ],
+    meters: []
+  });
+
+  assert.deepEqual(summary.configuredItems.map((control) => control.label), ["Mode", "Bell Freq", "Bell Gain"]);
+  assert.deepEqual(summary.surfaceOnlyControls.map((control) => control.label), ["Bell Freq", "Bell Gain"]);
+  assert.deepEqual(summary.visibleControls.map((control) => control.label), ["Mode"]);
 });
 
 test("resolveSurfaceModels preserves graph and auxiliary surface metadata", () => {

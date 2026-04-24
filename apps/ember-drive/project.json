@@ -71,6 +71,178 @@
       }
     },
     "preview": {
+      "controls": {
+        "layout": "sectioned",
+        "sections": [
+          {
+            "id": "style-strip",
+            "title": "Circuit Style",
+            "description": "A shared segment strip anchors the saturation voice before the multiband shaping lanes fan out.",
+            "kind": "segmented-strip",
+            "items": [
+              {
+                "control": "Style",
+                "widget": "segment"
+              }
+            ]
+          },
+          {
+            "id": "crossover-glue",
+            "title": "Crossovers and Glue",
+            "description": "Input staging, split points, and glue response now live in one reusable setup cluster.",
+            "kind": "mixed-grid",
+            "columns": 3,
+            "items": [
+              {
+                "control": "Input Gain",
+                "widget": "fader",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Low Crossover",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "High Crossover",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Dynamics",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Glue",
+                "widget": "dial",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "band-staging",
+            "title": "Band Staging",
+            "description": "Drive and mix amounts shift into a shared fader bank so the three bands read as one stageable system.",
+            "kind": "fader-bank",
+            "columns": 3,
+            "items": [
+              {
+                "control": "Low Drive",
+                "widget": "fader",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Mid Drive",
+                "widget": "fader",
+                "surfaceOnly": true
+              },
+              {
+                "control": "High Drive",
+                "widget": "fader",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Low Mix",
+                "widget": "fader",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Mid Mix",
+                "widget": "fader",
+                "surfaceOnly": true
+              },
+              {
+                "control": "High Mix",
+                "widget": "fader",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "tone-bias",
+            "title": "Tone and Bias",
+            "description": "Per-band tone color and bias shape now share a compact dial grid instead of repeating a flat slider grid.",
+            "kind": "dial-grid",
+            "columns": 3,
+            "items": [
+              {
+                "control": "Low Tone",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Mid Tone",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "High Tone",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Low Bias",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Mid Bias",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "High Bias",
+                "widget": "dial",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "output-stage",
+            "title": "Output Stage",
+            "description": "Width, blend, and output trim stay grouped as shared bus-level widgets.",
+            "kind": "mixed-grid",
+            "columns": 3,
+            "items": [
+              {
+                "control": "Width",
+                "widget": "slider",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Mix",
+                "widget": "fader",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Output",
+                "widget": "fader",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "utility-toggles",
+            "title": "Utilities",
+            "description": "Shared toggles keep link and bypass decisions out of the main tone rows.",
+            "kind": "toggle-bank",
+            "items": [
+              {
+                "control": "Band Link",
+                "widget": "toggle",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Bypass",
+                "widget": "toggle"
+              }
+            ]
+          }
+        ],
+        "supplementalTitle": "Drive Readout",
+        "supplementalDescription": "Ember Drive's preview now groups circuit choice, band staging, tone shaping, and bus utilities into shared widgets."
+      },
       "surfaces": {
         "multiband-editor": {
           "title": "Drive band editor",

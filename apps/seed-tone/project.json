@@ -77,6 +77,116 @@
       }
     },
     "preview": {
+      "controls": {
+        "layout": "sectioned",
+        "sections": [
+          {
+            "id": "voice-modes",
+            "title": "Voice Modes",
+            "description": "Wave choice and motion behavior stay together so the reduced synth still reads like one intentional voice module.",
+            "kind": "segmented-strip",
+            "items": [
+              {
+                "control": "Wave"
+              },
+              {
+                "control": "Motion"
+              }
+            ]
+          },
+          {
+            "id": "voice-blend",
+            "title": "Voice Blend",
+            "description": "Color, sub, noise, and drive sit in a shared shaping grid instead of a flat synth utility row.",
+            "kind": "dial-grid",
+            "columns": 4,
+            "items": [
+              {
+                "control": "Color",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Sub",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Noise",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Drive",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "tone-envelope",
+            "title": "Tone + Envelope",
+            "description": "Filter shaping and contour timing stay grouped as one compact voice-shaping block.",
+            "kind": "dial-grid",
+            "columns": 4,
+            "items": [
+              {
+                "control": "Cutoff",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Resonance",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Attack",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Release",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "field-output",
+            "title": "Field + Output",
+            "description": "Stereo spread and final trim live in a narrow shared strip to keep the synth scaffold feeling tidy.",
+            "kind": "fader-bank",
+            "columns": 2,
+            "items": [
+              {
+                "control": "Stereo Width",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Output Trim",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "performance-input",
+            "title": "Performance Input",
+            "description": "Preview performance controls stay grouped instead of falling back into a generic supplemental bucket.",
+            "kind": "mixed-grid",
+            "columns": 2,
+            "items": [
+              {
+                "control": "freq",
+                "widget": "slider",
+                "span": 2
+              },
+              {
+                "control": "gain",
+                "widget": "slider"
+              },
+              {
+                "control": "gate",
+                "widget": "toggle"
+              }
+            ]
+          }
+        ],
+        "supplementalTitle": "Supplemental Seed Tone Controls",
+        "supplementalDescription": "Any added synth helpers stay available here until Seed Tone gets another reduced-layout pass."
+      },
       "surfaces": {
         "section-grid": {
           "title": "Voice grid",

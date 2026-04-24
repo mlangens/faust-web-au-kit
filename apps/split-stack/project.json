@@ -87,6 +87,166 @@
       }
     },
     "preview": {
+      "controls": {
+        "layout": "sectioned",
+        "sections": [
+          {
+            "id": "multiband-routing",
+            "title": "Multiband Routing",
+            "description": "Keep overall mode, detector voicing, and monitor selection in one shared segmented strip.",
+            "kind": "segmented-strip",
+            "items": [
+              {
+                "control": "Mode"
+              },
+              {
+                "control": "Character"
+              },
+              {
+                "control": "Detector Mode"
+              },
+              {
+                "control": "Monitor"
+              }
+            ]
+          },
+          {
+            "id": "global-staging",
+            "title": "Global Staging",
+            "description": "Use a shared fader bank for crossover placement, overall range, blend, and output level.",
+            "kind": "fader-bank",
+            "columns": 5,
+            "items": [
+              {
+                "control": "Low Crossover",
+                "surfaceOnly": true
+              },
+              {
+                "control": "High Crossover",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Range",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Mix",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Output",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "timing-links",
+            "title": "Timing & Links",
+            "description": "Move attack, release, timing spread, and link behavior into the shared dial grid.",
+            "kind": "dial-grid",
+            "columns": 5,
+            "items": [
+              {
+                "control": "Attack",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Release",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Timing Spread",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Stereo Link",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Band Link",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "low-band",
+            "title": "Low Band",
+            "description": "Keep low-band threshold, amount, and lift together in a shared fader trio.",
+            "kind": "fader-bank",
+            "columns": 3,
+            "items": [
+              {
+                "control": "Low Threshold",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Low Amount",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Low Lift",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "mid-band",
+            "title": "Mid Band",
+            "description": "Keep mid-band threshold, amount, and lift together in a shared fader trio.",
+            "kind": "fader-bank",
+            "columns": 3,
+            "items": [
+              {
+                "control": "Mid Threshold",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Mid Amount",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Mid Lift",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "high-band",
+            "title": "High Band",
+            "description": "Keep high-band threshold, amount, and lift together in a shared fader trio.",
+            "kind": "fader-bank",
+            "columns": 3,
+            "items": [
+              {
+                "control": "High Threshold",
+                "surfaceOnly": true
+              },
+              {
+                "control": "High Amount",
+                "surfaceOnly": true
+              },
+              {
+                "control": "High Lift",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "utility-toggles",
+            "title": "Utility Toggles",
+            "description": "Keep the global bypass switch isolated in the shared toggle bank.",
+            "kind": "toggle-bank",
+            "columns": 1,
+            "items": [
+              {
+                "control": "Bypass"
+              }
+            ]
+          }
+        ],
+        "supplementalTitle": "Additional Controls",
+        "supplementalDescription": "Any multiband parameters not yet mapped into the grouped layout stay available here while the preview evolves."
+      },
       "surfaces": {
         "multiband-editor": {
           "title": "Band region editor",

@@ -88,6 +88,140 @@
       }
     },
     "preview": {
+      "controls": {
+        "layout": "sectioned",
+        "sections": [
+          {
+            "id": "voice-strip",
+            "title": "Voice Modes",
+            "description": "Shared segments keep voice, blend, filter voicing, and motion state aligned before the deeper shaping widgets appear.",
+            "kind": "segmented-strip",
+            "items": [
+              {
+                "control": "Voice Mode",
+                "widget": "segment"
+              },
+              {
+                "control": "Blend",
+                "widget": "segment"
+              },
+              {
+                "control": "Filter Mode",
+                "widget": "segment"
+              },
+              {
+                "control": "Motion",
+                "widget": "segment"
+              }
+            ]
+          },
+          {
+            "id": "voice-tone",
+            "title": "Voice Tone",
+            "description": "Shape, tone, contour, and detune now share a reusable dial grid instead of reading like a flat synth strip.",
+            "kind": "dial-grid",
+            "columns": 4,
+            "items": [
+              {
+                "control": "Shape",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Tone",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Contour",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Detune",
+                "widget": "dial",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "motion-envelope",
+            "title": "Motion and Envelope",
+            "description": "Depth, drift, and envelope timing now live in a shared motion grid.",
+            "kind": "dial-grid",
+            "columns": 4,
+            "items": [
+              {
+                "control": "Mod Amount",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Drift",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Attack",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Release",
+                "widget": "dial",
+                "surfaceOnly": true
+              }
+            ]
+          },
+        {
+          "id": "stage-field",
+          "title": "Stage and Field",
+          "description": "Sub weight, drive, and stereo width move into a compact shared staging group.",
+          "kind": "mixed-grid",
+            "columns": 3,
+            "items": [
+              {
+                "control": "Sub",
+                "widget": "slider",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Drive",
+                "widget": "fader",
+                "surfaceOnly": true
+              },
+            {
+              "control": "Stereo Width",
+              "widget": "slider",
+              "surfaceOnly": true
+            }
+          ]
+        },
+        {
+          "id": "performance-readout",
+          "title": "Performance Readout",
+          "description": "Keep the lightweight performance-preview controls grouped instead of leaving synth runtime plumbing to the fallback panel.",
+          "kind": "mixed-grid",
+          "columns": 3,
+          "items": [
+            {
+              "control": "freq",
+              "widget": "dial"
+            },
+            {
+              "control": "gain",
+              "widget": "fader"
+            },
+            {
+              "control": "gate",
+              "widget": "toggle"
+            }
+          ]
+        }
+      ],
+        "supplementalTitle": "Synth Readout",
+        "supplementalDescription": "Mirror Field's preview now groups shared voice, motion, and staging widgets instead of relying on a flat control grid."
+      },
       "surfaces": {
         "oscillator-stack": {
           "title": "Voice stack",

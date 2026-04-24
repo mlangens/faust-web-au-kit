@@ -87,6 +87,135 @@
       }
     },
     "preview": {
+      "controls": {
+        "layout": "sectioned",
+        "sections": [
+          {
+            "id": "topology-strip",
+            "title": "Topology",
+            "description": "Shared segments keep filter mode, voicing, motion source, and routing aligned before the deeper motion widgets take over.",
+            "kind": "segmented-strip",
+            "items": [
+              {
+                "control": "Mode",
+                "widget": "segment"
+              },
+              {
+                "control": "Style",
+                "widget": "segment"
+              },
+              {
+                "control": "Motion Source",
+                "widget": "segment"
+              },
+              {
+                "control": "Routing",
+                "widget": "segment"
+              }
+            ]
+          },
+          {
+            "id": "filter-core",
+            "title": "Filter Core",
+            "description": "Cutoff, resonance, and drive now read as one shared filter block instead of a flat control row.",
+            "kind": "dial-grid",
+            "columns": 3,
+            "items": [
+              {
+                "control": "Cutoff",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Resonance",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Drive",
+                "widget": "dial"
+              }
+            ]
+          },
+          {
+            "id": "motion-grid",
+            "title": "Motion Grid",
+            "description": "Envelope and LFO widgets now share one motion bank with bias control.",
+            "kind": "dial-grid",
+            "columns": 3,
+            "items": [
+              {
+                "control": "Env Amount",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Env Speed",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "LFO Rate",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "LFO Depth",
+                "widget": "dial",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Motion Bias",
+                "widget": "dial",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "field-stage",
+            "title": "Field Stage",
+            "description": "Spread, mix, and output trim move into a shared bus-level cluster.",
+            "kind": "mixed-grid",
+            "columns": 3,
+            "items": [
+              {
+                "control": "Filter Spread",
+                "widget": "slider",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Mix",
+                "widget": "fader",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Output Trim",
+                "widget": "fader",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "utility-toggles",
+            "title": "Utilities",
+            "description": "Shared toggles keep stereo linking and bypass out of the motion rows.",
+            "kind": "toggle-bank",
+            "items": [
+              {
+                "control": "Stereo Link",
+                "widget": "toggle",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Bypass",
+                "widget": "toggle"
+              }
+            ]
+          }
+        ],
+        "supplementalTitle": "Filter Readout",
+        "supplementalDescription": "Contour Forge's preview now groups topology, filter tone, motion shaping, and bus utilities into shared widgets."
+      },
       "surfaces": {
         "filter-canvas": {
           "title": "Motion filter canvas",

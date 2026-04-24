@@ -239,6 +239,42 @@ test("export-targets times out instead of hanging when faust stalls", { timeout:
   }
 });
 
+test("preview exports reuse cached Faust UI metadata without invoking faust", { timeout: 120000 }, async () => {
+  const appKey = "seed-tone";
+  const { scratchRoot, workspaceFile, generatedApps } = createScratchWorkspace([appKey]);
+  const sourceRuntime = loadGeneratedProject(appKey).runtime;
+  const runtime = loadProjectRuntime(["--workspace", workspaceFile, "--app", appKey]);
+  const cachedTargetDir = path.join(runtime.targetDir);
+  const shimDir = path.join(scratchRoot, "bin");
+
+  fs.mkdirSync(cachedTargetDir, { recursive: true });
+  fs.copyFileSync(
+    path.join(sourceRuntime.targetDir, `${sourceRuntime.sourceBase}.ui.json`),
+    path.join(cachedTargetDir, `${runtime.sourceBase}.ui.json`)
+  );
+
+  fs.mkdirSync(shimDir, { recursive: true });
+  fs.writeFileSync(path.join(shimDir, "faust"), "#!/bin/sh\necho unexpected-faust-call >&2\nexit 87\n", "utf8");
+  fs.chmodSync(path.join(shimDir, "faust"), 0o755);
+
+  try {
+    await runExport(["--workspace", workspaceFile, "--app", appKey, "--export-profile", "preview"], {
+      env: {
+        ...process.env,
+        PATH: `${shimDir}${path.delimiter}${process.env.PATH ?? ""}`
+      }
+    });
+
+    const outputDir = path.join(generatedApps, appKey);
+    assert.equal(fs.existsSync(path.join(outputDir, "ui_schema.json")), true);
+    assert.equal(fs.existsSync(path.join(outputDir, "ui_manifest.h")), true);
+    assert.equal(fs.existsSync(path.join(outputDir, "targets", "main.ui.json")), true);
+    assert.equal(fs.existsSync(path.join(outputDir, "targets", "main.c")), false);
+  } finally {
+    fs.rmSync(scratchRoot, { recursive: true, force: true });
+  }
+});
+
 test("prepare-test-artifacts refreshes the workspace manifest and Pulse Pad parity schema", { timeout: 360000 }, async () => {
   await runPrepare();
 

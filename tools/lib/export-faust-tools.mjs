@@ -40,6 +40,41 @@ function runFaust(runtime, args, options = {}) {
   });
 }
 
+function cachedJsonMetadataPath(runtime) {
+  return path.join(runtime.targetDir, `${runtime.sourceBase}.ui.json`);
+}
+
+function isUsableJsonMetadata(filePath) {
+  if (!fs.existsSync(filePath) || fs.statSync(filePath).size <= 0) {
+    return false;
+  }
+
+  try {
+    JSON.parse(fs.readFileSync(filePath, "utf8"));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function isFreshCachedJsonMetadata(runtime, filePath) {
+  if (!isUsableJsonMetadata(filePath)) {
+    return false;
+  }
+
+  const sourceMtimeMs = fs.statSync(runtime.sourceFile).mtimeMs;
+  const cachedMtimeMs = fs.statSync(filePath).mtimeMs;
+  return cachedMtimeMs >= sourceMtimeMs;
+}
+
+function stageCachedJsonMetadata(runtime, stager, cachedPath) {
+  fs.mkdirSync(stager.stageTargetDir, { recursive: true });
+  const finalJson = path.join(stager.stageTargetDir, `${runtime.sourceBase}.ui.json`);
+  fs.copyFileSync(cachedPath, finalJson);
+  stager.markArtifact(path.join("targets", `${runtime.sourceBase}.ui.json`));
+  return finalJson;
+}
+
 function exportFaustTarget(runtime, stager, target) {
   const extension = TARGET_EXTENSION_BY_KIND[target];
   if (!extension) {
@@ -58,22 +93,36 @@ function exportFaustTarget(runtime, stager, target) {
   return outputPath;
 }
 
-function exportJsonMetadata(runtime, stager) {
+function exportJsonMetadata(runtime, stager, options = {}) {
+  const cachedPath = cachedJsonMetadataPath(runtime);
+  if (options.preferCached && isFreshCachedJsonMetadata(runtime, cachedPath)) {
+    return stageCachedJsonMetadata(runtime, stager, cachedPath);
+  }
+
   fs.mkdirSync(stager.stageTargetDir, { recursive: true });
   const existingJsonFiles = new Set(
     fs.readdirSync(stager.stageTargetDir, { withFileTypes: false }).filter((entry) => entry.endsWith(".json"))
   );
   const jsonScaffoldName = `${runtime.sourceBase}.jsonmeta.cpp`;
 
-  runFaust(
-    runtime,
-    ["-json", "-o", jsonScaffoldName, "-O", ".", "-cn", runtime.project.faust.className, runtime.sourceFile],
-    {
-      cwd: stager.stageTargetDir,
-      description: `Faust JSON metadata export for ${runtime.appKey}`,
-      stdio: ["ignore", "ignore", "inherit"]
+  try {
+    runFaust(
+      runtime,
+      ["-json", "-o", jsonScaffoldName, "-O", ".", "-cn", runtime.project.faust.className, runtime.sourceFile],
+      {
+        cwd: stager.stageTargetDir,
+        description: `Faust JSON metadata export for ${runtime.appKey}`,
+        stdio: ["ignore", "ignore", "inherit"]
+      }
+    );
+  } catch (error) {
+    if (options.allowCachedFallback && isUsableJsonMetadata(cachedPath)) {
+      console.warn(`Reusing cached Faust UI metadata for ${runtime.appKey} after JSON export failed: ${error.message}`);
+      removePathSync(path.join(stager.stageTargetDir, jsonScaffoldName));
+      return stageCachedJsonMetadata(runtime, stager, cachedPath);
     }
-  );
+    throw error;
+  }
 
   const emittedJsonNames = fs.readdirSync(stager.stageTargetDir)
     .filter((entry) => entry.endsWith(".json") && !existingJsonFiles.has(entry))
@@ -94,4 +143,4 @@ function exportJsonMetadata(runtime, stager) {
   return finalJson;
 }
 
-export { exportFaustTarget, exportJsonMetadata, exportTargetsForProfile, resolveExportProfile };
+export { cachedJsonMetadataPath, exportFaustTarget, exportJsonMetadata, exportTargetsForProfile, resolveExportProfile };

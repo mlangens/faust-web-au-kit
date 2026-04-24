@@ -1,9 +1,51 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { summarizeControlLayout } from "../../preview/lib/control-panels.js";
 import { appSchemaCases } from "./app-schema-cases.mjs";
 import { loadSuiteRuntime } from "../../tools/lib/project-tools.mjs";
 import { expectedOrderedLabels, loadGeneratedProject, loadGeneratedWorkspace } from "../support/generated-projects.mjs";
+
+const SURFACE_CONTROL_KEYS = new Set([
+  "control",
+  "xControl",
+  "yControl",
+  "qControl",
+  "startControl",
+  "endControl",
+  "timeControl",
+  "amountControl",
+  "sourceControl",
+  "voiceControl",
+  "summaryControl"
+]);
+const SURFACE_CONTROL_LIST_KEYS = new Set(["readouts", "items", "globalItems", "timingItems", "detailItems"]);
+
+function collectSurfaceControlBindings(value, parentKey = "", bindings = new Set()) {
+  if (Array.isArray(value)) {
+    value.forEach((entry) => collectSurfaceControlBindings(entry, parentKey, bindings));
+    return bindings;
+  }
+
+  if (typeof value === "string") {
+    if (SURFACE_CONTROL_LIST_KEYS.has(parentKey)) {
+      bindings.add(value);
+    }
+    return bindings;
+  }
+
+  if (!value || typeof value !== "object") {
+    return bindings;
+  }
+
+  Object.entries(value).forEach(([key, entry]) => {
+    if (SURFACE_CONTROL_KEYS.has(key) && typeof entry === "string") {
+      bindings.add(entry);
+    }
+    collectSurfaceControlBindings(entry, key, bindings);
+  });
+  return bindings;
+}
 
 test("default app schema stays aligned with the current limiter manifest and Faust export", () => {
   const { runtime, schema, faustControls } = loadGeneratedProject();
@@ -110,6 +152,11 @@ test("default limiter schema reserves the shared mastering-limiter surface contr
     schema.ui.preview?.surfaces?.["output-popover"]?.items?.map((item) => item.control),
     ["Output Trim", "Drive Low Split", "Drive High Split", "Vintage Response", "Bypass"]
   );
+  assert.equal(schema.ui.preview?.controls?.layout, "sectioned");
+  assert.deepEqual(
+    schema.ui.preview?.controls?.sections?.map((section) => section.id),
+    ["drive-routing", "limit-staging", "response-color", "utility-toggles"]
+  );
 });
 
 test("pulse pad schema keeps the preview route in sync with the shared export path", () => {
@@ -179,6 +226,57 @@ test("pulse pad schema reserves the shared modular-synth parity contract", () =>
   assert.equal(schema.ui.preview?.surfaces?.["module-rack"]?.modules?.length, 3);
   assert.equal(schema.ui.preview?.surfaces?.["modulation-dock"]?.slots?.length, 4);
   assert.equal(schema.ui.preview?.surfaces?.["keyboard-strip"]?.keys?.length, 8);
+  assert.equal(schema.ui.preview?.controls?.layout, "sectioned");
+  assert.deepEqual(
+    schema.ui.preview?.controls?.sections?.map((section) => section.id),
+    ["voice-shape", "motion-envelope", "stage-field", "performance-readout"]
+  );
+});
+
+test("suite apps export sectioned control layouts that cover every control exactly once", () => {
+  const suite = loadSuiteRuntime(["--suite", "northline-suite"]);
+
+  for (const app of suite.apps) {
+    const { schema } = loadGeneratedProject(app.appKey);
+    const summary = summarizeControlLayout(schema);
+    const layout = schema.ui.preview?.controls;
+    const surfaceBindings = collectSurfaceControlBindings(schema.ui.preview?.surfaces ?? {});
+
+    assert.equal(layout?.layout, "sectioned", `${app.appKey} should use the shared sectioned control layout`);
+    assert.ok(summary.sections.length > 0, `${app.appKey} should declare at least one control section`);
+    assert.deepEqual(
+      new Set(summary.configuredControls.map((control) => control.label)),
+      new Set(schema.controls.map((control) => control.label)),
+      `${app.appKey} should map every exported control into the grouped preview layout`
+    );
+    assert.equal(
+      summary.configuredItems.length,
+      schema.controls.length,
+      `${app.appKey} should not duplicate controls across grouped layout sections`
+    );
+    assert.ok(summary.surfaceOnlyControls.length > 0, `${app.appKey} should reserve at least one control for surface-owned editing`);
+
+    summary.surfaceOnlyControls.forEach((control) => {
+      assert.ok(
+        surfaceBindings.has(control.label),
+        `${app.appKey} marks "${control.label}" as surface-owned but does not bind it inside a preview surface`
+      );
+    });
+  }
+});
+
+test("suite apps reserve surface-level control bindings so editing does not collapse back to sliders", () => {
+  const suite = loadSuiteRuntime(["--suite", "northline-suite"]);
+
+  for (const app of suite.apps) {
+    const { schema } = loadGeneratedProject(app.appKey);
+    const bindingCount = collectSurfaceControlBindings(schema.ui.preview?.surfaces ?? {}).size;
+
+    assert.ok(
+      bindingCount >= 3,
+      `${app.appKey} should expose multiple control bindings directly inside its preview surface configs`
+    );
+  }
 });
 
 for (const appCase of appSchemaCases) {
@@ -332,6 +430,11 @@ test("northline suite schemas keep shell copy and preview surface descriptions c
     assert.ok(schema.ui.shell?.sections?.controls?.description, `${app.appKey} is missing controls section description.`);
     assert.ok(schema.ui.shell?.sections?.meters?.title, `${app.appKey} is missing meters section title.`);
     assert.ok(schema.ui.shell?.sections?.meters?.description, `${app.appKey} is missing meters section description.`);
+    assert.ok(schema.ui.catalog?.referenceProduct, `${app.appKey} is missing original reference-product mapping metadata.`);
+    assert.ok(
+      Array.isArray(schema.ui.catalog?.featureAnchors) && schema.ui.catalog.featureAnchors.length > 0,
+      `${app.appKey} is missing feature-anchor mapping metadata.`
+    );
 
     const surfaces = Object.entries(schema.ui.preview?.surfaces ?? {});
     assert.ok(surfaces.length > 0, `${app.appKey} should expose at least one preview surface.`);

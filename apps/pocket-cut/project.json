@@ -78,6 +78,77 @@
       }
     },
     "preview": {
+      "controls": {
+        "layout": "sectioned",
+        "sections": [
+          {
+            "id": "filter-mode",
+            "title": "Filter Mode",
+            "description": "Pocket Cut leads with one shared mode strip so the tiny utility lane still feels deliberate.",
+            "kind": "segmented-strip",
+            "items": [
+              {
+                "control": "Mode"
+              }
+            ]
+          },
+          {
+            "id": "filter-core",
+            "title": "Filter Core",
+            "description": "Cutoff, resonance, and follow timing stay together as the main shaping cluster for the compact filter.",
+            "kind": "dial-grid",
+            "columns": 3,
+            "items": [
+              {
+                "control": "Cutoff",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Resonance",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Envelope Follow",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "drive-output",
+            "title": "Drive + Output",
+            "description": "Drive, wet balance, and output trim sit in a compact strip instead of reading like loose utility sliders.",
+            "kind": "fader-bank",
+            "columns": 3,
+            "items": [
+              {
+                "control": "Drive",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Mix",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Output",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "output-utility",
+            "title": "Output Utility",
+            "description": "Bypass stays isolated as the tiny output utility bank for the mini lane.",
+            "kind": "toggle-bank",
+            "items": [
+              {
+                "control": "Bypass"
+              }
+            ]
+          }
+        ],
+        "supplementalTitle": "Supplemental Pocket Cut Controls",
+        "supplementalDescription": "Any extra compact-filter helpers stay reachable here until Pocket Cut gets another reduced-manifest pass."
+      },
       "surfaces": {
         "filter-canvas": {
           "title": "Compact filter canvas",

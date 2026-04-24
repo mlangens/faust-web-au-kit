@@ -93,6 +93,88 @@
       }
     },
     "preview": {
+      "controls": {
+        "layout": "sectioned",
+        "sections": [
+          {
+            "id": "drive-routing",
+            "title": "Drive Routing",
+            "description": "Group the shared mode selectors so mid-side drive choices stay out of the limiter staging lane.",
+            "kind": "segmented-strip",
+            "items": [
+              {
+                "control": "Drive Target"
+              },
+              {
+                "control": "Drive Focus"
+              }
+            ]
+          },
+          {
+            "id": "limit-staging",
+            "title": "Limit Staging",
+            "description": "Use a shared fader bank for input gain, saturation split points, ceiling, and output trim.",
+            "kind": "fader-bank",
+            "items": [
+              {
+                "control": "Input Gain"
+              },
+              {
+                "control": "Tube Drive"
+              },
+              {
+                "control": "Drive Low Split"
+              },
+              {
+                "control": "Drive High Split"
+              },
+              {
+                "control": "Ceiling"
+              },
+              {
+                "control": "Output Trim"
+              }
+            ]
+          },
+          {
+            "id": "response-color",
+            "title": "Response & Color",
+            "description": "Move timing and transformer shaping into the shared dial grid instead of another flat slider run.",
+            "kind": "dial-grid",
+            "columns": 4,
+            "items": [
+              {
+                "control": "Transformer Tone"
+              },
+              {
+                "control": "Attack"
+              },
+              {
+                "control": "Hold"
+              },
+              {
+                "control": "Release"
+              }
+            ]
+          },
+          {
+            "id": "utility-toggles",
+            "title": "Utility Toggles",
+            "description": "Keep voicing and bypass switches grouped into a compact shared toggle bank.",
+            "kind": "toggle-bank",
+            "items": [
+              {
+                "control": "Vintage Response"
+              },
+              {
+                "control": "Bypass"
+              }
+            ]
+          }
+        ],
+        "supplementalTitle": "Additional Controls",
+        "supplementalDescription": "Any limiter parameters not yet mapped into the grouped layout stay available here while the preview evolves."
+      },
       "surfaces": {
         "history-trace": {
           "title": "Drive history",

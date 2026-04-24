@@ -6,6 +6,7 @@ import {
 } from "../control-store.js";
 import { formatValue } from "../formatting.js";
 import { formatMeterValue, meterPercent } from "../meters.js";
+import { resolveControlDisplay } from "../schema-ui.js";
 import {
   clamp,
   denormalizeFrequencyValue,
@@ -145,6 +146,255 @@ function setSurfaceControlValue(sourceNode, schema, state, key, value) {
   rememberControlValue(state, control, nextValue);
   state.refreshSurfaceViews?.();
   return nextValue;
+}
+
+function controlMinValue(control) {
+  const min = Number(control?.min);
+  return Number.isFinite(min) ? min : 0;
+}
+
+function controlMaxValue(control, display = {}) {
+  const min = controlMinValue(control);
+  const max = Number(control?.max);
+  if (Array.isArray(display.enumLabels) && display.enumLabels.length) {
+    const enumMax = min + display.enumLabels.length - 1;
+    return Number.isFinite(max) ? Math.min(max, enumMax) : enumMax;
+  }
+  return Number.isFinite(max) ? max : 1;
+}
+
+function isDiscreteControl(control, display = {}) {
+  if (!control) {
+    return false;
+  }
+
+  if (control.isToggle || control.type === "checkbox" || control.type === "button") {
+    return true;
+  }
+
+  if (Array.isArray(display.enumLabels) && display.enumLabels.length) {
+    return true;
+  }
+
+  const step = Number(control.step);
+  const min = Number(control.min);
+  const max = Number(control.max);
+  return Number.isFinite(step)
+    && step >= 1
+    && Number.isFinite(min)
+    && Number.isFinite(max)
+    && (max - min) / step <= 12;
+}
+
+function discreteControlStep(control) {
+  const step = Number(control?.step);
+  return Number.isFinite(step) && step > 0 ? step : 1;
+}
+
+function setSurfaceControlNormalizedValue(sourceNode, schema, state, key, normalized) {
+  const control = resolveControl(schema, key);
+  if (!control) {
+    return null;
+  }
+
+  const nextValue = denormalizePointAxisValue(control, {
+    min: control.min,
+    max: control.max,
+    scale: control.scale
+  }, clamp(normalized, 0, 1), false);
+  return setSurfaceControlValue(sourceNode, schema, state, key, nextValue);
+}
+
+function stepSurfaceControlValue(sourceNode, schema, state, key, direction = 1) {
+  const control = resolveControl(schema, key);
+  if (!control) {
+    return null;
+  }
+
+  const display = resolveControlDisplay(schema.ui, control);
+  const current = Number(readControlValue(schema, state, key, control.init ?? control.min ?? 0));
+  if (control.isToggle || control.type === "checkbox" || control.type === "button") {
+    const nextValue = direction === 0 ? (current >= 0.5 ? 0 : 1) : direction > 0 ? 1 : 0;
+    return setSurfaceControlValue(sourceNode, schema, state, key, nextValue);
+  }
+
+  if (isDiscreteControl(control, display)) {
+    const step = discreteControlStep(control);
+    const min = controlMinValue(control);
+    const max = controlMaxValue(control, display);
+    const base = Number.isFinite(current) ? current : min;
+    const nextValue = clamp(base + step * Math.sign(direction || 1), min, max);
+    return setSurfaceControlValue(sourceNode, schema, state, key, nextValue);
+  }
+
+  const normalized = normalizeControlValue(control, current);
+  const nudge = Math.sign(direction || 1) * 0.04;
+  return setSurfaceControlNormalizedValue(sourceNode, schema, state, key, normalized + nudge);
+}
+
+function enhanceSurfaceReadoutRow(row, sourceNode, schema, state, entry) {
+  if (entry?.meterId) {
+    return false;
+  }
+
+  const controlKey = entry?.control || entry?.label;
+  if (!controlKey) {
+    return false;
+  }
+
+  const control = resolveControl(schema, controlKey);
+  if (!control) {
+    return false;
+  }
+
+  const display = resolveControlDisplay(schema.ui, control);
+  const discrete = isDiscreteControl(control, display);
+  const parentButton = row.parentElement?.closest("button");
+  const interactions = createSurfaceInteractionController(row);
+  let suppressClick = false;
+  let dragState = null;
+
+  row.classList.add("surface-readout--interactive");
+  row.dataset.readoutMode = discrete ? "discrete" : "continuous";
+  row.dataset.controlId = control.id || control.label || controlKey;
+  row.title = discrete
+    ? "Click, drag, scroll, or use arrow keys to change this value."
+    : "Drag, scroll, or use arrow keys to adjust this value.";
+  if (!parentButton) {
+    row.tabIndex = 0;
+  }
+
+  const stopInteraction = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+  };
+  const readCurrentValue = () => Number(readControlValue(schema, state, controlKey, control.init ?? control.min ?? 0));
+  const discreteRange = () => ({
+    min: controlMinValue(control),
+    max: controlMaxValue(control, display),
+    step: discreteControlStep(control)
+  });
+  const adjustByWheel = (direction) => {
+    if (discrete) {
+      stepSurfaceControlValue(sourceNode, schema, state, controlKey, direction);
+      return;
+    }
+
+    const nextNormalized = normalizeControlValue(control, readCurrentValue()) + Math.sign(direction || 1) * 0.035;
+    setSurfaceControlNormalizedValue(sourceNode, schema, state, controlKey, nextNormalized);
+  };
+
+  const startDrag = (event) => {
+    interactions.startDrag(event, {
+      captureTarget: row,
+      onStart: () => {
+        row.classList.add("is-adjusting");
+        dragState = {
+          value: readCurrentValue(),
+          normalized: normalizeControlValue(control, readCurrentValue()),
+          changed: false
+        };
+      },
+      onMove: ({ point, startPoint }) => {
+        if (!dragState) {
+          return;
+        }
+
+        const deltaX = point.x - startPoint.x;
+        if (discrete) {
+          const { min, max, step } = discreteRange();
+          const spanSteps = Math.max(1, Math.min(Math.round((max - min) / step), 8));
+          const stepDelta = Math.round(deltaX * spanSteps);
+          if (stepDelta === 0) {
+            return;
+          }
+          const nextValue = clamp(dragState.value + stepDelta * step, min, max);
+          setSurfaceControlValue(sourceNode, schema, state, controlKey, nextValue);
+          suppressClick = true;
+          dragState.changed = true;
+          return;
+        }
+
+        const nextNormalized = clamp(dragState.normalized + deltaX * 1.15, 0, 1);
+        if (Math.abs(nextNormalized - dragState.normalized) < 0.01) {
+          return;
+        }
+        setSurfaceControlNormalizedValue(sourceNode, schema, state, controlKey, nextNormalized);
+        suppressClick = true;
+        dragState.changed = true;
+      },
+      onEnd: () => {
+        row.classList.remove("is-adjusting");
+        dragState = null;
+        if (suppressClick) {
+          window.setTimeout(() => {
+            suppressClick = false;
+          }, 0);
+        }
+      }
+    });
+  };
+
+  row.addEventListener("pointerdown", startDrag);
+  row.addEventListener("mousedown", startDrag);
+  row.addEventListener("click", (event) => {
+    if (!discrete) {
+      return;
+    }
+    if (suppressClick) {
+      suppressClick = false;
+      return;
+    }
+    stopInteraction(event);
+    stepSurfaceControlValue(sourceNode, schema, state, controlKey, event.shiftKey ? -1 : 1);
+  });
+  row.addEventListener("wheel", (event) => {
+    stopInteraction(event);
+    const primaryDelta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : -event.deltaY;
+    adjustByWheel(primaryDelta >= 0 ? 1 : -1);
+  }, { passive: false });
+  row.addEventListener("keydown", (event) => {
+    switch (event.key) {
+      case "ArrowLeft":
+      case "ArrowDown":
+        stopInteraction(event);
+        adjustByWheel(-1);
+        break;
+      case "ArrowRight":
+      case "ArrowUp":
+        stopInteraction(event);
+        adjustByWheel(1);
+        break;
+      case "Home":
+        stopInteraction(event);
+        if (discrete) {
+          setSurfaceControlValue(sourceNode, schema, state, controlKey, discreteRange().min);
+        } else {
+          setSurfaceControlNormalizedValue(sourceNode, schema, state, controlKey, 0);
+        }
+        break;
+      case "End":
+        stopInteraction(event);
+        if (discrete) {
+          setSurfaceControlValue(sourceNode, schema, state, controlKey, discreteRange().max);
+        } else {
+          setSurfaceControlNormalizedValue(sourceNode, schema, state, controlKey, 1);
+        }
+        break;
+      case " ":
+      case "Enter":
+        if (!discrete) {
+          return;
+        }
+        stopInteraction(event);
+        stepSurfaceControlValue(sourceNode, schema, state, controlKey, event.shiftKey ? -1 : 1);
+        break;
+      default:
+        break;
+    }
+  });
+
+  return true;
 }
 
 function resolveSurfacePoint(surface, event) {
@@ -618,6 +868,7 @@ export {
   createTracePath,
   createTransferPath,
   denormalizePointAxisValue,
+  enhanceSurfaceReadoutRow,
   formatMeterValue,
   humanizeId,
   measureMeterValue,
@@ -638,6 +889,8 @@ export {
   resolveRegionState,
   resolveSurfaceModels,
   resolveToneColor,
+  setSurfaceControlNormalizedValue,
   setSurfaceControlValue,
+  stepSurfaceControlValue,
   surfaceDescription
 };
