@@ -651,6 +651,54 @@
   "standalone": {
     "bundleId": "io.github.mlangens.faust-web-au-kit.mirror-field.app"
   },
+  "sonicStages": [
+    {
+      "id": "tone-contour-brightens-voice",
+      "title": "Tone contour brightens the synth voice",
+      "description": "A bright contour scene should lift air-band energy against the darker baseline.",
+      "fixture": {
+        "kind": "stereo-ambience",
+        "seconds": 1.2,
+        "amplitude": 0.3
+      },
+      "renders": [
+        {
+          "id": "baseline",
+          "parameters": {
+            "Tone": 0.24,
+            "Contour": 0.18,
+            "Drive": 0
+          }
+        },
+        {
+          "id": "feature",
+          "parameters": {
+            "Tone": 0.82,
+            "Contour": 0.76,
+            "Drive": 4,
+            "Stereo Width": 72
+          }
+        }
+      ],
+      "assertions": [
+        {
+          "render": "feature",
+          "metric": "nanSamples",
+          "eq": 0
+        },
+        {
+          "render": "feature",
+          "metric": "bandEnergyDb.air",
+          "reference": "baseline",
+          "minDelta": 0.4
+        }
+      ],
+      "tags": [
+        "feature",
+        "instrument"
+      ]
+    }
+  ],
   "benchmark": {
     "sampleRate": 48000,
     "blockSize": 256,

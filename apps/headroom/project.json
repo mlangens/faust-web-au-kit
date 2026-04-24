@@ -454,6 +454,53 @@
   "standalone": {
     "bundleId": "io.github.mlangens.faust-web-au-kit.headroom.app"
   },
+  "sonicStages": [
+    {
+      "id": "ceiling-clamps-peaks",
+      "title": "Limiter ceiling clamps peak output",
+      "description": "A driven drum scene should keep peaks under control when drive and ceiling are staged aggressively.",
+      "fixture": {
+        "kind": "drum-loop",
+        "seconds": 1.3,
+        "amplitude": 0.62
+      },
+      "renders": [
+        {
+          "id": "baseline",
+          "parameters": {
+            "Input Gain": 0,
+            "Drive": 1,
+            "Ceiling": -0.3
+          }
+        },
+        {
+          "id": "feature",
+          "parameters": {
+            "Input Gain": 5,
+            "Drive": 10,
+            "Ceiling": -2,
+            "Release": 160
+          }
+        }
+      ],
+      "assertions": [
+        {
+          "render": "feature",
+          "metric": "nanSamples",
+          "eq": 0
+        },
+        {
+          "render": "feature",
+          "metric": "peakDb",
+          "lte": 3
+        }
+      ],
+      "tags": [
+        "feature",
+        "limiter"
+      ]
+    }
+  ],
   "benchmark": {
     "sampleRate": 48000,
     "blockSize": 256,

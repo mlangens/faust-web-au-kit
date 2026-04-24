@@ -356,6 +356,86 @@ export interface ProjectBenchmarkManifest extends JsonObject {
   seconds: number;
 }
 
+export type SonicFixtureKind =
+  | "bass-loop"
+  | "brown-noise"
+  | "drum-loop"
+  | "impulse"
+  | "imd-two-tone"
+  | "multitone"
+  | "pink-noise"
+  | "pulse-train"
+  | "silence"
+  | "sine"
+  | "step"
+  | "stepped-sine"
+  | "stereo-ambience"
+  | "sweep"
+  | "tone-burst"
+  | "two-tone"
+  | "vocal-sibilance"
+  | "white-noise"
+  | string;
+
+export interface SonicFixtureManifest extends JsonObject {
+  kind: SonicFixtureKind;
+  amplitude?: number;
+  bpm?: number;
+  channels?: number;
+  endFrequency?: number;
+  frequency?: number;
+  sampleRate?: number;
+  seconds?: number;
+  seed?: number;
+  startFrequency?: number;
+}
+
+export interface SonicRenderManifest extends JsonObject {
+  id: string;
+  description?: string;
+  parameters?: Record<string, number>;
+}
+
+export interface SonicAssertionManifest extends JsonObject {
+  render: string;
+  metric: string;
+  reference?: string;
+  between?: [number, number];
+  eq?: number;
+  gte?: number;
+  lte?: number;
+  maxDelta?: number;
+  minDelta?: number;
+}
+
+export interface SonicStageManifest extends JsonObject {
+  id: string;
+  title?: string;
+  description?: string;
+  blockSize?: number;
+  fixture: SonicFixtureManifest | SonicFixtureKind;
+  renders: SonicRenderManifest[];
+  assertions: SonicAssertionManifest[];
+  tags?: string[];
+}
+
+export interface SonicNativeHostArtifacts extends JsonObject {
+  standalone: string;
+  vst3: string;
+  clap: string;
+}
+
+export interface SonicNativeHostRequest extends JsonObject {
+  version: number;
+  mode: string;
+  appKey: string;
+  productName: string;
+  pluginKind: ProjectPluginKind;
+  generatedDir: string;
+  artifacts: SonicNativeHostArtifacts;
+  stages: SonicStageManifest[];
+}
+
 export interface ProjectManifest extends JsonObject {
   name: string;
   version: string;
@@ -372,6 +452,7 @@ export interface ProjectManifest extends JsonObject {
   targets: ProjectTargetsManifest;
   oversampling: ProjectOversamplingManifest;
   benchmark: ProjectBenchmarkManifest;
+  sonicStages?: SonicStageManifest[];
   au: ProjectAudioUnitManifest;
   clap: ProjectClapManifest;
   vst3: ProjectVst3Manifest;
@@ -541,6 +622,7 @@ export interface GeneratedUiSchema extends JsonObject {
   controls: GeneratedControl[];
   meters: GeneratedMeter[];
   benchmarkPath?: string;
+  sonicReportPath?: string;
 }
 
 export interface BenchmarkResult extends JsonObject {
@@ -563,6 +645,42 @@ export interface BenchmarkReport extends JsonObject {
   results?: BenchmarkResult[];
 }
 
+export interface SonicRenderReport extends JsonObject {
+  id: string;
+  parameters?: Record<string, number>;
+  metrics: Record<string, number>;
+}
+
+export interface SonicAssertionReport extends JsonObject {
+  passed: boolean;
+  message: string;
+  assertion: SonicAssertionManifest;
+  actual: number | null;
+  reference: number | null;
+}
+
+export interface SonicStageReport extends JsonObject {
+  id: string;
+  title?: string;
+  description?: string;
+  fixture?: SonicFixtureManifest;
+  renders: SonicRenderReport[];
+  assertions: SonicAssertionReport[];
+  passed: boolean;
+}
+
+export interface SonicSuiteReport extends JsonObject {
+  version: number;
+  mode: string;
+  profile: string;
+  appKey: string;
+  productName: string;
+  generatedAt: string;
+  host?: BenchmarkReportHost;
+  passed: boolean;
+  stages: SonicStageReport[];
+}
+
 export interface GeneratedWorkspaceApp extends JsonObject {
   key: string;
   name: string;
@@ -570,6 +688,7 @@ export interface GeneratedWorkspaceApp extends JsonObject {
   manifest: string;
   schemaPath: string;
   benchmarkPath: string;
+  sonicReportPath?: string;
   previewPath: string;
 }
 

@@ -27,6 +27,9 @@ function exportTargetsForProfile(exportProfile) {
   if (exportProfile === "native") {
     return ["c", "cpp"];
   }
+  if (exportProfile === "sonic") {
+    return ["cpp"];
+  }
   return ["c", "cpp", "wast", "wasm", "cmajor", "rust"];
 }
 

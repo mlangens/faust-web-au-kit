@@ -510,6 +510,53 @@
   "standalone": {
     "bundleId": "io.github.mlangens.faust-web-au-kit.latch-line.app"
   },
+  "sonicStages": [
+    {
+      "id": "gate-range-attenuates-room",
+      "title": "Gate range attenuates low-level ambience",
+      "description": "A high-threshold gate scene should reduce sustained ambience relative to the open baseline.",
+      "fixture": {
+        "kind": "stereo-ambience",
+        "seconds": 1.2,
+        "amplitude": 0.24
+      },
+      "renders": [
+        {
+          "id": "baseline",
+          "parameters": {
+            "Threshold": -52,
+            "Range": 4
+          }
+        },
+        {
+          "id": "feature",
+          "parameters": {
+            "Threshold": -18,
+            "Range": 28,
+            "Hold": 40,
+            "Release": 120
+          }
+        }
+      ],
+      "assertions": [
+        {
+          "render": "feature",
+          "metric": "nanSamples",
+          "eq": 0
+        },
+        {
+          "render": "feature",
+          "metric": "rmsDb",
+          "reference": "baseline",
+          "maxDelta": -0.25
+        }
+      ],
+      "tags": [
+        "feature",
+        "gate"
+      ]
+    }
+  ],
   "benchmark": {
     "sampleRate": 48000,
     "blockSize": 256,

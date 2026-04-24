@@ -41,6 +41,11 @@
     "benchmark:press-deck": "node ./tools/run-benchmarks.mjs --app press-deck",
     "benchmark:silk-guard": "node ./tools/run-benchmarks.mjs --app silk-guard",
     "benchmark:split-stack": "node ./tools/run-benchmarks.mjs --app split-stack",
+    "sonic:smoke": "node ./tools/run-sonic-stages.mjs --app limiter-lab --profile smoke",
+    "sonic:contracts": "node ./tools/run-sonic-stages.mjs --suite northline-suite --profile contracts",
+    "sonic:native:plan": "node ./tools/run-sonic-stages.mjs --suite northline-suite --profile contracts --mode native --dry-run",
+    "sonic:standalone:plan": "node ./tools/run-sonic-stages.mjs --suite northline-suite --profile contracts --mode standalone --dry-run",
+    "sonic:vst3:plan": "node ./tools/run-sonic-stages.mjs --suite northline-suite --profile contracts --mode vst3 --dry-run",
     "preview": "node ./tools/preview-server.mjs",
     "build:au": "./scripts/build-au.sh",
     "build:native": "./scripts/build-native.sh",
@@ -65,10 +70,11 @@
     "test:contracts": "npm run test:prepare && npm run test:contracts:run",
     "test:integration:run": "node --test tests/integration/**/*.test.mjs",
     "test:integration": "npm run test:prepare && npm run test:integration:run",
+    "test:sonic": "node --test tests/unit/sonic-stage-tools.test.mjs tests/contracts/sonic-stages.test.mjs tests/integration/sonic-stages.test.mjs && npm run sonic:contracts",
     "test:preview:run": "playwright test",
     "test:preview": "npm run test:prepare && npm run test:preview:run",
     "test:native": "node ./tools/run-native-validation.mjs",
-    "test": "npm run check:structure && npm run check:type-coverage && npm run check:types && npm run test:prepare && npm run test:unit:run && npm run test:contracts:run && npm run test:integration:run && npm run test:preview:run"
+    "test": "npm run check:structure && npm run check:type-coverage && npm run check:types && npm run test:prepare && npm run test:unit:run && npm run test:contracts:run && npm run test:integration:run && npm run test:sonic && npm run test:preview:run"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",

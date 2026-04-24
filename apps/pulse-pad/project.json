@@ -618,6 +618,54 @@
   "standalone": {
     "bundleId": "io.github.mlangens.faust-web-au-kit.pulse-pad.app"
   },
+  "sonicStages": [
+    {
+      "id": "tone-drive-brightens-pad",
+      "title": "Tone and drive brighten the pad voice",
+      "description": "A bright driven pad scene should raise air-to-mid energy against a darker baseline.",
+      "fixture": {
+        "kind": "stereo-ambience",
+        "seconds": 1.2,
+        "amplitude": 0.28
+      },
+      "renders": [
+        {
+          "id": "baseline",
+          "parameters": {
+            "Tone": 0.22,
+            "Drive": 0,
+            "Stereo Width": 0.42
+          }
+        },
+        {
+          "id": "feature",
+          "parameters": {
+            "Tone": 0.84,
+            "Drive": 5,
+            "Motion": 0.65,
+            "Stereo Width": 0.82
+          }
+        }
+      ],
+      "assertions": [
+        {
+          "render": "feature",
+          "metric": "nanSamples",
+          "eq": 0
+        },
+        {
+          "render": "feature",
+          "metric": "airToMidDb",
+          "reference": "baseline",
+          "minDelta": 0.3
+        }
+      ],
+      "tags": [
+        "feature",
+        "instrument"
+      ]
+    }
+  ],
   "benchmark": {
     "sampleRate": 48000,
     "blockSize": 256,

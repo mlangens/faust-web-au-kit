@@ -432,6 +432,54 @@
   "standalone": {
     "bundleId": "io.github.mlangens.faust-web-au-kit.limiter-lab.app"
   },
+  "sonicStages": [
+    {
+      "id": "tube-drive-colors-limit-path",
+      "title": "Tube drive adds harmonic color before limiting",
+      "description": "A driven limiter scene should increase upper harmonic energy while still producing valid bounded output.",
+      "fixture": {
+        "kind": "multitone",
+        "seconds": 1.2,
+        "amplitude": 0.4
+      },
+      "renders": [
+        {
+          "id": "baseline",
+          "parameters": {
+            "Input Gain": 0,
+            "Tube Drive": 0,
+            "Ceiling": -0.5
+          }
+        },
+        {
+          "id": "feature",
+          "parameters": {
+            "Input Gain": 4,
+            "Tube Drive": 7,
+            "Transformer Tone": 55,
+            "Ceiling": -2
+          }
+        }
+      ],
+      "assertions": [
+        {
+          "render": "feature",
+          "metric": "nanSamples",
+          "eq": 0
+        },
+        {
+          "render": "feature",
+          "metric": "harmonicRatioDb",
+          "reference": "baseline",
+          "minDelta": 0.2
+        }
+      ],
+      "tags": [
+        "feature",
+        "limiter"
+      ]
+    }
+  ],
   "benchmark": {
     "sampleRate": 48000,
     "blockSize": 256,

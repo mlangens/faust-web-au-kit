@@ -19,12 +19,14 @@
     "tools/lib/fs-tools.mjs",
     "tools/lib/export-staging-tools.mjs",
     "tools/lib/project-tools.mjs",
+    "tools/lib/sonic-stage-tools.mjs",
     "tools/lib/ui-family-tools.mjs",
     "tools/lib/export-process-tools.mjs",
     "tools/list-suite-runtimes.mjs",
     "tools/prepare-test-artifacts.mjs",
     "tools/preview-server.mjs",
     "tools/print-runtime-env.mjs",
+    "tools/run-sonic-stages.mjs",
     "tools/run-native-validation.mjs",
     "tests/support/generated-projects.mjs"
   ]

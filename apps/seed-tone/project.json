@@ -340,6 +340,54 @@
   "standalone": {
     "bundleId": "io.github.mlangens.faust-web-au-kit.seed-tone.app"
   },
+  "sonicStages": [
+    {
+      "id": "cutoff-color-opens-voice",
+      "title": "Cutoff and color open the seed voice",
+      "description": "Opening cutoff and color should increase upper-band energy in the compact synth voice.",
+      "fixture": {
+        "kind": "stereo-ambience",
+        "seconds": 1.2,
+        "amplitude": 0.28
+      },
+      "renders": [
+        {
+          "id": "baseline",
+          "parameters": {
+            "Cutoff": 420,
+            "Color": 0.2,
+            "Drive": 0
+          }
+        },
+        {
+          "id": "feature",
+          "parameters": {
+            "Cutoff": 5400,
+            "Color": 0.86,
+            "Drive": 4,
+            "Motion": 0.58
+          }
+        }
+      ],
+      "assertions": [
+        {
+          "render": "feature",
+          "metric": "nanSamples",
+          "eq": 0
+        },
+        {
+          "render": "feature",
+          "metric": "bandEnergyDb.presence",
+          "reference": "baseline",
+          "minDelta": 0.5
+        }
+      ],
+      "tags": [
+        "feature",
+        "instrument"
+      ]
+    }
+  ],
   "benchmark": {
     "sampleRate": 48000,
     "blockSize": 256,

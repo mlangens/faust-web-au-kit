@@ -153,6 +153,29 @@ test("native export profile skips non-native sidecar targets while keeping schem
   }
 });
 
+test("sonic export profile emits only the C++ render target and schema outputs", { timeout: 120000 }, async () => {
+  const appKey = "pocket-cut";
+  const { scratchRoot, workspaceFile, generatedApps } = createScratchWorkspace([appKey]);
+
+  try {
+    await runExport(["--workspace", workspaceFile, "--app", appKey, "--export-profile", "sonic"]);
+
+    const outputDir = path.join(generatedApps, appKey);
+    const targetDir = path.join(outputDir, "targets");
+
+    assert.equal(fs.existsSync(path.join(targetDir, "main.hpp")), true);
+    assert.equal(fs.existsSync(path.join(targetDir, "main.ui.json")), true);
+    assert.equal(fs.existsSync(path.join(outputDir, "ui_schema.json")), true);
+    assert.equal(fs.existsSync(path.join(targetDir, "main.c")), false);
+    assert.equal(fs.existsSync(path.join(targetDir, "main.wasm")), false);
+    assert.equal(fs.existsSync(path.join(targetDir, "main.wast")), false);
+    assert.equal(fs.existsSync(path.join(targetDir, "main.cmajor")), false);
+    assert.equal(fs.existsSync(path.join(targetDir, "main.rs")), false);
+  } finally {
+    fs.rmSync(scratchRoot, { recursive: true, force: true });
+  }
+});
+
 test("workspace export ignores forwarded app selection and refreshes every app", { timeout: 120000 }, async () => {
   const appKeys = ["seed-tone", "mirror-field"];
   const { scratchRoot, workspaceFile } = createScratchWorkspace(appKeys);
@@ -270,6 +293,45 @@ test("preview exports reuse cached Faust UI metadata without invoking faust", { 
     assert.equal(fs.existsSync(path.join(outputDir, "ui_manifest.h")), true);
     assert.equal(fs.existsSync(path.join(outputDir, "targets", "main.ui.json")), true);
     assert.equal(fs.existsSync(path.join(outputDir, "targets", "main.c")), false);
+  } finally {
+    fs.rmSync(scratchRoot, { recursive: true, force: true });
+  }
+});
+
+test("sonic exports reuse cached Faust UI metadata without invoking faust", { timeout: 120000 }, async () => {
+  const appKey = "seed-tone";
+  const { scratchRoot, workspaceFile, generatedApps } = createScratchWorkspace([appKey]);
+  const sourceRuntime = loadGeneratedProject(appKey).runtime;
+  const runtime = loadProjectRuntime(["--workspace", workspaceFile, "--app", appKey]);
+  const cachedTargetDir = path.join(runtime.targetDir);
+  const shimDir = path.join(scratchRoot, "bin");
+
+  fs.mkdirSync(cachedTargetDir, { recursive: true });
+  fs.copyFileSync(
+    path.join(sourceRuntime.targetDir, `${sourceRuntime.sourceBase}.ui.json`),
+    path.join(cachedTargetDir, `${runtime.sourceBase}.ui.json`)
+  );
+
+  fs.mkdirSync(shimDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(shimDir, "faust"),
+    "#!/bin/sh\nif [ \"$1\" = \"-json\" ]; then exit 87; fi\nout=\"\"\nprev=\"\"\nfor arg in \"$@\"; do\n  if [ \"$prev\" = \"-o\" ]; then out=\"$arg\"; fi\n  prev=\"$arg\"\ndone\nif [ -n \"$out\" ]; then printf 'fake-wasm' > \"$out\"; fi\n",
+    "utf8"
+  );
+  fs.chmodSync(path.join(shimDir, "faust"), 0o755);
+
+  try {
+    await runExport(["--workspace", workspaceFile, "--app", appKey, "--export-profile", "sonic"], {
+      env: {
+        ...process.env,
+        PATH: `${shimDir}${path.delimiter}${process.env.PATH ?? ""}`
+      }
+    });
+
+    assert.equal(fs.existsSync(path.join(generatedApps, appKey, "ui_schema.json")), true);
+    assert.equal(fs.existsSync(path.join(runtime.targetDir, `${runtime.sourceBase}.hpp`)), true);
+    assert.equal(fs.existsSync(path.join(runtime.targetDir, `${runtime.sourceBase}.ui.json`)), true);
+    assert.equal(fs.existsSync(path.join(runtime.targetDir, `${runtime.sourceBase}.rs`)), false);
   } finally {
     fs.rmSync(scratchRoot, { recursive: true, force: true });
   }

@@ -443,6 +443,53 @@
   "standalone": {
     "bundleId": "io.github.mlangens.faust-web-au-kit.silk-guard.app"
   },
+  "sonicStages": [
+    {
+      "id": "deesser-reduces-sibilance",
+      "title": "De-esser reduces sibilant emphasis",
+      "description": "A sibilant vocal fixture should lose sibilance-to-body energy when threshold and range are engaged.",
+      "fixture": {
+        "kind": "vocal-sibilance",
+        "seconds": 1.3,
+        "amplitude": 0.36
+      },
+      "renders": [
+        {
+          "id": "baseline",
+          "parameters": {
+            "Threshold": -8,
+            "Range": 2
+          }
+        },
+        {
+          "id": "feature",
+          "parameters": {
+            "Threshold": -34,
+            "Range": 12,
+            "Center Frequency": 7200,
+            "Focus Width": 62
+          }
+        }
+      ],
+      "assertions": [
+        {
+          "render": "feature",
+          "metric": "nanSamples",
+          "eq": 0
+        },
+        {
+          "render": "feature",
+          "metric": "sibilanceToBodyDb",
+          "reference": "baseline",
+          "maxDelta": -0.2
+        }
+      ],
+      "tags": [
+        "feature",
+        "de-esser"
+      ]
+    }
+  ],
   "benchmark": {
     "sampleRate": 48000,
     "blockSize": 256,

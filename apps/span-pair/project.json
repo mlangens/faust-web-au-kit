@@ -499,6 +499,56 @@
   "standalone": {
     "bundleId": "io.github.mlangens.faust-web-au-kit.span-pair.app"
   },
+  "sonicStages": [
+    {
+      "id": "dual-filter-opens-presence",
+      "title": "Dual filter opens the presence lane",
+      "description": "Opening both linked filters should increase presence energy against the tucked baseline.",
+      "fixture": {
+        "kind": "pink-noise",
+        "seconds": 1.1,
+        "amplitude": 0.16,
+        "seed": 144
+      },
+      "renders": [
+        {
+          "id": "baseline",
+          "parameters": {
+            "Filter A Cutoff": 420,
+            "Filter B Cutoff": 620,
+            "Mix": 80
+          }
+        },
+        {
+          "id": "feature",
+          "parameters": {
+            "Filter A Cutoff": 1200,
+            "Filter B Cutoff": 2200,
+            "Spacing": 30,
+            "Drive": 0,
+            "Mix": 80
+          }
+        }
+      ],
+      "assertions": [
+        {
+          "render": "feature",
+          "metric": "nanSamples",
+          "eq": 0
+        },
+        {
+          "render": "feature",
+          "metric": "bandEnergyDb.presence",
+          "reference": "baseline",
+          "minDelta": 1
+        }
+      ],
+      "tags": [
+        "feature",
+        "filter"
+      ]
+    }
+  ],
   "benchmark": {
     "sampleRate": 48000,
     "blockSize": 256,

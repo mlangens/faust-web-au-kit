@@ -731,6 +731,56 @@
   "standalone": {
     "bundleId": "io.github.mlangens.faust-web-au-kit.ember-drive.app"
   },
+  "sonicStages": [
+    {
+      "id": "drive-adds-harmonics",
+      "title": "Drive stage adds upper harmonic energy",
+      "description": "A driven multiband scene should measure a higher presence-to-mid harmonic ratio than the neutral baseline.",
+      "fixture": {
+        "kind": "bass-loop",
+        "seconds": 1.4,
+        "amplitude": 0.38
+      },
+      "renders": [
+        {
+          "id": "baseline",
+          "parameters": {
+            "Input Gain": 0,
+            "Low Drive": 1,
+            "Mid Drive": 1,
+            "High Drive": 1
+          }
+        },
+        {
+          "id": "feature",
+          "parameters": {
+            "Input Gain": 4,
+            "Low Drive": 7,
+            "Mid Drive": 8,
+            "High Drive": 6,
+            "Glue": 55
+          }
+        }
+      ],
+      "assertions": [
+        {
+          "render": "feature",
+          "metric": "nanSamples",
+          "eq": 0
+        },
+        {
+          "render": "feature",
+          "metric": "rmsDb",
+          "reference": "baseline",
+          "minDelta": 1
+        }
+      ],
+      "tags": [
+        "feature",
+        "saturation"
+      ]
+    }
+  ],
   "benchmark": {
     "sampleRate": 48000,
     "blockSize": 256,
