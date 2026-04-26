@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "faust-web-au-kit",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "defaultApp": "limiter-lab",
   "paths": {
     "apps": "apps",

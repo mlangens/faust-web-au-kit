@@ -52,6 +52,7 @@ function buildGraphSurface(model, schema, state) {
 
   const canvas = document.createElement("div");
   canvas.className = "graph-canvas";
+  canvas.dataset.canvasHint = "Drag handles to edit; Shift-drag changes shape where supported.";
   const svg = createSvgElement("svg");
   svg.setAttribute("class", "graph-svg");
   svg.setAttribute("viewBox", "0 0 100 100");
@@ -286,6 +287,7 @@ function buildTraceSurface(model, schema, state) {
 
   const canvas = document.createElement("div");
   canvas.className = "trace-canvas";
+  canvas.dataset.canvasHint = "Meter history follows detector, reduction, and output behavior.";
   const svg = createSvgElement("svg");
   svg.setAttribute("class", "trace-svg");
   svg.setAttribute("viewBox", "0 0 100 100");
@@ -386,6 +388,7 @@ function buildFieldSurface(model, schema, state) {
 
   const canvas = document.createElement("div");
   canvas.className = "field-canvas";
+  canvas.dataset.canvasHint = "Drag macro nodes to reshape the product-specific sound field.";
   const svg = createSvgElement("svg");
   svg.setAttribute("class", "field-svg");
   svg.setAttribute("viewBox", "0 0 100 100");
@@ -551,11 +554,9 @@ function buildFieldSurface(model, schema, state) {
       if (!button) {
         return;
       }
-      const size = 58 + node.activity * 44;
       button.style.left = `${node.x * 100}%`;
       button.style.top = `${node.y * 100}%`;
-      button.style.width = `${size}px`;
-      button.style.height = `${size}px`;
+      button.style.setProperty("--node-activity", String(node.activity));
       button.style.opacity = String(0.62 + node.activity * 0.38);
       button.classList.toggle("is-selected", String(node.id) === String(selected.id));
     });
@@ -624,6 +625,7 @@ function buildTransferSurface(model, schema, state) {
 
   const canvas = document.createElement("div");
   canvas.className = "transfer-canvas";
+  canvas.dataset.canvasHint = "Drag response handles to tune threshold, drive, and ceiling.";
   const svg = createSvgElement("svg");
   svg.setAttribute("class", "transfer-svg");
   svg.setAttribute("viewBox", "0 0 100 100");
@@ -996,6 +998,7 @@ function buildRegionSurface(model, schema, state) {
 
   const editor = document.createElement("div");
   editor.className = "region-editor";
+  editor.dataset.canvasHint = "Drag regions or resize edges to reshape crossover bands.";
   const regionViews = new Map();
   let selectedRegionId = String(model.config.selection || regions[0]?.id || "");
   const interactions = createSurfaceInteractionController(editor);

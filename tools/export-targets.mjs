@@ -10,17 +10,22 @@ const exportProfile = resolveExportProfile(runtime.args);
 const stager = createExportStager(runtime.outputDir);
 
 try {
+  const shouldReuseCachedUiMetadata = exportProfile === "preview" || exportProfile === "native";
+  const shouldReuseCachedNativeTargets = exportProfile === "native";
   const projectConfig = buildProjectConfigArtifacts(runtime);
   stager.stageTextArtifact("project_config.h", projectConfig.header);
   stager.stageTextArtifact("project_config.cmake", projectConfig.cmake);
 
   for (const target of exportTargetsForProfile(exportProfile)) {
-    exportFaustTarget(runtime, stager, target);
+    exportFaustTarget(runtime, stager, target, {
+      allowCachedFallback: shouldReuseCachedNativeTargets,
+      preferCached: shouldReuseCachedNativeTargets
+    });
   }
 
   const uiJsonPath = exportJsonMetadata(runtime, stager, {
-    allowCachedFallback: exportProfile === "preview",
-    preferCached: exportProfile === "preview"
+    allowCachedFallback: shouldReuseCachedUiMetadata,
+    preferCached: shouldReuseCachedUiMetadata
   });
   const uiArtifacts = buildUiManifestArtifacts(runtime, uiJsonPath);
   stager.stageTextArtifact("ui_manifest.h", uiArtifacts.header);

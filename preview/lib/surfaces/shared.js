@@ -495,6 +495,145 @@ function surfaceDescription(model) {
   return "Shared surface scaffold derived from the resolved UI family preset.";
 }
 
+function surfaceWorkflow(model) {
+  if (typeof model.config.workflow === "string" && model.config.workflow.trim()) {
+    return model.config.workflow.trim();
+  }
+
+  if (model.kind === "graph-canvas" || model.kind === "hybrid-canvas" || model.kind === "hybrid-strip") {
+    if (Array.isArray(model.config.curveControls) && model.config.curveControls.length) {
+      return "transfer-curve";
+    }
+    if (Array.isArray(model.config.bands) && model.config.bands.length) {
+      return "curve-editor";
+    }
+    if (Array.isArray(model.config.nodes) && model.config.nodes.length) {
+      return "macro-field";
+    }
+  }
+
+  switch (model.kind) {
+    case "history-trace":
+      return "meter-history";
+    case "timeline-editor":
+      return "tap-editor";
+    case "region-editor":
+      return "band-region-editor";
+    case "modulation-dock":
+      return "modulation-slots";
+    case "routing-control":
+      return "routing-matrix";
+    case "linked-strip":
+      return "linked-inspector";
+    case "card-stack":
+    case "card-rack":
+      return "module-rack";
+    case "keyboard-strip":
+      return "performance-strip";
+    case "section-grid":
+      return "section-grid";
+    case "popover-panel":
+      return "sticky-popover";
+    default:
+      return "surface";
+  }
+}
+
+function surfaceCuesForWorkflow(workflow) {
+  switch (workflow) {
+    case "curve-editor":
+      return ["drag bands", "shift shapes", "popover edits"];
+    case "macro-field":
+      return ["drag nodes", "watch energy", "anchor tone"];
+    case "meter-history":
+      return ["trace response", "compare detector", "read meters"];
+    case "transfer-curve":
+      return ["drag response", "watch clamp", "tune timing"];
+    case "tap-editor":
+      return ["drag taps", "follow lanes", "mod slots"];
+    case "band-region-editor":
+      return ["drag bands", "resize edges", "meter reduction"];
+    case "modulation-slots":
+      return ["source rail", "target slots", "live depth"];
+    case "routing-matrix":
+      return ["click routes", "see paths", "audit detail"];
+    case "linked-inspector":
+      return ["select band", "edit linked", "watch meters"];
+    case "module-rack":
+      return ["voice modules", "activity bars", "shared blocks"];
+    case "performance-strip":
+      return ["voice count", "play state", "envelope"];
+    case "section-grid":
+      return ["macro blocks", "local meters", "compact edits"];
+    case "sticky-popover":
+      return ["footer tools", "sticky values", "quick output"];
+    default:
+      return ["visual first", "shared controls", "live feedback"];
+  }
+}
+
+function surfaceManualCues(model) {
+  if (Array.isArray(model.config.manualCues) && model.config.manualCues.length) {
+    return model.config.manualCues.map((cue) => String(cue)).filter(Boolean).slice(0, 4);
+  }
+
+  switch (model.id) {
+    case "eq-canvas":
+      return ["drag bands", "shape Q", "band popover"];
+    case "sidechain-editor":
+    case "detector-filter":
+      return ["focus band", "detector tilt", "audition path"];
+    case "history-trace":
+      return ["trace detector", "watch reduction", "output recovery"];
+    case "reverb-space":
+      return ["drag room nodes", "shape tail", "tone window"];
+    case "multiband-editor":
+      return ["drag regions", "resize crossovers", "meter bands"];
+    case "delay-timeline":
+      return ["drag taps", "follow lanes", "feedback path"];
+    case "filter-canvas":
+      return ["drag cutoff", "shape resonance", "motion overlay"];
+    case "routing-matrix":
+      return ["click routes", "serial parallel", "path audit"];
+    case "modulation-dock":
+      return ["source rail", "target slots", "live depth"];
+    case "oscillator-stack":
+    case "module-rack":
+      return ["module cards", "voice activity", "shared blocks"];
+    case "keyboard-strip":
+      return ["voice count", "envelope", "performance"];
+    case "section-grid":
+      return ["macro blocks", "local meters", "compact edits"];
+    case "output-popover":
+      return ["footer tools", "sticky values", "quick output"];
+    default:
+      break;
+  }
+
+  return surfaceCuesForWorkflow(surfaceWorkflow(model));
+}
+
+function createSurfaceAffordanceBar(model) {
+  const workflow = surfaceWorkflow(model);
+  const bar = document.createElement("div");
+  bar.className = "surface-affordance-bar";
+  bar.dataset.workflow = workflow;
+
+  const workflowChip = document.createElement("span");
+  workflowChip.className = "surface-affordance-chip surface-affordance-chip--workflow";
+  workflowChip.textContent = humanizeId(workflow);
+  bar.append(workflowChip);
+
+  surfaceManualCues(model).forEach((cue) => {
+    const chip = document.createElement("span");
+    chip.className = "surface-affordance-chip";
+    chip.textContent = cue;
+    bar.append(chip);
+  });
+
+  return bar;
+}
+
 function resolveSurfaceModels(schema) {
   const ui = asObject(schema.ui);
   const surfacePresets = asObject(ui.surfacePresets);
@@ -553,6 +692,8 @@ function createSurfaceScaffold(model, className, bodyClass = "surface-card__body
   const card = document.createElement("article");
   card.className = className;
   card.dataset.surfaceId = model.id;
+  card.dataset.surfaceKind = model.kind;
+  card.dataset.surfaceWorkflow = surfaceWorkflow(model);
 
   const header = document.createElement("header");
   header.className = "surface-card__header";
@@ -570,7 +711,7 @@ function createSurfaceScaffold(model, className, bodyClass = "surface-card__body
   const body = document.createElement("div");
   body.className = bodyClass;
 
-  card.append(header, body);
+  card.append(header, createSurfaceAffordanceBar(model), body);
   return { card, badges, body };
 }
 
@@ -862,6 +1003,7 @@ export {
   createAnalyzerPath,
   createCurvePath,
   createReadoutRows,
+  createSurfaceAffordanceBar,
   createSurfaceScaffold,
   createSurfaceInteractionController,
   createSvgElement,
@@ -892,5 +1034,6 @@ export {
   setSurfaceControlNormalizedValue,
   setSurfaceControlValue,
   stepSurfaceControlValue,
+  surfaceManualCues,
   surfaceDescription
 };

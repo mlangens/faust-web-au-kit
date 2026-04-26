@@ -169,6 +169,7 @@ function buildTimelineSurface(model, schema, state) {
 
   const canvas = document.createElement("div");
   canvas.className = "timeline-canvas";
+  canvas.dataset.canvasHint = "Drag tap nodes across lanes; modulation slots track the motion.";
 
   const lanes = Array.isArray(model.config.lanes) && model.config.lanes.length ? model.config.lanes : ["Input", "Echo", "Tail"];
   const laneLabels = document.createElement("div");

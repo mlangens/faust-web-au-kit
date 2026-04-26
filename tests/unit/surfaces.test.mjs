@@ -5,6 +5,7 @@ import { resolveControlLayout, summarizeControlLayout } from "../../preview/lib/
 import { normalizeSchema } from "../../preview/lib/schema-ui.js";
 import { resolveSurfaceModels } from "../../preview/lib/surfaces.js";
 import { SURFACE_BUILDERS, resolveSurfaceBuilder } from "../../preview/lib/surfaces/registry.js";
+import { surfaceManualCues } from "../../preview/lib/surfaces/shared.js";
 
 test("normalizeSchema provides a default shared surfaces section", () => {
   const schema = normalizeSchema({
@@ -426,5 +427,54 @@ test("surface registry keeps all shared preview builders available", () => {
       "value-detail",
       "summary"
     ]
+  );
+});
+
+test("shared surfaces expose manual-informed interaction cues by workflow", () => {
+  assert.deepEqual(
+    surfaceManualCues({
+      id: "eq-canvas",
+      kind: "hybrid-canvas",
+      config: {
+        bands: [{ id: "bell" }]
+      }
+    }),
+    ["drag bands", "shape Q", "band popover"]
+  );
+  assert.deepEqual(
+    surfaceManualCues({
+      kind: "hybrid-canvas",
+      config: {
+        bands: [{ id: "bell" }]
+      }
+    }),
+    ["drag bands", "shift shapes", "popover edits"]
+  );
+  assert.deepEqual(
+    surfaceManualCues({
+      kind: "region-editor",
+      config: {
+        regions: [{ id: "low" }]
+      }
+    }),
+    ["drag bands", "resize edges", "meter reduction"]
+  );
+  assert.deepEqual(
+    surfaceManualCues({
+      kind: "hybrid-canvas",
+      config: {
+        curveControls: [{ control: "Drive" }]
+      }
+    }),
+    ["drag response", "watch clamp", "tune timing"]
+  );
+  assert.deepEqual(
+    surfaceManualCues({
+      kind: "modulation-dock",
+      config: {
+        slots: [{ id: "lfo" }]
+      }
+    }),
+    ["source rail", "target slots", "live depth"]
   );
 });

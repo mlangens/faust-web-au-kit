@@ -44,8 +44,56 @@ function cachedJsonMetadataPath(runtime) {
   return path.join(runtime.targetDir, `${runtime.sourceBase}.ui.json`);
 }
 
+function cachedFaustTargetPath(runtime, target) {
+  const extension = TARGET_EXTENSION_BY_KIND[target];
+  if (!extension) {
+    throw new Error(`Unsupported target: ${target}`);
+  }
+  return path.join(runtime.targetDir, `${runtime.sourceBase}.${extension}`);
+}
+
+function defaultWorkspaceJsonMetadataPath(runtime) {
+  return path.join(runtime.root, "generated", "apps", runtime.appKey, "targets", `${runtime.sourceBase}.ui.json`);
+}
+
+function defaultWorkspaceFaustTargetPath(runtime, target) {
+  const extension = TARGET_EXTENSION_BY_KIND[target];
+  if (!extension) {
+    throw new Error(`Unsupported target: ${target}`);
+  }
+  return path.join(runtime.root, "generated", "apps", runtime.appKey, "targets", `${runtime.sourceBase}.${extension}`);
+}
+
+function cachedJsonMetadataPaths(runtime) {
+  return [...new Set([
+    cachedJsonMetadataPath(runtime),
+    defaultWorkspaceJsonMetadataPath(runtime)
+  ])];
+}
+
+function cachedFaustTargetPaths(runtime, target) {
+  return [...new Set([
+    cachedFaustTargetPath(runtime, target),
+    defaultWorkspaceFaustTargetPath(runtime, target)
+  ])];
+}
+
+function isUsableFile(filePath) {
+  return fs.existsSync(filePath) && fs.statSync(filePath).size > 0;
+}
+
+function isFreshCachedFile(runtime, filePath) {
+  if (!isUsableFile(filePath)) {
+    return false;
+  }
+
+  const sourceMtimeMs = fs.statSync(runtime.sourceFile).mtimeMs;
+  const cachedMtimeMs = fs.statSync(filePath).mtimeMs;
+  return cachedMtimeMs >= sourceMtimeMs;
+}
+
 function isUsableJsonMetadata(filePath) {
-  if (!fs.existsSync(filePath) || fs.statSync(filePath).size <= 0) {
+  if (!isUsableFile(filePath)) {
     return false;
   }
 
@@ -58,13 +106,18 @@ function isUsableJsonMetadata(filePath) {
 }
 
 function isFreshCachedJsonMetadata(runtime, filePath) {
-  if (!isUsableJsonMetadata(filePath)) {
+  if (!isUsableJsonMetadata(filePath) || !isFreshCachedFile(runtime, filePath)) {
     return false;
   }
+  return true;
+}
 
-  const sourceMtimeMs = fs.statSync(runtime.sourceFile).mtimeMs;
-  const cachedMtimeMs = fs.statSync(filePath).mtimeMs;
-  return cachedMtimeMs >= sourceMtimeMs;
+function findCachedJsonMetadata(runtime, predicate) {
+  return cachedJsonMetadataPaths(runtime).find((cachedPath) => predicate(runtime, cachedPath)) ?? null;
+}
+
+function findCachedFaustTarget(runtime, target, predicate) {
+  return cachedFaustTargetPaths(runtime, target).find((cachedPath) => predicate(runtime, cachedPath)) ?? null;
 }
 
 function stageCachedJsonMetadata(runtime, stager, cachedPath) {
@@ -75,7 +128,7 @@ function stageCachedJsonMetadata(runtime, stager, cachedPath) {
   return finalJson;
 }
 
-function exportFaustTarget(runtime, stager, target) {
+function stageCachedFaustTarget(runtime, stager, target, cachedPath) {
   const extension = TARGET_EXTENSION_BY_KIND[target];
   if (!extension) {
     throw new Error(`Unsupported target: ${target}`);
@@ -84,19 +137,50 @@ function exportFaustTarget(runtime, stager, target) {
   fs.mkdirSync(stager.stageTargetDir, { recursive: true });
   const outputFile = `${runtime.sourceBase}.${extension}`;
   const outputPath = stager.stagedTargetPath(outputFile);
-  runFaust(
-    runtime,
-    ["-lang", target, "-cn", runtime.project.faust.className, "-o", outputPath, runtime.sourceFile],
-    { description: `Faust ${target} export for ${runtime.appKey}` }
-  );
+  fs.copyFileSync(cachedPath, outputPath);
+  stager.markArtifact(path.join("targets", outputFile));
+  return outputPath;
+}
+
+function exportFaustTarget(runtime, stager, target, options = {}) {
+  const extension = TARGET_EXTENSION_BY_KIND[target];
+  if (!extension) {
+    throw new Error(`Unsupported target: ${target}`);
+  }
+
+  const freshCachedPath = findCachedFaustTarget(runtime, target, isFreshCachedFile);
+  if (options.preferCached && freshCachedPath) {
+    return stageCachedFaustTarget(runtime, stager, target, freshCachedPath);
+  }
+
+  fs.mkdirSync(stager.stageTargetDir, { recursive: true });
+  const outputFile = `${runtime.sourceBase}.${extension}`;
+  const outputPath = stager.stagedTargetPath(outputFile);
+  try {
+    runFaust(
+      runtime,
+      ["-lang", target, "-cn", runtime.project.faust.className, "-o", outputPath, runtime.sourceFile],
+      { description: `Faust ${target} export for ${runtime.appKey}` }
+    );
+  } catch (error) {
+    if (options.allowCachedFallback && freshCachedPath) {
+      console.warn(`Reusing cached Faust ${target} target for ${runtime.appKey} after export failed: ${error.message}`);
+      return stageCachedFaustTarget(runtime, stager, target, freshCachedPath);
+    }
+    throw error;
+  }
   stager.markArtifact(path.join("targets", outputFile));
   return outputPath;
 }
 
 function exportJsonMetadata(runtime, stager, options = {}) {
   const cachedPath = cachedJsonMetadataPath(runtime);
+  const preferredCachedPath = findCachedJsonMetadata(runtime, isFreshCachedJsonMetadata);
   if (options.preferCached && isFreshCachedJsonMetadata(runtime, cachedPath)) {
     return stageCachedJsonMetadata(runtime, stager, cachedPath);
+  }
+  if (options.preferCached && preferredCachedPath) {
+    return stageCachedJsonMetadata(runtime, stager, preferredCachedPath);
   }
 
   fs.mkdirSync(stager.stageTargetDir, { recursive: true });
@@ -116,10 +200,11 @@ function exportJsonMetadata(runtime, stager, options = {}) {
       }
     );
   } catch (error) {
-    if (options.allowCachedFallback && isUsableJsonMetadata(cachedPath)) {
+    const fallbackCachedPath = findCachedJsonMetadata(runtime, (_runtime, candidate) => isUsableJsonMetadata(candidate));
+    if (options.allowCachedFallback && fallbackCachedPath) {
       console.warn(`Reusing cached Faust UI metadata for ${runtime.appKey} after JSON export failed: ${error.message}`);
       removePathSync(path.join(stager.stageTargetDir, jsonScaffoldName));
-      return stageCachedJsonMetadata(runtime, stager, cachedPath);
+      return stageCachedJsonMetadata(runtime, stager, fallbackCachedPath);
     }
     throw error;
   }
@@ -143,4 +228,13 @@ function exportJsonMetadata(runtime, stager, options = {}) {
   return finalJson;
 }
 
-export { cachedJsonMetadataPath, exportFaustTarget, exportJsonMetadata, exportTargetsForProfile, resolveExportProfile };
+export {
+  cachedFaustTargetPath,
+  cachedFaustTargetPaths,
+  cachedJsonMetadataPath,
+  cachedJsonMetadataPaths,
+  exportFaustTarget,
+  exportJsonMetadata,
+  exportTargetsForProfile,
+  resolveExportProfile
+};

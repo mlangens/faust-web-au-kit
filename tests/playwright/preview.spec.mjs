@@ -355,6 +355,7 @@ test("pulse pad preview renders the shared synth parity surfaces", async ({ page
 
 test("suite previews reserve surface-owned controls instead of duplicating them as shell cards", async ({ page }) => {
   await page.goto("/?app=atlas-curve");
+  await expect(page.locator(".control-surface-summary")).toContainText("Surface-owned");
   await expect(page.locator('.control-card[data-control-id="Bell Freq"]')).toHaveCount(0);
   await expect(page.locator('.control-card[data-control-id="Bell Gain"]')).toHaveCount(0);
   await expect(page.locator('.control-card[data-control-id="Bell Q"]')).toHaveCount(0);
@@ -389,10 +390,14 @@ test("atlas curve preview renders the shared graph editor surface", async ({ pag
   await expect(surfacePanel).toBeVisible();
   await expect(surfacePanel).toContainText("Adaptive Curve Editor");
   await expect(page.locator("#surfaces .surface-card")).toHaveCount(3);
+  await expect(eqSurface).toHaveAttribute("data-surface-workflow", "curve-editor");
   await expect(page.locator('.surface-card[data-surface-id="eq-canvas"]')).toContainText("Adaptive curve editor");
+  await expect(eqSurface.locator(".surface-affordance-bar")).toContainText("drag bands");
+  await expect(eqSurface.locator(".surface-affordance-bar")).toContainText("shape Q");
   await expect(page.locator('.surface-card[data-surface-id="instance-strip"]')).toContainText("Scene cues");
   await expect(page.locator('.surface-card[data-surface-id="output-popover"]')).toContainText("Output tools");
   await expect(eqSurface.locator(".graph-band-handle")).toHaveCount(5);
+  await expect(graphCanvas).toHaveAttribute("data-canvas-hint", /Drag handles/);
   await expect(popover.locator("h4")).toHaveText("Bell");
 
   await dragLocatorToCanvasRatio(page, bellHandle, graphCanvas, 0.68, 0.28);

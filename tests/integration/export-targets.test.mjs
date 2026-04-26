@@ -275,6 +275,56 @@ test("preview exports reuse cached Faust UI metadata without invoking faust", { 
   }
 });
 
+test("native exports reuse cached Faust targets and UI metadata", { timeout: 120000 }, async () => {
+  const appKey = "seed-tone";
+  await runExport(["--app", appKey, "--export-profile", "native"]);
+
+  const { scratchRoot, workspaceFile, generatedApps } = createScratchWorkspace([appKey]);
+  const sourceRuntime = loadGeneratedProject(appKey).runtime;
+  const runtime = loadProjectRuntime(["--workspace", workspaceFile, "--app", appKey]);
+  const cachedTargetDir = path.join(runtime.targetDir);
+  const shimDir = path.join(scratchRoot, "bin");
+  const shimLog = path.join(scratchRoot, "faust.log");
+
+  fs.mkdirSync(cachedTargetDir, { recursive: true });
+  fs.copyFileSync(
+    path.join(sourceRuntime.targetDir, `${sourceRuntime.sourceBase}.ui.json`),
+    path.join(cachedTargetDir, `${runtime.sourceBase}.ui.json`)
+  );
+  for (const extension of ["c", "hpp"]) {
+    fs.copyFileSync(
+      path.join(sourceRuntime.targetDir, `${sourceRuntime.sourceBase}.${extension}`),
+      path.join(cachedTargetDir, `${runtime.sourceBase}.${extension}`)
+    );
+  }
+
+  fs.mkdirSync(shimDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(shimDir, "faust"),
+    `#!/bin/sh\nprintf '%s\\n' "$*" >> "${shimLog}"\necho unexpected-faust-call >&2\nexit 87\n`,
+    "utf8"
+  );
+  fs.chmodSync(path.join(shimDir, "faust"), 0o755);
+
+  try {
+    await runExport(["--workspace", workspaceFile, "--app", appKey, "--export-profile", "native"], {
+      env: {
+        ...process.env,
+        PATH: `${shimDir}${path.delimiter}${process.env.PATH ?? ""}`
+      }
+    });
+
+    const outputDir = path.join(generatedApps, appKey);
+    assert.equal(fs.existsSync(path.join(outputDir, "targets", "main.c")), true);
+    assert.equal(fs.existsSync(path.join(outputDir, "targets", "main.hpp")), true);
+    assert.equal(fs.existsSync(path.join(outputDir, "targets", "main.ui.json")), true);
+    assert.equal(fs.existsSync(path.join(outputDir, "ui_manifest.h")), true);
+    assert.equal(fs.existsSync(shimLog), false);
+  } finally {
+    fs.rmSync(scratchRoot, { recursive: true, force: true });
+  }
+});
+
 test("prepare-test-artifacts refreshes the workspace manifest and Pulse Pad parity schema", { timeout: 360000 }, async () => {
   await runPrepare();
 

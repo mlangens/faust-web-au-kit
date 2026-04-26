@@ -722,6 +722,39 @@ function summarizeControlLayout(schema) {
 }
 
 /**
+ * @param {HTMLElement} root
+ * @param {ReturnType<typeof summarizeControlLayout>} summary
+ * @returns {void}
+ */
+function renderSurfaceOwnershipSummary(root, summary) {
+  if (!summary.surfaceOnlyControls.length) {
+    return;
+  }
+
+  const panel = document.createElement("aside");
+  panel.className = "control-surface-summary";
+  panel.dataset.surfaceOwnedCount = String(summary.surfaceOnlyControls.length);
+
+  const eyebrow = document.createElement("span");
+  eyebrow.className = "control-surface-summary__eyebrow";
+  eyebrow.textContent = "Surface-owned";
+
+  const copy = document.createElement("p");
+  copy.textContent = `${summary.surfaceOnlyControls.length} of ${summary.configuredControls.length} mapped parameters now live on the visual editors instead of the fallback control dock.`;
+
+  const list = document.createElement("div");
+  list.className = "control-surface-summary__chips";
+  summary.surfaceOnlyControls.slice(0, 6).forEach((control) => {
+    const chip = document.createElement("span");
+    chip.textContent = control.label;
+    list.append(chip);
+  });
+
+  panel.append(eyebrow, copy, list);
+  root.append(panel);
+}
+
+/**
  * @param {GeneratedControl} control
  * @param {DisplayConfig} display
  * @param {PreviewControlSection} section
@@ -817,7 +850,12 @@ function renderControlPanels(root, schema, state) {
   root.dataset.surfaceOnlyControlCount = String(summary.surfaceOnlyControls.length);
   root.dataset.configuredControlCount = String(summary.configuredControls.length);
   root.dataset.controlLayout = layout.layout || "flat";
+  const surfaceOwnedRatio = summary.configuredControls.length
+    ? summary.surfaceOnlyControls.length / summary.configuredControls.length
+    : 0;
+  root.dataset.surfaceOwnedRatio = surfaceOwnedRatio >= 0.5 ? "high" : surfaceOwnedRatio >= 0.25 ? "balanced" : "low";
   state.controls.clear();
+  renderSurfaceOwnershipSummary(root, summary);
 
   if (!sections.length) {
     visibleControls.forEach((control) => {
