@@ -1,0 +1,831 @@
+{
+  "$schemaVersion": 1,
+  "id": "fwak-audio-primitives",
+  "displayName": "FWAK Audio Primitive Library",
+  "description": "Composable DSP, UI, and analysis primitives for agentically assembling plugin-suite products without collapsing back to slider-first manifests.",
+  "researchSources": [
+    {
+      "id": "w3c-audio-eq-cookbook",
+      "title": "Audio EQ Cookbook",
+      "url": "https://www.w3.org/TR/audio-eq-cookbook/",
+      "subjects": [
+        "equalization",
+        "biquad filters",
+        "frequency warping"
+      ]
+    },
+    {
+      "id": "giannoulis-massberg-reiss-drc",
+      "title": "Digital Dynamic Range Compressor Design - A Tutorial and Analysis",
+      "url": "https://aes2.org/publications/elibrary-page/?id=16354",
+      "subjects": [
+        "compression",
+        "detectors",
+        "sidechain ballistics"
+      ]
+    },
+    {
+      "id": "parker-zavalishin-le-bivic-waveshaping",
+      "title": "Reducing the Aliasing of Nonlinear Waveshaping Using Continuous-Time Convolution",
+      "url": "https://www.dafx.de/paper-archive/2016/dafxpapers/20-DAFx-16_paper_41-PN.pdf",
+      "subjects": [
+        "saturation",
+        "waveshaping",
+        "anti-aliasing"
+      ]
+    },
+    {
+      "id": "werner-wdf-phd",
+      "title": "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters",
+      "url": "https://searchworks.stanford.edu/view/11891203",
+      "subjects": [
+        "saturation",
+        "virtual analog",
+        "wave digital filters"
+      ]
+    },
+    {
+      "id": "faust-filter-library",
+      "title": "Faust filters.lib",
+      "url": "https://faustlibraries.grame.fr/libs/filters/",
+      "subjects": [
+        "equalization",
+        "filterbanks",
+        "nonlinear filters"
+      ]
+    },
+    {
+      "id": "faust-compressor-library",
+      "title": "Faust compressors.lib",
+      "url": "https://faustlibraries.grame.fr/libs/compressors/",
+      "subjects": [
+        "compression",
+        "gain computers",
+        "dynamics"
+      ]
+    },
+    {
+      "id": "faust-wdmodels-library",
+      "title": "Faust wdmodels.lib",
+      "url": "https://faustlibraries.grame.fr/libs/wdmodels/",
+      "subjects": [
+        "virtual analog",
+        "wave digital filters",
+        "circuit models"
+      ]
+    }
+  ],
+  "families": {
+    "equalization": {
+      "title": "Equalization",
+      "auditFinding": "EQ should be represented as a band topology plus direct graph manipulation, not as unrelated frequency/gain/Q sliders.",
+      "sophisticationPath": [
+        "Start with stable RBJ-style biquad bands and clear control roles.",
+        "Promote bands into graph entities with filter kind, gain, frequency, Q, slope, and bypass as one editable unit.",
+        "Add dynamic/spectral behavior by attaching sidechain detectors and analyzer probes to individual bands.",
+        "Validate with magnitude-response sweeps, phase/latency expectations, and band-handle UI parity."
+      ]
+    },
+    "compression": {
+      "title": "Compression",
+      "auditFinding": "Dynamics plugins need explicit detector, gain-computer, ballistics, transfer-curve, and metering primitives so style changes are controlled design choices.",
+      "sophisticationPath": [
+        "Start with a feed-forward topology, threshold/ratio/knee, and attack/release smoothing.",
+        "Model sidechain filtering, detector domain, and timing as separate agent-visible choices.",
+        "Expose transfer curves and gain-history surfaces as primary editors instead of hiding behavior behind slider banks.",
+        "Validate with step response, tone-burst recovery, crest-factor material, and gain-reduction trace assertions."
+      ]
+    },
+    "saturation": {
+      "title": "Saturation",
+      "auditFinding": "Saturation needs a declared nonlinearity, anti-aliasing strategy, tone-shaping context, and harmonic-analysis harness before it can be agentically tuned.",
+      "sophisticationPath": [
+        "Start with a bounded memoryless shaper and gain staging.",
+        "Add oversampling or antiderivative-style anti-aliasing requirements when generated harmonics can exceed Nyquist.",
+        "Upgrade character models with multiband routing, pre/post EQ, feedback context, or wave-digital virtual-analog stages.",
+        "Validate with harmonic spectra, alias energy, loudness-normalized nulls, and intermodulation probes."
+      ]
+    },
+    "space": {
+      "title": "Space and Reverb",
+      "auditFinding": "Reverb products need macro room geometry, decay contour, damping, and post-shaping primitives that can be staged from impulse and decay probes.",
+      "sophisticationPath": [
+        "Start with room size, decay, damping, and mix as a macro field.",
+        "Add decay-rate EQ and post-EQ as direct visual surfaces.",
+        "Validate with impulse response, decay slope, stereo width, and freeze/gate probes."
+      ]
+    },
+    "delay": {
+      "title": "Delay",
+      "auditFinding": "Delay products need tap timing, feedback topology, tone shaping, and modulation primitives rather than disconnected time/mix sliders.",
+      "sophisticationPath": [
+        "Start with tempo-aware taps and feedback gain.",
+        "Add feedback-path filtering, diffusion, and modulation slots.",
+        "Validate with impulse repeats, feedback stability, and modulation sideband probes."
+      ]
+    },
+    "instrument": {
+      "title": "Instrument Voice",
+      "auditFinding": "Synth products need oscillator, filter, envelope, performance, and modulation primitives that expose voice architecture directly.",
+      "sophisticationPath": [
+        "Start with oscillator, filter, envelope, amplifier, and output primitives.",
+        "Add modulation routing, voice allocation, and performance surfaces.",
+        "Validate with note-on envelopes, tuning, aliasing, and modulation-depth probes."
+      ]
+    }
+  },
+  "primitives": {
+    "eq.parametric-band": {
+      "family": "equalization",
+      "title": "Parametric Band",
+      "description": "A cohesive EQ band entity with filter type, frequency, gain, Q/bandwidth, slope, and bypass represented together.",
+      "dspIntent": "Use stable filter coefficients or Faust filter primitives while preserving boost/cut reciprocity and predictable bandwidth mapping.",
+      "faustLibraries": [
+        "filters.lib"
+      ],
+      "controlRoles": [
+        {
+          "role": "frequency",
+          "unit": "Hz",
+          "scale": "log",
+          "surface": "x-axis band handle"
+        },
+        {
+          "role": "gain",
+          "unit": "dB",
+          "surface": "y-axis band handle"
+        },
+        {
+          "role": "q",
+          "surface": "band width gesture"
+        },
+        {
+          "role": "slope",
+          "surface": "band popover or segmented strip"
+        }
+      ],
+      "surfaceRoles": [
+        "graph-canvas",
+        "band-handle",
+        "popover-panel"
+      ],
+      "analysisProbes": [
+        "log-sine magnitude response",
+        "phase response snapshot",
+        "boost-cut reciprocity check"
+      ],
+      "agentDesignNotes": [
+        "Bind frequency/gain/Q as one surface-owned band before adding fallback dock controls.",
+        "Prefer typed band descriptors over independent slider sections."
+      ]
+    },
+    "eq.dynamic-band": {
+      "family": "equalization",
+      "title": "Dynamic or Spectral Band",
+      "description": "An EQ band whose gain or selectivity responds to detector energy in a focused spectral region.",
+      "dspIntent": "Attach sidechain detection and bounded gain movement to a filter band while keeping static EQ response inspectable.",
+      "faustLibraries": [
+        "filters.lib",
+        "compressors.lib",
+        "analyzers.lib"
+      ],
+      "controlRoles": [
+        {
+          "role": "threshold",
+          "unit": "dB",
+          "surface": "band popover"
+        },
+        {
+          "role": "range",
+          "unit": "dB",
+          "surface": "band depth overlay"
+        },
+        {
+          "role": "attack-release",
+          "surface": "timing mini-strip"
+        }
+      ],
+      "surfaceRoles": [
+        "graph-canvas",
+        "history-trace",
+        "meter-stack"
+      ],
+      "analysisProbes": [
+        "tone-burst band movement",
+        "pink-noise spectral adaptation",
+        "detector latency and recovery"
+      ],
+      "agentDesignNotes": [
+        "Represent static and dynamic curves separately so agents can compare what the band is versus what it is doing.",
+        "Require a detector probe before claiming spectral or adaptive behavior."
+      ]
+    },
+    "eq.filterbank-crossover": {
+      "family": "equalization",
+      "title": "Filterbank or Crossover",
+      "description": "A split/recombine structure for multiband EQ, dynamics, and saturation products.",
+      "dspIntent": "Use complementary band-splits or clearly documented crossover behavior so band routing remains phase-aware.",
+      "faustLibraries": [
+        "filters.lib",
+        "filterbank.lib"
+      ],
+      "controlRoles": [
+        {
+          "role": "crossover-frequency",
+          "unit": "Hz",
+          "scale": "log",
+          "surface": "region edge"
+        },
+        {
+          "role": "band-solo",
+          "surface": "region audition"
+        },
+        {
+          "role": "phase-mode",
+          "surface": "quality/mode control"
+        }
+      ],
+      "surfaceRoles": [
+        "multiband-editor",
+        "region-editor",
+        "routing-matrix"
+      ],
+      "analysisProbes": [
+        "recombined flatness",
+        "crossover phase trace",
+        "band isolation leakage"
+      ],
+      "agentDesignNotes": [
+        "Use this primitive whenever a product claims multiband behavior.",
+        "Do not model split frequencies as generic sliders when the region editor can own them."
+      ]
+    },
+    "compression.feedforward-sidechain": {
+      "family": "compression",
+      "title": "Feed-Forward Sidechain",
+      "description": "A predictable dynamics topology with a sidechain level detector driving a gain computer and smoothing stage.",
+      "dspIntent": "Separate detector, gain computer, smoothing, makeup, and gain stage so topology/style choices stay inspectable.",
+      "faustLibraries": [
+        "compressors.lib",
+        "analyzers.lib"
+      ],
+      "controlRoles": [
+        {
+          "role": "threshold",
+          "unit": "dB",
+          "surface": "transfer curve"
+        },
+        {
+          "role": "ratio",
+          "surface": "transfer curve"
+        },
+        {
+          "role": "knee",
+          "unit": "dB",
+          "surface": "curve bend"
+        },
+        {
+          "role": "makeup",
+          "unit": "dB",
+          "surface": "output popover"
+        }
+      ],
+      "surfaceRoles": [
+        "transfer-curve",
+        "history-trace",
+        "meter-stack"
+      ],
+      "analysisProbes": [
+        "static transfer sweep",
+        "step response",
+        "gain-reduction trace"
+      ],
+      "agentDesignNotes": [
+        "Treat compression style as a topology preset over detector and ballistics, not a cosmetic enum.",
+        "Always pair the transfer curve with a time-domain gain-reduction trace."
+      ]
+    },
+    "compression.detector-ballistics": {
+      "family": "compression",
+      "title": "Detector Ballistics",
+      "description": "Peak/RMS/log-domain detection plus attack, hold, release, lookahead, and linking rules.",
+      "dspIntent": "Make memory and smoothing explicit because dynamics behavior is nonlinear and time-dependent.",
+      "faustLibraries": [
+        "compressors.lib",
+        "envelopes.lib"
+      ],
+      "controlRoles": [
+        {
+          "role": "attack",
+          "unit": "ms",
+          "scale": "log",
+          "surface": "timing strip"
+        },
+        {
+          "role": "release",
+          "unit": "ms",
+          "scale": "log",
+          "surface": "timing strip"
+        },
+        {
+          "role": "lookahead",
+          "unit": "ms",
+          "surface": "latency badge"
+        },
+        {
+          "role": "sidechain-filter",
+          "surface": "detector-filter"
+        }
+      ],
+      "surfaceRoles": [
+        "sidechain-editor",
+        "detector-filter",
+        "history-trace"
+      ],
+      "analysisProbes": [
+        "attack overshoot",
+        "release recovery time",
+        "sidechain-band sensitivity"
+      ],
+      "agentDesignNotes": [
+        "Surface sidechain filters visually; they are part of the compressor's sound, not secondary settings.",
+        "Use meter history to explain ballistics rather than relying on numeric attack/release controls."
+      ]
+    },
+    "compression.multiband-dynamics": {
+      "family": "compression",
+      "title": "Multiband Dynamics Region",
+      "description": "A crossover-owned region that applies compression, expansion, or gating behavior within a frequency band.",
+      "dspIntent": "Compose filterbank crossover, detector ballistics, and gain computer primitives per band.",
+      "faustLibraries": [
+        "filters.lib",
+        "compressors.lib"
+      ],
+      "controlRoles": [
+        {
+          "role": "band-range",
+          "unit": "Hz",
+          "scale": "log",
+          "surface": "region editor"
+        },
+        {
+          "role": "band-mode",
+          "surface": "region popover"
+        },
+        {
+          "role": "band-threshold",
+          "unit": "dB",
+          "surface": "region handle"
+        }
+      ],
+      "surfaceRoles": [
+        "multiband-editor",
+        "linked-inspector",
+        "meter-stack"
+      ],
+      "analysisProbes": [
+        "per-band gain trace",
+        "crossover recombination",
+        "expansion/compression polarity"
+      ],
+      "agentDesignNotes": [
+        "Band regions should own crossover and threshold gestures together.",
+        "Expose compression versus expansion mode as a region behavior, not a separate product concept."
+      ]
+    },
+    "saturation.memoryless-waveshaper": {
+      "family": "saturation",
+      "title": "Memoryless Waveshaper",
+      "description": "A static nonlinear transfer function with explicit drive, bias, symmetry, and output compensation.",
+      "dspIntent": "Apply bounded nonlinear mapping with visible transfer curve and gain staging.",
+      "faustLibraries": [
+        "basics.lib",
+        "maths.lib"
+      ],
+      "controlRoles": [
+        {
+          "role": "drive",
+          "unit": "dB",
+          "surface": "transfer curve"
+        },
+        {
+          "role": "bias",
+          "surface": "curve asymmetry"
+        },
+        {
+          "role": "mix",
+          "unit": "%",
+          "surface": "output popover"
+        },
+        {
+          "role": "trim",
+          "unit": "dB",
+          "surface": "output popover"
+        }
+      ],
+      "surfaceRoles": [
+        "transfer-curve",
+        "meter-stack",
+        "popover-panel"
+      ],
+      "analysisProbes": [
+        "harmonic series",
+        "intermodulation pair",
+        "loudness-normalized level match"
+      ],
+      "agentDesignNotes": [
+        "A drive slider without a declared curve and output strategy is not enough to describe saturation.",
+        "Pair every nonlinear transfer with harmonic analysis probes."
+      ]
+    },
+    "saturation.antialiasing-strategy": {
+      "family": "saturation",
+      "title": "Anti-Aliasing Strategy",
+      "description": "Oversampling, continuous-time convolution, or antiderivative-style mitigation for nonlinear stages.",
+      "dspIntent": "Constrain alias energy generated by nonlinear processing and declare the cost/quality tradeoff.",
+      "faustLibraries": [
+        "signals.lib",
+        "filters.lib"
+      ],
+      "controlRoles": [
+        {
+          "role": "quality",
+          "surface": "quality mode control"
+        },
+        {
+          "role": "oversampling",
+          "surface": "latency/quality badge"
+        },
+        {
+          "role": "alias-budget",
+          "surface": "analysis report"
+        }
+      ],
+      "surfaceRoles": [
+        "meter-stack",
+        "history-trace",
+        "analysis-report"
+      ],
+      "analysisProbes": [
+        "alias energy above Nyquist foldback",
+        "oversampling A/B",
+        "CPU versus alias budget"
+      ],
+      "agentDesignNotes": [
+        "Any product with aggressive drive should carry an anti-aliasing primitive.",
+        "Expose quality/latency explicitly so generated plugins can be staged and compared."
+      ]
+    },
+    "saturation.virtual-analog-stage": {
+      "family": "saturation",
+      "title": "Virtual-Analog Stage",
+      "description": "A circuit-inspired nonlinear block whose topology, feedback context, and component roles are explicit.",
+      "dspIntent": "Use wave-digital, zero-delay-feedback, or carefully bounded circuit-inspired models when character claims exceed static waveshaping.",
+      "faustLibraries": [
+        "wdmodels.lib",
+        "filters.lib"
+      ],
+      "controlRoles": [
+        {
+          "role": "topology",
+          "surface": "style selector"
+        },
+        {
+          "role": "feedback",
+          "surface": "routing overlay"
+        },
+        {
+          "role": "tone",
+          "surface": "pre/post emphasis"
+        }
+      ],
+      "surfaceRoles": [
+        "routing-matrix",
+        "module-rack",
+        "filter-canvas"
+      ],
+      "analysisProbes": [
+        "large-signal sweep",
+        "harmonic memory response",
+        "feedback stability guard"
+      ],
+      "agentDesignNotes": [
+        "Use this primitive when the app claims analog character, tube/diode behavior, or nonlinear filter feedback.",
+        "Require stability and aliasing probes before making the stage a flagship feature."
+      ]
+    },
+    "saturation.multiband-drive": {
+      "family": "saturation",
+      "title": "Multiband Drive",
+      "description": "A band-split saturation workstation with per-band style, drive, tone, dynamics, and modulation hooks.",
+      "dspIntent": "Compose crossover and saturation stages so each band can be staged, metered, and auditioned independently.",
+      "faustLibraries": [
+        "filters.lib",
+        "compressors.lib"
+      ],
+      "controlRoles": [
+        {
+          "role": "band-drive",
+          "unit": "dB",
+          "surface": "band region"
+        },
+        {
+          "role": "style-per-band",
+          "surface": "region popover"
+        },
+        {
+          "role": "band-mix",
+          "unit": "%",
+          "surface": "linked inspector"
+        }
+      ],
+      "surfaceRoles": [
+        "multiband-editor",
+        "linked-inspector",
+        "modulation-dock"
+      ],
+      "analysisProbes": [
+        "per-band harmonic spectrum",
+        "crossover alias leakage",
+        "modulated drive stability"
+      ],
+      "agentDesignNotes": [
+        "Use the multiband editor as the primary control surface, with fallback controls only for non-gestural details.",
+        "Treat modulation targets as part of the primitive so agents can wire movement consistently."
+      ]
+    },
+    "space.reverb-macro-field": {
+      "family": "space",
+      "title": "Reverb Macro Field",
+      "description": "A room-shaping primitive that groups size, decay, damping, brightness, width, and freeze/gate behavior as one spatial editor.",
+      "dspIntent": "Expose perceptual room controls while keeping decay contour and post-shaping inspectable.",
+      "faustLibraries": [
+        "reverbs.lib",
+        "filters.lib"
+      ],
+      "controlRoles": [
+        {
+          "role": "room-size",
+          "surface": "macro field"
+        },
+        {
+          "role": "decay",
+          "unit": "s",
+          "surface": "tail node"
+        },
+        {
+          "role": "damping",
+          "surface": "tone window"
+        },
+        {
+          "role": "freeze-gate",
+          "surface": "mode chip"
+        }
+      ],
+      "surfaceRoles": [
+        "reverb-space",
+        "graph-canvas",
+        "meter-stack"
+      ],
+      "analysisProbes": [
+        "impulse response",
+        "decay slope",
+        "stereo width trace"
+      ],
+      "agentDesignNotes": [
+        "Represent room shape as a field of linked nodes rather than isolated room-size and decay sliders.",
+        "Pair every reverb macro with impulse-response inspection."
+      ]
+    },
+    "delay.tap-feedback-network": {
+      "family": "delay",
+      "title": "Tap and Feedback Network",
+      "description": "A tempo-aware delay primitive with tap placement, feedback routing, filtering, diffusion, and modulation slots.",
+      "dspIntent": "Make time, feedback, filter, and modulation behavior visible as one repeat network.",
+      "faustLibraries": [
+        "delays.lib",
+        "filters.lib"
+      ],
+      "controlRoles": [
+        {
+          "role": "tap-time",
+          "surface": "timeline tap"
+        },
+        {
+          "role": "feedback",
+          "unit": "%",
+          "surface": "feedback lane"
+        },
+        {
+          "role": "feedback-tone",
+          "surface": "filter canvas"
+        },
+        {
+          "role": "mod-depth",
+          "surface": "modulation dock"
+        }
+      ],
+      "surfaceRoles": [
+        "delay-timeline",
+        "filter-canvas",
+        "modulation-dock"
+      ],
+      "analysisProbes": [
+        "impulse repeat spacing",
+        "feedback decay stability",
+        "modulation sidebands"
+      ],
+      "agentDesignNotes": [
+        "Use a timeline as the primary editor for delay time and tap relationships.",
+        "Treat feedback filtering and modulation as part of the delay network, not separate utility sections."
+      ]
+    },
+    "instrument.oscillator-filter-voice": {
+      "family": "instrument",
+      "title": "Oscillator Filter Voice",
+      "description": "A subtractive voice primitive that binds oscillator color, filter shaping, envelope timing, performance, and output behavior.",
+      "dspIntent": "Expose the playable voice path from oscillator through filter and amplitude envelope with visible modulation hooks.",
+      "faustLibraries": [
+        "oscillators.lib",
+        "filters.lib",
+        "envelopes.lib"
+      ],
+      "controlRoles": [
+        {
+          "role": "oscillator-color",
+          "surface": "module card"
+        },
+        {
+          "role": "filter-cutoff",
+          "unit": "Hz",
+          "scale": "log",
+          "surface": "filter canvas"
+        },
+        {
+          "role": "envelope",
+          "surface": "performance strip"
+        },
+        {
+          "role": "mod-routing",
+          "surface": "modulation dock"
+        }
+      ],
+      "surfaceRoles": [
+        "oscillator-stack",
+        "filter-canvas",
+        "keyboard-strip",
+        "modulation-dock"
+      ],
+      "analysisProbes": [
+        "note-on envelope",
+        "oscillator tuning",
+        "filter sweep aliasing"
+      ],
+      "agentDesignNotes": [
+        "Represent the synth as a voice path and modulation system, not a generic parameter grid.",
+        "Keep performance state visible so generated instruments can be staged interactively."
+      ]
+    }
+  },
+  "variantPrimitiveMap": {
+    "spectral-eq": [
+      "eq.parametric-band",
+      "eq.dynamic-band"
+    ],
+    "character-compressor": [
+      "compression.feedforward-sidechain",
+      "compression.detector-ballistics"
+    ],
+    "mastering-limiter": [
+      "compression.feedforward-sidechain",
+      "compression.detector-ballistics",
+      "saturation.memoryless-waveshaper"
+    ],
+    "multiband-dynamics": [
+      "eq.filterbank-crossover",
+      "compression.multiband-dynamics",
+      "compression.detector-ballistics"
+    ],
+    "precision-de-esser": [
+      "eq.dynamic-band",
+      "compression.detector-ballistics"
+    ],
+    "gate-expander": [
+      "compression.feedforward-sidechain",
+      "compression.detector-ballistics"
+    ],
+    "multiband-saturation": [
+      "eq.filterbank-crossover",
+      "saturation.multiband-drive",
+      "saturation.antialiasing-strategy",
+      "saturation.virtual-analog-stage"
+    ],
+    "routable-filter": [
+      "eq.parametric-band",
+      "saturation.virtual-analog-stage"
+    ],
+    "dual-filter": [
+      "eq.parametric-band"
+    ],
+    "mini-filter": [
+      "eq.parametric-band",
+      "compression.detector-ballistics"
+    ],
+    "space-reverb": [
+      "space.reverb-macro-field",
+      "eq.parametric-band"
+    ],
+    "mod-delay": [
+      "delay.tap-feedback-network",
+      "eq.parametric-band",
+      "saturation.memoryless-waveshaper"
+    ],
+    "modular-synth": [
+      "instrument.oscillator-filter-voice",
+      "eq.parametric-band",
+      "saturation.virtual-analog-stage"
+    ],
+    "simple-synth": [
+      "instrument.oscillator-filter-voice",
+      "eq.parametric-band"
+    ]
+  },
+  "categoryPrimitiveMap": {
+    "equalizer": [
+      "eq.parametric-band"
+    ],
+    "dynamics": [
+      "compression.feedforward-sidechain",
+      "compression.detector-ballistics"
+    ],
+    "mastering": [
+      "compression.feedforward-sidechain",
+      "compression.detector-ballistics"
+    ],
+    "multiband-dynamics": [
+      "eq.filterbank-crossover",
+      "compression.multiband-dynamics"
+    ],
+    "saturation": [
+      "saturation.memoryless-waveshaper",
+      "saturation.antialiasing-strategy"
+    ],
+    "filter": [
+      "eq.parametric-band"
+    ],
+    "reverb": [
+      "space.reverb-macro-field"
+    ],
+    "delay": [
+      "delay.tap-feedback-network"
+    ],
+    "synthesizer": [
+      "instrument.oscillator-filter-voice"
+    ]
+  },
+  "productPrimitiveMap": {
+    "atlas-curve": [
+      "eq.parametric-band",
+      "eq.dynamic-band"
+    ],
+    "press-deck": [
+      "compression.feedforward-sidechain",
+      "compression.detector-ballistics"
+    ],
+    "headroom": [
+      "compression.feedforward-sidechain",
+      "compression.detector-ballistics",
+      "saturation.memoryless-waveshaper"
+    ],
+    "split-stack": [
+      "eq.filterbank-crossover",
+      "compression.multiband-dynamics",
+      "compression.detector-ballistics"
+    ],
+    "ember-drive": [
+      "eq.filterbank-crossover",
+      "saturation.multiband-drive",
+      "saturation.antialiasing-strategy",
+      "saturation.virtual-analog-stage"
+    ],
+    "pulse-pad": [
+      "eq.parametric-band",
+      "saturation.memoryless-waveshaper",
+      "saturation.virtual-analog-stage"
+    ],
+    "room-bloom": [
+      "space.reverb-macro-field",
+      "eq.parametric-band"
+    ],
+    "relay-tape": [
+      "delay.tap-feedback-network",
+      "eq.parametric-band",
+      "saturation.memoryless-waveshaper"
+    ],
+    "mirror-field": [
+      "instrument.oscillator-filter-voice",
+      "eq.parametric-band",
+      "saturation.virtual-analog-stage"
+    ]
+  }
+}

@@ -279,6 +279,52 @@ test("suite apps reserve surface-level control bindings so editing does not coll
   }
 });
 
+test("suite schemas expose primitive architecture for agentic plugin design", () => {
+  const suite = loadSuiteRuntime(["--suite", "northline-suite"]);
+
+  for (const app of suite.apps) {
+    const { schema } = loadGeneratedProject(app.appKey);
+    const primitiveArchitecture = schema.ui.primitiveArchitecture;
+
+    assert.equal(primitiveArchitecture?.library?.id, "fwak-audio-primitives");
+    assert.ok(
+      primitiveArchitecture.library.researchSources.length >= 3,
+      `${app.appKey} should carry research-backed primitive provenance`
+    );
+    assert.ok(schema.ui.primitiveIds.length > 0, `${app.appKey} should resolve at least one primitive`);
+    assert.deepEqual(schema.ui.primitiveIds, primitiveArchitecture.primitiveIds);
+
+    for (const primitiveId of schema.ui.primitiveIds) {
+      const primitive = primitiveArchitecture.primitives[primitiveId];
+      assert.ok(primitive, `${app.appKey} should embed primitive ${primitiveId}`);
+      assert.ok(primitive.description, `${primitiveId} should explain its DSP purpose`);
+      assert.ok(primitive.analysisProbes?.length, `${primitiveId} should define sonic analysis probes`);
+      assert.ok(primitive.agentDesignNotes?.length, `${primitiveId} should define agentic design notes`);
+    }
+  }
+});
+
+test("EQ, compression, and saturation flagship schemas resolve more sophisticated primitive sets", () => {
+  const { schema: atlas } = loadGeneratedProject("atlas-curve");
+  const { schema: press } = loadGeneratedProject("press-deck");
+  const { schema: ember } = loadGeneratedProject("ember-drive");
+
+  assert.deepEqual(atlas.ui.primitiveIds, ["eq.parametric-band", "eq.dynamic-band"]);
+  assert.deepEqual(press.ui.primitiveIds, ["compression.feedforward-sidechain", "compression.detector-ballistics"]);
+  assert.deepEqual(
+    ember.ui.primitiveIds,
+    [
+      "eq.filterbank-crossover",
+      "saturation.multiband-drive",
+      "saturation.antialiasing-strategy",
+      "saturation.virtual-analog-stage"
+    ]
+  );
+  assert.equal(atlas.ui.primitiveArchitecture.primitives["eq.dynamic-band"].family, "equalization");
+  assert.equal(press.ui.primitiveArchitecture.primitives["compression.detector-ballistics"].family, "compression");
+  assert.equal(ember.ui.primitiveArchitecture.primitives["saturation.antialiasing-strategy"].family, "saturation");
+});
+
 for (const appCase of appSchemaCases) {
   test(`${appCase.appKey} schema reserves the shared export contract`, () => {
     const { schema } = loadGeneratedProject(appCase.appKey);

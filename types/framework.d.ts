@@ -200,6 +200,59 @@ export interface ProjectUiCatalogManifest extends JsonObject {
   prototypeRole?: string;
   referenceProduct?: string;
   featureAnchors?: string[];
+  primitiveIds?: string[];
+}
+
+export interface DspPrimitiveResearchSource extends JsonObject {
+  id?: string;
+  title?: string;
+  url?: string;
+  subjects?: string[];
+}
+
+export interface DspPrimitiveControlRole extends JsonObject {
+  role?: string;
+  unit?: string;
+  scale?: string;
+  surface?: string;
+}
+
+export interface DspPrimitive extends JsonObject {
+  family?: string;
+  title?: string;
+  description?: string;
+  dspIntent?: string;
+  faustLibraries?: string[];
+  controlRoles?: DspPrimitiveControlRole[];
+  surfaceRoles?: string[];
+  analysisProbes?: string[];
+  agentDesignNotes?: string[];
+}
+
+export interface DspPrimitiveLibrary extends JsonObject {
+  $schemaVersion?: number;
+  id?: string;
+  displayName?: string;
+  description?: string;
+  researchSources?: DspPrimitiveResearchSource[];
+  families?: Record<string, JsonObject>;
+  primitives?: Record<string, DspPrimitive>;
+  variantPrimitiveMap?: Record<string, string[]>;
+  categoryPrimitiveMap?: Record<string, string[]>;
+  productPrimitiveMap?: Record<string, string[]>;
+}
+
+export interface ResolvedPrimitiveSet extends JsonObject {
+  library: {
+    id: string;
+    displayName?: string;
+    description?: string;
+    sourcePath: string;
+    researchSources: DspPrimitiveResearchSource[];
+  };
+  families: Record<string, JsonObject>;
+  primitiveIds: string[];
+  primitives: Record<string, DspPrimitive>;
 }
 
 export interface GeneratedMeter extends JsonObject {
@@ -226,6 +279,8 @@ export interface ProjectUiManifest extends JsonObject {
   controlDisplays?: Record<string, DisplayConfig | JsonObject>;
   meters?: GeneratedMeter[];
   catalog?: ProjectUiCatalogManifest;
+  primitiveIds?: string[];
+  primitiveArchitecture?: ResolvedPrimitiveSet;
   group?: string | null;
   accentPaletteId?: string | null;
   analyzerPresetIds?: string[];
@@ -403,6 +458,7 @@ export interface CatalogProduct extends JsonObject {
   tagline?: string;
   accentPaletteId?: string;
   featureAnchors?: string[];
+  primitiveIds?: string[];
 }
 
 export interface CatalogManifest extends JsonObject {

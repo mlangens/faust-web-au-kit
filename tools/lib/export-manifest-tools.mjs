@@ -12,6 +12,7 @@ import {
   normalizeRelativePath
 } from "./project-tools.mjs";
 import { writeFileAtomically } from "./fs-tools.mjs";
+import { resolveProjectPrimitiveSet } from "./primitive-library-tools.mjs";
 
 function generatedAppBenchmarkPath(appKey) {
   return `/generated/apps/${appKey}/benchmark-results.json`;
@@ -106,7 +107,11 @@ function resolveCatalogManifest(resolvedUi) {
     featureAnchors:
       Array.isArray(inlineCatalog.featureAnchors) && inlineCatalog.featureAnchors.length
         ? inlineCatalog.featureAnchors
-        : matchedProduct.featureAnchors
+        : matchedProduct.featureAnchors,
+    primitiveIds:
+      Array.isArray(inlineCatalog.primitiveIds) && inlineCatalog.primitiveIds.length
+        ? inlineCatalog.primitiveIds
+        : matchedProduct.primitiveIds
   };
 }
 
@@ -214,6 +219,7 @@ set(FWAK_DECLARED_NATIVE_TARGETS "${escapeCString(declaredTargets)}")
 
 function buildUiManifestArtifacts(runtime, uiJsonPath) {
   const { project, resolvedUi, controlOrder, meters, statusText } = resolveUiState(runtime);
+  const primitiveArchitecture = resolveProjectPrimitiveSet(runtime);
   const uiJson = JSON.parse(fs.readFileSync(uiJsonPath, "utf8"));
   const controls = gatherControls(uiJson.ui);
   const controlByLabel = new Map(controls.map((control) => [control.label, control]));
@@ -329,6 +335,8 @@ ${meterLines.join(",\n")}
       group: resolvedUi?.group ?? null,
       accentPaletteId: resolvedUi?.accentPaletteId ?? resolvedUi?.presentation?.accentPaletteId ?? null,
       catalog: resolveCatalogManifest(resolvedUi),
+      primitiveIds: primitiveArchitecture.primitiveIds,
+      primitiveArchitecture,
       presentation: resolvedUi?.presentation ?? {},
       visualLanguage: resolvedUi?.visualLanguage ?? {},
       shell: resolvedUi?.shell ?? {},
