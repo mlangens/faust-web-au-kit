@@ -20,6 +20,7 @@
     "tools/lib/export-staging-tools.mjs",
     "tools/lib/project-tools.mjs",
     "tools/lib/primitive-library-tools.mjs",
+    "tools/lib/reference-corpus-tools.mjs",
     "tools/lib/ui-family-tools.mjs",
     "tools/lib/export-process-tools.mjs",
     "tools/list-suite-runtimes.mjs",

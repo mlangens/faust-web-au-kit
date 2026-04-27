@@ -13,6 +13,7 @@ import {
 } from "./project-tools.mjs";
 import { writeFileAtomically } from "./fs-tools.mjs";
 import { resolveProjectPrimitiveSet } from "./primitive-library-tools.mjs";
+import { resolvePrimitiveCorpusEvidence } from "./reference-corpus-tools.mjs";
 
 function generatedAppBenchmarkPath(appKey) {
   return `/generated/apps/${appKey}/benchmark-results.json`;
@@ -219,7 +220,11 @@ set(FWAK_DECLARED_NATIVE_TARGETS "${escapeCString(declaredTargets)}")
 
 function buildUiManifestArtifacts(runtime, uiJsonPath) {
   const { project, resolvedUi, controlOrder, meters, statusText } = resolveUiState(runtime);
-  const primitiveArchitecture = resolveProjectPrimitiveSet(runtime);
+  const resolvedPrimitiveSet = resolveProjectPrimitiveSet(runtime);
+  const primitiveArchitecture = {
+    ...resolvedPrimitiveSet,
+    referenceCorpus: resolvePrimitiveCorpusEvidence(resolvedPrimitiveSet.primitiveIds, { root: runtime.root })
+  };
   const uiJson = JSON.parse(fs.readFileSync(uiJsonPath, "utf8"));
   const controls = gatherControls(uiJson.ui);
   const controlByLabel = new Map(controls.map((control) => [control.label, control]));

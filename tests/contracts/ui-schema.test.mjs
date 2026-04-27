@@ -293,13 +293,24 @@ test("suite schemas expose primitive architecture for agentic plugin design", ()
     );
     assert.ok(schema.ui.primitiveIds.length > 0, `${app.appKey} should resolve at least one primitive`);
     assert.deepEqual(schema.ui.primitiveIds, primitiveArchitecture.primitiveIds);
+    assert.equal(primitiveArchitecture.referenceCorpus?.id, "fwak-reference-corpus");
+    assert.equal(
+      primitiveArchitecture.referenceCorpus.sampleSuites.some((entry) => entry.id === "northline-suite"),
+      true,
+      `${app.appKey} should identify Northline as sample-suite evidence`
+    );
 
     for (const primitiveId of schema.ui.primitiveIds) {
       const primitive = primitiveArchitecture.primitives[primitiveId];
       assert.ok(primitive, `${app.appKey} should embed primitive ${primitiveId}`);
       assert.ok(primitive.description, `${primitiveId} should explain its DSP purpose`);
+      assert.ok(primitive.maturity?.stage, `${primitiveId} should declare primitive maturity`);
       assert.ok(primitive.analysisProbes?.length, `${primitiveId} should define sonic analysis probes`);
       assert.ok(primitive.agentDesignNotes?.length, `${primitiveId} should define agentic design notes`);
+      assert.ok(
+        primitiveArchitecture.referenceCorpus.evidenceByPrimitive[primitiveId]?.length,
+        `${primitiveId} should carry reference-corpus evidence`
+      );
     }
   }
 });
@@ -309,7 +320,7 @@ test("EQ, compression, and saturation flagship schemas resolve more sophisticate
   const { schema: press } = loadGeneratedProject("press-deck");
   const { schema: ember } = loadGeneratedProject("ember-drive");
 
-  assert.deepEqual(atlas.ui.primitiveIds, ["eq.parametric-band", "eq.dynamic-band"]);
+  assert.deepEqual(atlas.ui.primitiveIds, ["eq.parametric-band", "eq.dynamic-band", "eq.circuit-model-topology"]);
   assert.deepEqual(press.ui.primitiveIds, ["compression.feedforward-sidechain", "compression.detector-ballistics"]);
   assert.deepEqual(
     ember.ui.primitiveIds,
@@ -321,6 +332,7 @@ test("EQ, compression, and saturation flagship schemas resolve more sophisticate
     ]
   );
   assert.equal(atlas.ui.primitiveArchitecture.primitives["eq.dynamic-band"].family, "equalization");
+  assert.equal(atlas.ui.primitiveArchitecture.primitives["eq.circuit-model-topology"].maturity.stage, "modeled");
   assert.equal(press.ui.primitiveArchitecture.primitives["compression.detector-ballistics"].family, "compression");
   assert.equal(ember.ui.primitiveArchitecture.primitives["saturation.antialiasing-strategy"].family, "saturation");
 });

@@ -217,12 +217,29 @@ export interface DspPrimitiveControlRole extends JsonObject {
   surface?: string;
 }
 
+export type PrimitiveMaturityStage =
+  | "observed"
+  | "modeled"
+  | "implemented"
+  | "surface-bound"
+  | "sonically-verified"
+  | "native-ready"
+  | string;
+
+export interface DspPrimitiveMaturity extends JsonObject {
+  stage?: PrimitiveMaturityStage;
+  implementation?: string;
+  sonicVerification?: string;
+  evidence?: string[];
+}
+
 export interface DspPrimitive extends JsonObject {
   family?: string;
   title?: string;
   description?: string;
   dspIntent?: string;
   faustLibraries?: string[];
+  maturity?: DspPrimitiveMaturity;
   controlRoles?: DspPrimitiveControlRole[];
   surfaceRoles?: string[];
   analysisProbes?: string[];
@@ -234,12 +251,57 @@ export interface DspPrimitiveLibrary extends JsonObject {
   id?: string;
   displayName?: string;
   description?: string;
+  maturityModel?: JsonObject;
   researchSources?: DspPrimitiveResearchSource[];
   families?: Record<string, JsonObject>;
   primitives?: Record<string, DspPrimitive>;
   variantPrimitiveMap?: Record<string, string[]>;
   categoryPrimitiveMap?: Record<string, string[]>;
   productPrimitiveMap?: Record<string, string[]>;
+}
+
+export interface ReferenceCorpusEntry extends JsonObject {
+  id?: string;
+  referenceType?: "sample-suite" | "outside-plugin" | string;
+  vendor?: string;
+  productName?: string;
+  role?: string;
+  extractionStatus?: PrimitiveMaturityStage;
+  manualUrl?: string | null;
+  observedPrimitiveIds?: string[];
+  featureSignals?: string[];
+  extractionNotes?: string;
+}
+
+export interface ReferenceCorpus extends JsonObject {
+  $schemaVersion?: number;
+  id?: string;
+  displayName?: string;
+  description?: string;
+  methodology?: JsonObject;
+  entries?: ReferenceCorpusEntry[];
+}
+
+export interface ReferenceCorpusEvidence extends JsonObject {
+  id: string;
+  referenceType?: string;
+  vendor?: string;
+  productName?: string;
+  role?: string;
+  extractionStatus?: string;
+  manualUrl?: string | null;
+  featureSignals?: string[];
+  extractionNotes?: string;
+}
+
+export interface ResolvedReferenceCorpusEvidence extends JsonObject {
+  id: string;
+  displayName?: string;
+  sourcePath: string;
+  methodology: JsonObject;
+  sampleSuites: ReferenceCorpusEvidence[];
+  referenceCount: number;
+  evidenceByPrimitive: Record<string, ReferenceCorpusEvidence[]>;
 }
 
 export interface ResolvedPrimitiveSet extends JsonObject {
@@ -253,6 +315,7 @@ export interface ResolvedPrimitiveSet extends JsonObject {
   families: Record<string, JsonObject>;
   primitiveIds: string[];
   primitives: Record<string, DspPrimitive>;
+  referenceCorpus?: ResolvedReferenceCorpusEvidence;
 }
 
 export interface GeneratedMeter extends JsonObject {

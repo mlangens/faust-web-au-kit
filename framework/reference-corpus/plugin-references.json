@@ -1,0 +1,324 @@
+{
+  "$schemaVersion": 1,
+  "id": "fwak-reference-corpus",
+  "displayName": "FWAK Reference Plugin Corpus",
+  "description": "Framework-level observations from sample suites and outside plugin manuals used to extract reusable DSP, UI, and sonic-validation primitives.",
+  "methodology": {
+    "frameworkGoal": "Use reference plugins as research specimens for primitive extraction, not as product identities to preserve.",
+    "sampleSuitePolicy": "Sample suites are disposable validation packs. Northline is a proving suite and may be replaced as the primitive library matures.",
+    "cloneDistance": "Extract function, architecture, interaction grammar, and testable behavior while avoiding brand-specific visual identity or proprietary implementation details.",
+    "extractionFlow": [
+      "Observe a reference product or sample suite.",
+      "Extract feature signals into primitive IDs.",
+      "Promote primitives through maturity stages.",
+      "Bind primitives to reusable surfaces and sonic probes.",
+      "Validate with sample suites and staged plugin output."
+    ]
+  },
+  "entries": [
+    {
+      "id": "northline-suite",
+      "referenceType": "sample-suite",
+      "vendor": "FWAK",
+      "productName": "Northline Audio",
+      "role": "throwaway proving suite",
+      "extractionStatus": "surface-bound",
+      "manualUrl": null,
+      "observedPrimitiveIds": [
+        "eq.parametric-band",
+        "eq.dynamic-band",
+        "eq.filterbank-crossover",
+        "compression.feedforward-sidechain",
+        "compression.detector-ballistics",
+        "compression.multiband-dynamics",
+        "compression.true-peak-limiter",
+        "compression.split-band-focus",
+        "saturation.memoryless-waveshaper",
+        "saturation.antialiasing-strategy",
+        "saturation.virtual-analog-stage",
+        "saturation.multiband-drive",
+        "space.reverb-macro-field",
+        "delay.tap-feedback-network",
+        "instrument.oscillator-filter-voice"
+      ],
+      "featureSignals": [
+        "sample app manifests",
+        "generated schemas",
+        "surface-owned controls",
+        "preview and native export regression"
+      ],
+      "extractionNotes": "Northline exists to stress the framework; it should not define framework identity."
+    },
+    {
+      "id": "dmg-compassion",
+      "referenceType": "outside-plugin",
+      "vendor": "DMGAudio",
+      "productName": "Compassion",
+      "role": "flexible dynamics reference",
+      "extractionStatus": "observed",
+      "manualUrl": "https://dmgaudio.com/dl/DMGAudio_Compassion_Manual.pdf",
+      "observedPrimitiveIds": [
+        "compression.feedforward-sidechain",
+        "compression.detector-ballistics",
+        "compression.split-band-focus",
+        "metering.analysis-suite"
+      ],
+      "featureSignals": [
+        "main graph and VU",
+        "knee and response graphs",
+        "sidechain EQ",
+        "threshold, ratio, attack, release, detector, transient shaper, clip limiter, listen modes"
+      ],
+      "extractionNotes": "Reinforces dynamics as a family of detector, curve, ballistics, metering, and audition primitives."
+    },
+    {
+      "id": "dmg-dualism",
+      "referenceType": "outside-plugin",
+      "vendor": "DMGAudio",
+      "productName": "Dualism",
+      "role": "stereo analysis and spatial utility reference",
+      "extractionStatus": "observed",
+      "manualUrl": "https://dmgaudio.com/dl/DMGAudio_Dualism_Manual.pdf",
+      "observedPrimitiveIds": [
+        "spatial.channel-toolkit",
+        "metering.analysis-suite"
+      ],
+      "featureSignals": [
+        "input processing",
+        "stereo and phase workflows",
+        "analysis-led utility surfaces"
+      ],
+      "extractionNotes": "Pushes framework primitives beyond processors into utility, spatial, and instrumentation surfaces."
+    },
+    {
+      "id": "dmg-equality",
+      "referenceType": "outside-plugin",
+      "vendor": "DMGAudio",
+      "productName": "EQuality",
+      "role": "production EQ reference",
+      "extractionStatus": "observed",
+      "manualUrl": "https://dmgaudio.com/dl/DMGAudio_EQuality_Manual.pdf",
+      "observedPrimitiveIds": [
+        "eq.parametric-band",
+        "eq.circuit-model-topology",
+        "metering.analysis-suite"
+      ],
+      "featureSignals": [
+        "graph-based EQ editing",
+        "multiple curve families",
+        "analysis and band workflow"
+      ],
+      "extractionNotes": "Supports EQ model topology as a reusable concept separate from simple biquad bands."
+    },
+    {
+      "id": "dmg-equick",
+      "referenceType": "outside-plugin",
+      "vendor": "DMGAudio",
+      "productName": "EQuick",
+      "role": "fast graph-first EQ reference",
+      "extractionStatus": "observed",
+      "manualUrl": "https://dmgaudio.com/dl/DMGAudio_EQuick_Manual.pdf",
+      "observedPrimitiveIds": [
+        "eq.parametric-band",
+        "eq.circuit-model-topology"
+      ],
+      "featureSignals": [
+        "graph-first editing",
+        "rapid band creation",
+        "minimal control flow"
+      ],
+      "extractionNotes": "Confirms that fast EQ products still use the same band/entity primitive model."
+    },
+    {
+      "id": "dmg-equilibrium",
+      "referenceType": "outside-plugin",
+      "vendor": "DMGAudio",
+      "productName": "EQuilibrium",
+      "role": "deep EQ topology reference",
+      "extractionStatus": "observed",
+      "manualUrl": "https://dmgaudio.com/dl/DMGAudio_EQuilibrium_Manual.pdf",
+      "observedPrimitiveIds": [
+        "eq.parametric-band",
+        "eq.circuit-model-topology",
+        "metering.analysis-suite"
+      ],
+      "featureSignals": [
+        "resizable graph and analyzer",
+        "keyboard",
+        "band strips",
+        "many peak, shelf, and filter model families",
+        "channel view and setup panels"
+      ],
+      "extractionNotes": "Adds a strong case for model/subtype topology, phase modes, and band strips as framework-level EQ primitives."
+    },
+    {
+      "id": "dmg-essence",
+      "referenceType": "outside-plugin",
+      "vendor": "DMGAudio",
+      "productName": "Essence",
+      "role": "de-esser and split detector reference",
+      "extractionStatus": "observed",
+      "manualUrl": "https://dmgaudio.com/dl/DMGAudio_Essence_Manual.pdf",
+      "observedPrimitiveIds": [
+        "eq.dynamic-band",
+        "compression.detector-ballistics",
+        "compression.split-band-focus",
+        "metering.analysis-suite"
+      ],
+      "featureSignals": [
+        "time-series graph",
+        "gain-reduction display",
+        "sidechain EQ",
+        "split filter",
+        "difference listening"
+      ],
+      "extractionNotes": "Makes listen modes and detector-versus-processed-band separation first-class."
+    },
+    {
+      "id": "dmg-expurgate",
+      "referenceType": "outside-plugin",
+      "vendor": "DMGAudio",
+      "productName": "Expurgate",
+      "role": "gate and expander reference",
+      "extractionStatus": "observed",
+      "manualUrl": "https://dmgaudio.com/dl/DMGAudio_Expurgate_Manual.pdf",
+      "observedPrimitiveIds": [
+        "compression.feedforward-sidechain",
+        "compression.detector-ballistics",
+        "compression.split-band-focus",
+        "metering.analysis-suite"
+      ],
+      "featureSignals": [
+        "gate/expander ratio",
+        "knee, range/depth, attack, release, hold, hysteresis, lookahead",
+        "noise detector",
+        "EQ graph",
+        "separated mode",
+        "listen modes"
+      ],
+      "extractionNotes": "Adds hysteresis, chatter prevention, separated signal monitoring, and noise/signal classification to dynamics primitives."
+    },
+    {
+      "id": "dmg-limitless",
+      "referenceType": "outside-plugin",
+      "vendor": "DMGAudio",
+      "productName": "Limitless",
+      "role": "multiband limiter reference",
+      "extractionStatus": "observed",
+      "manualUrl": "https://dmgaudio.com/dl/DMGAudio_Limitless_Manual.pdf",
+      "observedPrimitiveIds": [
+        "eq.filterbank-crossover",
+        "compression.multiband-dynamics",
+        "compression.true-peak-limiter",
+        "compression.detector-ballistics",
+        "metering.analysis-suite"
+      ],
+      "featureSignals": [
+        "multiband limiting",
+        "transient and dynamics handling",
+        "loudness and peak analysis",
+        "crossover-aware editing"
+      ],
+      "extractionNotes": "Drives true-peak and multistage limiting as distinct from generic compression."
+    },
+    {
+      "id": "dmg-multiplicity",
+      "referenceType": "outside-plugin",
+      "vendor": "DMGAudio",
+      "productName": "Multiplicity",
+      "role": "multiband dynamics reference",
+      "extractionStatus": "observed",
+      "manualUrl": "https://dmgaudio.com/dl/DMGAudio_Multiplicity_Manual.pdf",
+      "observedPrimitiveIds": [
+        "eq.filterbank-crossover",
+        "compression.multiband-dynamics",
+        "compression.detector-ballistics",
+        "metering.analysis-suite"
+      ],
+      "featureSignals": [
+        "main graph",
+        "band controls",
+        "sidechain controls",
+        "band dragging and sorting",
+        "PPM/GR metering",
+        "oversampling"
+      ],
+      "extractionNotes": "Treats multiband and dynamic EQ as related primitive assemblages with band organization rules."
+    },
+    {
+      "id": "dmg-pitchfunk",
+      "referenceType": "outside-plugin",
+      "vendor": "DMGAudio",
+      "productName": "PitchFunk",
+      "role": "creative pitch-time feedback reference",
+      "extractionStatus": "observed",
+      "manualUrl": "https://dmgaudio.com/dl/DMGAudio_PitchFunk_Manual.pdf",
+      "observedPrimitiveIds": [
+        "pitch.modulated-feedback-shifter",
+        "delay.tap-feedback-network",
+        "eq.parametric-band",
+        "metering.analysis-suite"
+      ],
+      "featureSignals": [
+        "matrix UI",
+        "pitch and splice",
+        "delay and filter",
+        "drawable LFOs",
+        "envelope follower",
+        "MIDI pitch control",
+        "preset sequencer"
+      ],
+      "extractionNotes": "Introduces matrix topology and stability-guarded creative feedback as reusable primitives."
+    },
+    {
+      "id": "dmg-trackcomp-2",
+      "referenceType": "outside-plugin",
+      "vendor": "DMGAudio",
+      "productName": "TrackComp 2",
+      "role": "compressor model topology reference",
+      "extractionStatus": "observed",
+      "manualUrl": "https://dmgaudio.com/dl/DMGAudio_TrackComp_Manual.pdf",
+      "observedPrimitiveIds": [
+        "compression.feedforward-sidechain",
+        "compression.detector-ballistics",
+        "saturation.virtual-analog-stage",
+        "saturation.memoryless-waveshaper",
+        "metering.analysis-suite"
+      ],
+      "featureSignals": [
+        "model dropdown",
+        "model-dependent controls",
+        "stereo link",
+        "sidechain filters",
+        "feedforward and feedback topology",
+        "VCA, FET, opto, diode bridge, and zener-style behavior"
+      ],
+      "extractionNotes": "Shows compression style as an explicit topology/model primitive, often coupled with saturation and detector behavior."
+    },
+    {
+      "id": "dmg-track-range",
+      "referenceType": "outside-plugin",
+      "vendor": "DMGAudio",
+      "productName": "TrackControl / TrackDS / TrackGate / TrackLimit / TrackMeter",
+      "role": "utility, de-ess, gate, limiter, and metering reference pack",
+      "extractionStatus": "observed",
+      "manualUrl": "https://www.dmgaudio.com/dl/DMGAudio_TrackRange_Manual.pdf",
+      "observedPrimitiveIds": [
+        "spatial.channel-toolkit",
+        "compression.split-band-focus",
+        "compression.detector-ballistics",
+        "compression.true-peak-limiter",
+        "metering.analysis-suite"
+      ],
+      "featureSignals": [
+        "M/S and L/R panning",
+        "width and delay compensation",
+        "TrackDS sibilance control",
+        "TrackGate expansion",
+        "TrackLimit limiting",
+        "FFT, octave, spectrograph, lissajous, scope, phase, loudness, RMS, and tuner meters"
+      ],
+      "extractionNotes": "Confirms that analysis and utility surfaces belong in the framework primitive layer, not just in effect products."
+    }
+  ]
+}

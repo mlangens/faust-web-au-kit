@@ -43,8 +43,15 @@ It defines:
 
 - Research-backed primitive families for equalization, compression, and saturation.
 - Adjacent starter primitives for reverb, delay, and instrument voices so every suite product resolves at least one agent-readable assemblage.
+- DMG-informed primitives for EQ model topology, true-peak limiting, split-band detector focus, channel utility, metering/analysis, and pitch-time feedback.
 - Reusable primitive definitions with DSP intent, Faust library hints, control roles, surface roles, analysis probes, and agent design notes.
 - Variant/category/product maps that resolve suite products into primitive assemblages.
+
+The reference corpus lives at:
+
+`framework/reference-corpus/plugin-references.json`
+
+It treats Northline as a disposable sample suite and outside manuals as evidence for primitive extraction. Generated schemas now include reference-corpus evidence for each resolved primitive so agents can see which examples informed an assemblage without making any one suite the framework identity.
 
 Export generation now embeds a resolved primitive architecture in every generated `ui_schema.json`:
 

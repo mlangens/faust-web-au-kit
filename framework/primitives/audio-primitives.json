@@ -2,7 +2,7 @@
   "$schemaVersion": 1,
   "id": "fwak-audio-primitives",
   "displayName": "FWAK Audio Primitive Library",
-  "description": "Composable DSP, UI, and analysis primitives for agentically assembling plugin-suite products without collapsing back to slider-first manifests.",
+  "description": "Composable DSP, UI, analysis, and corpus-extraction primitives for agentically assembling plugin-suite products without making any sample suite the framework identity.",
   "researchSources": [
     {
       "id": "w3c-audio-eq-cookbook",
@@ -132,6 +132,33 @@
         "Add modulation routing, voice allocation, and performance surfaces.",
         "Validate with note-on envelopes, tuning, aliasing, and modulation-depth probes."
       ]
+    },
+    "spatial": {
+      "title": "Spatial and Channel Utility",
+      "auditFinding": "Channel utility plugins expose reusable routing, polarity, width, pan, delay compensation, and stereo-analysis primitives that should not be tied to one suite.",
+      "sophisticationPath": [
+        "Start with gain, polarity, channel swap, pan, width, and delay compensation roles.",
+        "Add M/S encode-decode and L/R versus M/S manipulation as explicit topology choices.",
+        "Validate with null tests, correlation traces, channel delay probes, and matrix round-trips."
+      ]
+    },
+    "metering": {
+      "title": "Metering and Analysis",
+      "auditFinding": "Analysis plugins are framework primitives in their own right: FFT, spectrograph, phase, loudness, scope, and tuner views should feed staging and agent evaluation.",
+      "sophisticationPath": [
+        "Start with peak/RMS and gain-reduction meters.",
+        "Add FFT, spectrogram, phase, loudness-history, scope, and tuner surfaces as reusable analyzers.",
+        "Validate by feeding known tones, phase offsets, pink noise, and loudness-calibrated material."
+      ]
+    },
+    "pitch": {
+      "title": "Pitch, Time, and Modulated Feedback",
+      "auditFinding": "Pitch-shifting and creative feedback effects need matrix-style routing, modulation-source, pitch-display, and stability primitives.",
+      "sophisticationPath": [
+        "Start with pitch shift, delay, filter, feedback, and mix blocks as reorderable topology nodes.",
+        "Add drawable modulators, envelope followers, MIDI pitch control, and preset sequencing.",
+        "Validate with pitch-tracking tones, feedback stability guards, modulation sidebands, and latency probes."
+      ]
     }
   },
   "primitives": {
@@ -177,7 +204,15 @@
       "agentDesignNotes": [
         "Bind frequency/gain/Q as one surface-owned band before adding fallback dock controls.",
         "Prefer typed band descriptors over independent slider sections."
-      ]
+      ],
+      "maturity": {
+        "stage": "surface-bound",
+        "implementation": "schema-and-preview-surface",
+        "sonicVerification": "planned",
+        "evidence": [
+          "northline-suite"
+        ]
+      }
     },
     "eq.dynamic-band": {
       "family": "equalization",
@@ -218,7 +253,15 @@
       "agentDesignNotes": [
         "Represent static and dynamic curves separately so agents can compare what the band is versus what it is doing.",
         "Require a detector probe before claiming spectral or adaptive behavior."
-      ]
+      ],
+      "maturity": {
+        "stage": "surface-bound",
+        "implementation": "schema-and-preview-surface",
+        "sonicVerification": "planned",
+        "evidence": [
+          "northline-suite"
+        ]
+      }
     },
     "eq.filterbank-crossover": {
       "family": "equalization",
@@ -258,7 +301,15 @@
       "agentDesignNotes": [
         "Use this primitive whenever a product claims multiband behavior.",
         "Do not model split frequencies as generic sliders when the region editor can own them."
-      ]
+      ],
+      "maturity": {
+        "stage": "surface-bound",
+        "implementation": "schema-and-preview-surface",
+        "sonicVerification": "planned",
+        "evidence": [
+          "northline-suite"
+        ]
+      }
     },
     "compression.feedforward-sidechain": {
       "family": "compression",
@@ -303,7 +354,15 @@
       "agentDesignNotes": [
         "Treat compression style as a topology preset over detector and ballistics, not a cosmetic enum.",
         "Always pair the transfer curve with a time-domain gain-reduction trace."
-      ]
+      ],
+      "maturity": {
+        "stage": "surface-bound",
+        "implementation": "schema-and-preview-surface",
+        "sonicVerification": "planned",
+        "evidence": [
+          "northline-suite"
+        ]
+      }
     },
     "compression.detector-ballistics": {
       "family": "compression",
@@ -350,7 +409,15 @@
       "agentDesignNotes": [
         "Surface sidechain filters visually; they are part of the compressor's sound, not secondary settings.",
         "Use meter history to explain ballistics rather than relying on numeric attack/release controls."
-      ]
+      ],
+      "maturity": {
+        "stage": "surface-bound",
+        "implementation": "schema-and-preview-surface",
+        "sonicVerification": "planned",
+        "evidence": [
+          "northline-suite"
+        ]
+      }
     },
     "compression.multiband-dynamics": {
       "family": "compression",
@@ -391,7 +458,15 @@
       "agentDesignNotes": [
         "Band regions should own crossover and threshold gestures together.",
         "Expose compression versus expansion mode as a region behavior, not a separate product concept."
-      ]
+      ],
+      "maturity": {
+        "stage": "surface-bound",
+        "implementation": "schema-and-preview-surface",
+        "sonicVerification": "planned",
+        "evidence": [
+          "northline-suite"
+        ]
+      }
     },
     "saturation.memoryless-waveshaper": {
       "family": "saturation",
@@ -436,7 +511,15 @@
       "agentDesignNotes": [
         "A drive slider without a declared curve and output strategy is not enough to describe saturation.",
         "Pair every nonlinear transfer with harmonic analysis probes."
-      ]
+      ],
+      "maturity": {
+        "stage": "surface-bound",
+        "implementation": "schema-and-preview-surface",
+        "sonicVerification": "planned",
+        "evidence": [
+          "northline-suite"
+        ]
+      }
     },
     "saturation.antialiasing-strategy": {
       "family": "saturation",
@@ -474,7 +557,15 @@
       "agentDesignNotes": [
         "Any product with aggressive drive should carry an anti-aliasing primitive.",
         "Expose quality/latency explicitly so generated plugins can be staged and compared."
-      ]
+      ],
+      "maturity": {
+        "stage": "surface-bound",
+        "implementation": "schema-and-preview-surface",
+        "sonicVerification": "planned",
+        "evidence": [
+          "northline-suite"
+        ]
+      }
     },
     "saturation.virtual-analog-stage": {
       "family": "saturation",
@@ -512,7 +603,15 @@
       "agentDesignNotes": [
         "Use this primitive when the app claims analog character, tube/diode behavior, or nonlinear filter feedback.",
         "Require stability and aliasing probes before making the stage a flagship feature."
-      ]
+      ],
+      "maturity": {
+        "stage": "surface-bound",
+        "implementation": "schema-and-preview-surface",
+        "sonicVerification": "planned",
+        "evidence": [
+          "northline-suite"
+        ]
+      }
     },
     "saturation.multiband-drive": {
       "family": "saturation",
@@ -552,7 +651,15 @@
       "agentDesignNotes": [
         "Use the multiband editor as the primary control surface, with fallback controls only for non-gestural details.",
         "Treat modulation targets as part of the primitive so agents can wire movement consistently."
-      ]
+      ],
+      "maturity": {
+        "stage": "surface-bound",
+        "implementation": "schema-and-preview-surface",
+        "sonicVerification": "planned",
+        "evidence": [
+          "northline-suite"
+        ]
+      }
     },
     "space.reverb-macro-field": {
       "family": "space",
@@ -595,7 +702,15 @@
       "agentDesignNotes": [
         "Represent room shape as a field of linked nodes rather than isolated room-size and decay sliders.",
         "Pair every reverb macro with impulse-response inspection."
-      ]
+      ],
+      "maturity": {
+        "stage": "surface-bound",
+        "implementation": "schema-and-preview-surface",
+        "sonicVerification": "planned",
+        "evidence": [
+          "northline-suite"
+        ]
+      }
     },
     "delay.tap-feedback-network": {
       "family": "delay",
@@ -638,7 +753,15 @@
       "agentDesignNotes": [
         "Use a timeline as the primary editor for delay time and tap relationships.",
         "Treat feedback filtering and modulation as part of the delay network, not separate utility sections."
-      ]
+      ],
+      "maturity": {
+        "stage": "surface-bound",
+        "implementation": "schema-and-preview-surface",
+        "sonicVerification": "planned",
+        "evidence": [
+          "northline-suite"
+        ]
+      }
     },
     "instrument.oscillator-filter-voice": {
       "family": "instrument",
@@ -684,13 +807,350 @@
       "agentDesignNotes": [
         "Represent the synth as a voice path and modulation system, not a generic parameter grid.",
         "Keep performance state visible so generated instruments can be staged interactively."
+      ],
+      "maturity": {
+        "stage": "surface-bound",
+        "implementation": "schema-and-preview-surface",
+        "sonicVerification": "planned",
+        "evidence": [
+          "northline-suite"
+        ]
+      }
+    },
+    "eq.circuit-model-topology": {
+      "family": "equalization",
+      "title": "Circuit Model EQ Topology",
+      "description": "An EQ band or curve family that exposes model/subtype choices, symmetry behavior, phase mode, grouping, and graph interaction preferences.",
+      "dspIntent": "Separate band math from model topology so analog-inspired curves, symmetric/asymmetric behavior, and phase variants become explicit choices.",
+      "faustLibraries": [
+        "filters.lib"
+      ],
+      "maturity": {
+        "stage": "modeled",
+        "implementation": "metadata-and-corpus-model",
+        "sonicVerification": "planned",
+        "evidence": [
+          "dmg-equilibrium",
+          "dmg-equality",
+          "dmg-equick"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "model-subtype",
+          "surface": "band popover"
+        },
+        {
+          "role": "phase-mode",
+          "surface": "quality/mode control"
+        },
+        {
+          "role": "band-group",
+          "surface": "band strip"
+        },
+        {
+          "role": "scale",
+          "surface": "global curve control"
+        }
+      ],
+      "surfaceRoles": [
+        "graph-canvas",
+        "band-strip",
+        "popover-panel"
+      ],
+      "analysisProbes": [
+        "model response overlay",
+        "boost-cut cancellation",
+        "phase-mode comparison"
+      ],
+      "agentDesignNotes": [
+        "Use this when a reference exposes named EQ models, symmetric/asymmetric curves, or subtype menus.",
+        "Keep model choice declarative so agents can swap topology without rewriting graph interactions."
+      ]
+    },
+    "compression.true-peak-limiter": {
+      "family": "compression",
+      "title": "True-Peak or Multistage Limiter",
+      "description": "A limiting primitive with lookahead, transient handling, release strategy, ceiling, oversampling, and loudness/true-peak analysis hooks.",
+      "dspIntent": "Make peak capture, inter-sample safety, release behavior, and loudness impact explicit rather than treating a limiter as a compressor with high ratio.",
+      "faustLibraries": [
+        "compressors.lib",
+        "analyzers.lib"
+      ],
+      "maturity": {
+        "stage": "modeled",
+        "implementation": "metadata-and-corpus-model",
+        "sonicVerification": "planned",
+        "evidence": [
+          "dmg-limitless",
+          "dmg-track-range",
+          "northline-suite"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "ceiling",
+          "unit": "dB",
+          "surface": "transfer curve"
+        },
+        {
+          "role": "lookahead",
+          "unit": "ms",
+          "surface": "latency badge"
+        },
+        {
+          "role": "release-shape",
+          "surface": "history trace"
+        },
+        {
+          "role": "oversampling",
+          "surface": "quality mode control"
+        }
+      ],
+      "surfaceRoles": [
+        "transfer-curve",
+        "history-trace",
+        "meter-stack",
+        "analysis-report"
+      ],
+      "analysisProbes": [
+        "inter-sample peak probe",
+        "transient clamp trace",
+        "loudness delta",
+        "release pumping check"
+      ],
+      "agentDesignNotes": [
+        "Declare whether transient and sustained limiting are separate stages.",
+        "Pair limiter claims with true-peak and loudness probes in the staging harness."
+      ]
+    },
+    "compression.split-band-focus": {
+      "family": "compression",
+      "title": "Split-Band Detector Focus",
+      "description": "A de-essing, gating, or expansion primitive that separates detector band, processed band, audition routing, and difference monitoring.",
+      "dspIntent": "Let detector EQ, split filters, noise/sibilance classifiers, and listen modes shape dynamics behavior independently from output gain.",
+      "faustLibraries": [
+        "filters.lib",
+        "compressors.lib",
+        "analyzers.lib"
+      ],
+      "maturity": {
+        "stage": "modeled",
+        "implementation": "metadata-and-corpus-model",
+        "sonicVerification": "planned",
+        "evidence": [
+          "dmg-essence",
+          "dmg-expurgate",
+          "dmg-track-range"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "detector-frequency",
+          "unit": "Hz",
+          "scale": "log",
+          "surface": "detector filter"
+        },
+        {
+          "role": "split-band",
+          "unit": "Hz",
+          "scale": "log",
+          "surface": "focus band"
+        },
+        {
+          "role": "listen-mode",
+          "surface": "audition menu"
+        },
+        {
+          "role": "difference-monitor",
+          "surface": "analysis report"
+        }
+      ],
+      "surfaceRoles": [
+        "sidechain-editor",
+        "detector-filter",
+        "history-trace",
+        "meter-stack"
+      ],
+      "analysisProbes": [
+        "sibilance burst detection",
+        "noise gate chatter",
+        "difference output null",
+        "split-band leakage"
+      ],
+      "agentDesignNotes": [
+        "Expose what is detected separately from what is processed.",
+        "Use listen/difference routing as a core primitive for agentic tuning."
+      ]
+    },
+    "spatial.channel-toolkit": {
+      "family": "spatial",
+      "title": "Channel Toolkit",
+      "description": "A stereo utility primitive for gain, polarity, channel swap, M/S encode-decode, width, pan, output selection, and delay compensation.",
+      "dspIntent": "Represent channel routing as a reversible matrix with explicit monitoring and null-test expectations.",
+      "faustLibraries": [
+        "routes.lib",
+        "signals.lib"
+      ],
+      "maturity": {
+        "stage": "observed",
+        "implementation": "metadata-and-corpus-model",
+        "sonicVerification": "planned",
+        "evidence": [
+          "dmg-dualism",
+          "dmg-track-range"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "polarity",
+          "surface": "channel strip"
+        },
+        {
+          "role": "width",
+          "unit": "%",
+          "surface": "stereo field"
+        },
+        {
+          "role": "ms-mode",
+          "surface": "routing matrix"
+        },
+        {
+          "role": "delay-compensation",
+          "unit": "samples",
+          "surface": "latency lane"
+        }
+      ],
+      "surfaceRoles": [
+        "routing-matrix",
+        "meter-stack",
+        "stereo-field"
+      ],
+      "analysisProbes": [
+        "polarity null",
+        "mid-side round trip",
+        "correlation trace",
+        "sample delay alignment"
+      ],
+      "agentDesignNotes": [
+        "Use this primitive before inventing per-product channel utility controls.",
+        "Validate matrix operations with null and round-trip probes."
+      ]
+    },
+    "metering.analysis-suite": {
+      "family": "metering",
+      "title": "Analysis Suite",
+      "description": "A collection of FFT, octave, spectrograph, phase, scope, loudness, RMS, tuner, and history analyzers as reusable staging surfaces.",
+      "dspIntent": "Make analysis views part of the framework so agents can inspect plugin behavior visually and sonically in host/stage contexts.",
+      "faustLibraries": [
+        "analyzers.lib"
+      ],
+      "maturity": {
+        "stage": "observed",
+        "implementation": "metadata-and-corpus-model",
+        "sonicVerification": "planned",
+        "evidence": [
+          "dmg-dualism",
+          "dmg-track-range"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "fft-view",
+          "surface": "analyzer panel"
+        },
+        {
+          "role": "loudness-history",
+          "surface": "history trace"
+        },
+        {
+          "role": "phase-view",
+          "surface": "phase scope"
+        },
+        {
+          "role": "tuner",
+          "surface": "pitch readout"
+        }
+      ],
+      "surfaceRoles": [
+        "analysis-report",
+        "history-trace",
+        "meter-stack",
+        "scope-view"
+      ],
+      "analysisProbes": [
+        "known-tone bin check",
+        "phase-offset display",
+        "pink-noise slope",
+        "loudness calibration"
+      ],
+      "agentDesignNotes": [
+        "Treat analyzer surfaces as reusable development instrumentation, not merely product UI.",
+        "Route sonic staging outputs through this primitive for screenshot and metric capture."
+      ]
+    },
+    "pitch.modulated-feedback-shifter": {
+      "family": "pitch",
+      "title": "Modulated Feedback Pitch Shifter",
+      "description": "A creative matrix primitive combining pitch shift, splice, delay, filtering, feedback, drawable modulators, envelope following, and MIDI pitch control.",
+      "dspIntent": "Represent pitch/time feedback as a topology graph whose stability, modulation, and pitch display can be validated.",
+      "faustLibraries": [
+        "delays.lib",
+        "filters.lib",
+        "oscillators.lib",
+        "envelopes.lib"
+      ],
+      "maturity": {
+        "stage": "observed",
+        "implementation": "metadata-and-corpus-model",
+        "sonicVerification": "planned",
+        "evidence": [
+          "dmg-pitchfunk"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "pitch-shift",
+          "unit": "ct",
+          "surface": "matrix column"
+        },
+        {
+          "role": "splice",
+          "surface": "matrix column"
+        },
+        {
+          "role": "feedback",
+          "unit": "%",
+          "surface": "feedback lane"
+        },
+        {
+          "role": "mod-source",
+          "surface": "modulation matrix"
+        }
+      ],
+      "surfaceRoles": [
+        "routing-matrix",
+        "delay-timeline",
+        "filter-canvas",
+        "modulation-dock"
+      ],
+      "analysisProbes": [
+        "pitch tracking tone",
+        "feedback stability",
+        "modulation sidebands",
+        "latency estimate"
+      ],
+      "agentDesignNotes": [
+        "Use matrix topology rather than a flat control list for pitch/time feedback effects.",
+        "Require stability guards for feedback paths before native staging."
       ]
     }
   },
   "variantPrimitiveMap": {
     "spectral-eq": [
       "eq.parametric-band",
-      "eq.dynamic-band"
+      "eq.dynamic-band",
+      "eq.circuit-model-topology"
     ],
     "character-compressor": [
       "compression.feedforward-sidechain",
@@ -699,7 +1159,8 @@
     "mastering-limiter": [
       "compression.feedforward-sidechain",
       "compression.detector-ballistics",
-      "saturation.memoryless-waveshaper"
+      "saturation.memoryless-waveshaper",
+      "compression.true-peak-limiter"
     ],
     "multiband-dynamics": [
       "eq.filterbank-crossover",
@@ -708,11 +1169,13 @@
     ],
     "precision-de-esser": [
       "eq.dynamic-band",
-      "compression.detector-ballistics"
+      "compression.detector-ballistics",
+      "compression.split-band-focus"
     ],
     "gate-expander": [
       "compression.feedforward-sidechain",
-      "compression.detector-ballistics"
+      "compression.detector-ballistics",
+      "compression.split-band-focus"
     ],
     "multiband-saturation": [
       "eq.filterbank-crossover",
@@ -781,12 +1244,22 @@
     ],
     "synthesizer": [
       "instrument.oscillator-filter-voice"
+    ],
+    "utility": [
+      "spatial.channel-toolkit"
+    ],
+    "metering": [
+      "metering.analysis-suite"
+    ],
+    "pitch": [
+      "pitch.modulated-feedback-shifter"
     ]
   },
   "productPrimitiveMap": {
     "atlas-curve": [
       "eq.parametric-band",
-      "eq.dynamic-band"
+      "eq.dynamic-band",
+      "eq.circuit-model-topology"
     ],
     "press-deck": [
       "compression.feedforward-sidechain",
@@ -795,7 +1268,8 @@
     "headroom": [
       "compression.feedforward-sidechain",
       "compression.detector-ballistics",
-      "saturation.memoryless-waveshaper"
+      "saturation.memoryless-waveshaper",
+      "compression.true-peak-limiter"
     ],
     "split-stack": [
       "eq.filterbank-crossover",
@@ -826,6 +1300,34 @@
       "instrument.oscillator-filter-voice",
       "eq.parametric-band",
       "saturation.virtual-analog-stage"
+    ],
+    "silk-guard": [
+      "eq.dynamic-band",
+      "compression.detector-ballistics",
+      "compression.split-band-focus"
+    ],
+    "latch-line": [
+      "compression.feedforward-sidechain",
+      "compression.detector-ballistics",
+      "compression.split-band-focus"
     ]
+  },
+  "maturityModel": {
+    "stages": [
+      "observed",
+      "modeled",
+      "implemented",
+      "surface-bound",
+      "sonically-verified",
+      "native-ready"
+    ],
+    "meaning": {
+      "observed": "Seen in an outside reference or sample suite and captured as feature evidence.",
+      "modeled": "Represented as framework metadata with DSP intent, control roles, surface roles, and analysis probes.",
+      "implemented": "Has a reusable DSP, schema, or preview implementation path in the framework.",
+      "surface-bound": "Resolved into generated schemas and exercised by preview surface regressions.",
+      "sonically-verified": "Backed by automated sonic probes that check characteristic behavior.",
+      "native-ready": "Validated in native plugin builds and staging hosts."
+    }
   }
 }
