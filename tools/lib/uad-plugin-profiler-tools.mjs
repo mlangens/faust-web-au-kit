@@ -353,15 +353,17 @@ function parseAuHostJsonPayload(text) {
  * @param {string} auHostPath
  * @param {UadPluginProfilePlanEntry} plugin
  * @param {string[]} parameterOverrides
+ * @param {{ exact?: boolean }} [options]
  * @returns {JsonObject}
  */
-function queryAuHostParameters(auHostPath, plugin, parameterOverrides) {
+function queryAuHostParameters(auHostPath, plugin, parameterOverrides, options = {}) {
   const result = spawnSync(
     auHostPath,
     [
       "--parameters",
       "--name",
       plugin.displayName,
+      ...(options.exact ? ["--exact"] : []),
       ...auHostParameterArgs(parameterOverrides)
     ],
     { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }
@@ -390,6 +392,35 @@ function queryAuHostParameters(auHostPath, plugin, parameterOverrides) {
 }
 
 /**
+ * @param {string} auHostPath
+ * @returns {JsonObject}
+ */
+function listAuHostComponents(auHostPath) {
+  const result = spawnSync(auHostPath, ["--list"], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  if (result.status !== 0) {
+    return {
+      ok: false,
+      status: result.status,
+      stdout: result.stdout?.trim() ?? "",
+      stderr: result.stderr?.trim() ?? ""
+    };
+  }
+  try {
+    return {
+      ok: true,
+      components: JSON.parse(result.stdout)
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: result.status,
+      stdout: result.stdout?.trim() ?? "",
+      stderr: error instanceof Error ? error.message : String(error)
+    };
+  }
+}
+
+/**
  * @param {{
  *   outputDir: string,
  *   root?: string,
@@ -398,6 +429,7 @@ function queryAuHostParameters(auHostPath, plugin, parameterOverrides) {
  *   signalLimit?: number,
  *   render?: boolean,
  *   renderLimit?: number,
+ *   renderMethod?: string,
  *   renderCommand?: string,
  *   parameterOverrides?: string[],
  *   auHost?: boolean,
@@ -466,9 +498,15 @@ function createUadPluginProfile(options) {
     for (const plugin of renderablePlan) {
       const pluginDir = path.join(outputDir, "renders", plugin.id.replace(/[^a-z0-9-:]+/giu, "-").replace(/:/gu, "-"));
       fs.mkdirSync(pluginDir, { recursive: true });
+      let renderPlugin = plugin;
+      let exactRender = false;
       if (auHostPath && plugin.renderableByBuiltInAuHost) {
         const parameterMap = queryAuHostParameters(auHostPath, plugin, parameterOverrides);
         writeAnalysisReport(path.join(pluginDir, "parameters.json"), parameterMap);
+        if (typeof parameterMap.component === "string" && parameterMap.component) {
+          renderPlugin = { ...plugin, displayName: parameterMap.component };
+          exactRender = true;
+        }
         renderResults.push({
           pluginId: plugin.id,
           pluginName: plugin.displayName,
@@ -504,11 +542,14 @@ function createUadPluginProfile(options) {
             [
               "--render",
               "--name",
-              plugin.displayName,
+              renderPlugin.displayName,
+              ...(exactRender ? ["--exact"] : []),
               "--input",
               inputPath,
               "--output",
               outputPath,
+              "--render-method",
+              options.renderMethod ?? "callback",
               ...auHostParameterArgs(parameterOverrides)
             ],
             { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }
@@ -527,6 +568,8 @@ function createUadPluginProfile(options) {
           signalId,
           inputPath,
           outputPath,
+          mode: options.renderCommand ? "external-command" : "headless-audio-unit-cli",
+          uiStaging: false,
           ok: renderResult.ok,
           status: renderResult.status,
           stderr: renderResult.stderr.trim(),
@@ -564,6 +607,9 @@ function createUadPluginProfile(options) {
       requested: Boolean(options.render),
       auHostPath: auHostPath ? path.relative(outputDir, auHostPath) : null,
       externalCommand: options.renderCommand ? true : false,
+      mode: options.renderCommand ? "external-command" : "headless-audio-unit-cli",
+      uiStaging: false,
+      renderMethod: options.renderMethod ?? "callback",
       parameterOverrides,
       results: renderResults
     }
@@ -581,6 +627,7 @@ export {
   createUadPluginProfile,
   discoverInstalledUadPlugins,
   inferPrimitiveIdsForPluginName,
+  listAuHostComponents,
   normalizePluginName,
   parseAuHostJsonPayload,
   queryAuHostParameters,

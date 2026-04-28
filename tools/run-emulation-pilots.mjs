@@ -55,6 +55,7 @@ const report = await runEmulationPilots({
   candidateLimit: args["candidate-limit"] ? Number(args["candidate-limit"]) : undefined,
   outputDir,
   root,
+  renderMethod: typeof args["render-method"] === "string" ? args["render-method"] : undefined,
   signalLimit: args["signal-limit"] ? Number(args["signal-limit"]) : undefined,
   stateLimit: args["state-limit"] ? Number(args["state-limit"]) : undefined,
   targetIds: listArg(args.target),

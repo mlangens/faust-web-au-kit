@@ -16,6 +16,12 @@ typedef struct {
   UInt32 position;
 } FwakRenderContext;
 
+typedef NS_ENUM(NSInteger, FwakRenderMethod) {
+  FwakRenderMethodCallback = 0,
+  FwakRenderMethodProcessMultiple = 1,
+  FwakRenderMethodProcessInPlace = 2
+};
+
 static NSString* FwakFourCC(OSType value) {
   char chars[5] = {
     (char)((value >> 24) & 0xff),
@@ -215,7 +221,7 @@ static NSArray<NSNumber*>* FwakSearchTypes(void) {
   ];
 }
 
-static AudioComponent FwakFindComponent(NSString* name, AudioComponentDescription* foundDescription, NSString** foundName) {
+static AudioComponent FwakFindComponent(NSString* name, BOOL exactMatch, AudioComponentDescription* foundDescription, NSString** foundName) {
   NSString* needle = name.lowercaseString;
   AudioComponent fallback = NULL;
   AudioComponentDescription fallbackDescription = {0};
@@ -232,10 +238,13 @@ static AudioComponent FwakFindComponent(NSString* name, AudioComponentDescriptio
       AudioComponentCopyName(component, &cfName);
       NSString* displayName = CFBridgingRelease(cfName) ?: @"";
       NSString* haystack = displayName.lowercaseString;
-      if ([haystack isEqualToString:needle] || [haystack containsString:needle]) {
+      if ([haystack isEqualToString:needle] || (!exactMatch && [haystack containsString:needle])) {
         if (foundDescription) *foundDescription = description;
         if (foundName) *foundName = displayName;
         return component;
+      }
+      if (exactMatch) {
+        continue;
       }
       NSUInteger prefixLength = MIN((NSUInteger)18, needle.length);
       if (!fallback && prefixLength > 0 && [haystack containsString:[needle substringToIndex:prefixLength]]) {
@@ -357,8 +366,8 @@ static BOOL FwakApplyOverrides(AudioComponentInstance unit, NSArray<NSDictionary
   return YES;
 }
 
-static BOOL FwakCreateUnit(NSString* name, AudioComponentInstance* unit, AudioComponentDescription* description, NSString** componentName, NSString** error) {
-  AudioComponent component = FwakFindComponent(name, description, componentName);
+static BOOL FwakCreateUnit(NSString* name, BOOL exactMatch, AudioComponentInstance* unit, AudioComponentDescription* description, NSString** componentName, NSString** error) {
+  AudioComponent component = FwakFindComponent(name, exactMatch, description, componentName);
   if (!component) {
     if (error) *error = [NSString stringWithFormat:@"Audio Unit component not found for name: %@", name];
     return NO;
@@ -396,6 +405,94 @@ static OSStatus FwakInputCallback(
   return noErr;
 }
 
+static OSStatus FwakHostBeatAndTempo(void* userData, Float64* outCurrentBeat, Float64* outCurrentTempo) {
+  FwakRenderContext* context = (FwakRenderContext*)userData;
+  double sampleRate = context && context->input ? (double)context->input->sampleRate : 48000.0;
+  double tempo = 120.0;
+  if (outCurrentTempo) {
+    *outCurrentTempo = tempo;
+  }
+  if (outCurrentBeat) {
+    *outCurrentBeat = context ? ((double)context->position / sampleRate) * (tempo / 60.0) : 0.0;
+  }
+  return noErr;
+}
+
+static OSStatus FwakHostMusicalTimeLocation(
+  void* userData,
+  UInt32* outDeltaSampleOffsetToNextBeat,
+  Float32* outTimeSigNumerator,
+  UInt32* outTimeSigDenominator,
+  Float64* outCurrentMeasureDownBeat
+) {
+  FwakRenderContext* context = (FwakRenderContext*)userData;
+  double sampleRate = context && context->input ? (double)context->input->sampleRate : 48000.0;
+  UInt32 samplesPerBeat = (UInt32)MAX(1, sampleRate * 60.0 / 120.0);
+  UInt32 position = context ? context->position : 0;
+  UInt32 intoBeat = position % samplesPerBeat;
+  if (outDeltaSampleOffsetToNextBeat) {
+    *outDeltaSampleOffsetToNextBeat = intoBeat == 0 ? 0 : samplesPerBeat - intoBeat;
+  }
+  if (outTimeSigNumerator) {
+    *outTimeSigNumerator = 4.0f;
+  }
+  if (outTimeSigDenominator) {
+    *outTimeSigDenominator = 4;
+  }
+  if (outCurrentMeasureDownBeat) {
+    double currentBeat = ((double)position / sampleRate) * 2.0;
+    *outCurrentMeasureDownBeat = floor(currentBeat / 4.0) * 4.0;
+  }
+  return noErr;
+}
+
+static OSStatus FwakHostTransportState(
+  void* userData,
+  Boolean* outIsPlaying,
+  Boolean* outTransportStateChanged,
+  Float64* outCurrentSampleInTimeLine,
+  Boolean* outIsCycling,
+  Float64* outCycleStartBeat,
+  Float64* outCycleEndBeat
+) {
+  FwakRenderContext* context = (FwakRenderContext*)userData;
+  if (outIsPlaying) {
+    *outIsPlaying = true;
+  }
+  if (outTransportStateChanged) {
+    *outTransportStateChanged = false;
+  }
+  if (outCurrentSampleInTimeLine) {
+    *outCurrentSampleInTimeLine = context ? (Float64)context->position : 0.0;
+  }
+  if (outIsCycling) {
+    *outIsCycling = false;
+  }
+  if (outCycleStartBeat) {
+    *outCycleStartBeat = 0.0;
+  }
+  if (outCycleEndBeat) {
+    *outCycleEndBeat = 0.0;
+  }
+  return noErr;
+}
+
+static OSStatus FwakHostTransportState2(
+  void* userData,
+  Boolean* outIsPlaying,
+  Boolean* outIsRecording,
+  Boolean* outTransportStateChanged,
+  Float64* outCurrentSampleInTimeLine,
+  Boolean* outIsCycling,
+  Float64* outCycleStartBeat,
+  Float64* outCycleEndBeat
+) {
+  if (outIsRecording) {
+    *outIsRecording = false;
+  }
+  return FwakHostTransportState(userData, outIsPlaying, outTransportStateChanged, outCurrentSampleInTimeLine, outIsCycling, outCycleStartBeat, outCycleEndBeat);
+}
+
 static int FwakListComponents(void) {
   NSMutableArray<NSDictionary*>* components = [NSMutableArray array];
   for (NSNumber* typeNumber in FwakSearchTypes()) {
@@ -420,12 +517,12 @@ static int FwakListComponents(void) {
   return 0;
 }
 
-static int FwakPrintParameters(NSString* name, NSArray<NSDictionary*>* overrides) {
+static int FwakPrintParameters(NSString* name, BOOL exactMatch, NSArray<NSDictionary*>* overrides) {
   NSString* error = nil;
   AudioComponentDescription description = {0};
   NSString* componentName = nil;
   AudioComponentInstance unit = NULL;
-  if (!FwakCreateUnit(name, &unit, &description, &componentName, &error)) {
+  if (!FwakCreateUnit(name, exactMatch, &unit, &description, &componentName, &error)) {
     fprintf(stderr, "%s\n", error.UTF8String);
     return 3;
   }
@@ -445,7 +542,59 @@ static int FwakPrintParameters(NSString* name, NSArray<NSDictionary*>* overrides
   return 0;
 }
 
-static int FwakRender(NSString* name, NSString* inputPath, NSString* outputPath, double tailSeconds, NSArray<NSDictionary*>* overrides) {
+static void FwakFreeBlockData(float** blockData, UInt32 channels) {
+  if (!blockData) {
+    return;
+  }
+  for (UInt32 channel = 0; channel < channels; channel += 1) {
+    free(blockData[channel]);
+  }
+  free(blockData);
+}
+
+static AudioBufferList* FwakAllocateBufferList(UInt32 channels) {
+  AudioBufferList* list = calloc(1, sizeof(AudioBufferList) + sizeof(AudioBuffer) * (channels - 1));
+  if (list) {
+    list->mNumberBuffers = channels;
+  }
+  return list;
+}
+
+static float** FwakAllocateBlockData(UInt32 channels, UInt32 frames) {
+  float** blockData = calloc(channels, sizeof(float*));
+  if (!blockData) {
+    return NULL;
+  }
+  for (UInt32 channel = 0; channel < channels; channel += 1) {
+    blockData[channel] = calloc(frames, sizeof(float));
+    if (!blockData[channel]) {
+      FwakFreeBlockData(blockData, channels);
+      return NULL;
+    }
+  }
+  return blockData;
+}
+
+static void FwakFillInputBlock(const FwakAudioData* input, float** blockData, UInt32 startFrame, UInt32 framesThisBlock, UInt32 maxFrames) {
+  for (UInt32 channel = 0; channel < input->channels; channel += 1) {
+    memset(blockData[channel], 0, sizeof(float) * maxFrames);
+    for (UInt32 frame = 0; frame < framesThisBlock; frame += 1) {
+      UInt32 sourceFrame = startFrame + frame;
+      blockData[channel][frame] = sourceFrame < input->frames ? input->data[channel][sourceFrame] : 0.0f;
+    }
+  }
+}
+
+static void FwakBindBufferList(AudioBufferList* list, float** blockData, UInt32 channels, UInt32 framesThisBlock) {
+  list->mNumberBuffers = channels;
+  for (UInt32 channel = 0; channel < channels; channel += 1) {
+    list->mBuffers[channel].mNumberChannels = 1;
+    list->mBuffers[channel].mDataByteSize = framesThisBlock * sizeof(float);
+    list->mBuffers[channel].mData = blockData[channel];
+  }
+}
+
+static int FwakRender(NSString* name, BOOL exactMatch, NSString* inputPath, NSString* outputPath, double tailSeconds, NSArray<NSDictionary*>* overrides, FwakRenderMethod renderMethod) {
   NSString* error = nil;
   FwakAudioData input = {0};
   if (!FwakReadFloatWav(inputPath, &input, &error)) {
@@ -456,7 +605,7 @@ static int FwakRender(NSString* name, NSString* inputPath, NSString* outputPath,
   AudioComponentDescription description = {0};
   NSString* componentName = nil;
   AudioComponentInstance unit = NULL;
-  if (!FwakCreateUnit(name, &unit, &description, &componentName, &error)) {
+  if (!FwakCreateUnit(name, exactMatch, &unit, &description, &componentName, &error)) {
     fprintf(stderr, "%s\n", error.UTF8String);
     FwakFreeAudio(&input);
     return 3;
@@ -470,6 +619,8 @@ static int FwakRender(NSString* name, NSString* inputPath, NSString* outputPath,
 
   UInt32 maxFrames = 512;
   AudioUnitSetProperty(unit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &maxFrames, sizeof(maxFrames));
+  UInt32 bypassOff = 0;
+  AudioUnitSetProperty(unit, kAudioUnitProperty_BypassEffect, kAudioUnitScope_Global, 0, &bypassOff, sizeof(bypassOff));
 
   AudioStreamBasicDescription stream = {0};
   stream.mSampleRate = input.sampleRate;
@@ -485,12 +636,23 @@ static int FwakRender(NSString* name, NSString* inputPath, NSString* outputPath,
 
   FwakRenderContext context = { &input, 0 };
   AURenderCallbackStruct callback = { FwakInputCallback, &context };
-  OSStatus status = AudioUnitSetProperty(unit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callback, sizeof(callback));
-  if (status != noErr) {
-    fprintf(stderr, "AudioUnitSetProperty render callback failed: %d\n", (int)status);
-    AudioComponentInstanceDispose(unit);
-    FwakFreeAudio(&input);
-    return 5;
+  HostCallbackInfo hostCallbacks = {
+    &context,
+    FwakHostBeatAndTempo,
+    FwakHostMusicalTimeLocation,
+    FwakHostTransportState,
+    FwakHostTransportState2
+  };
+  AudioUnitSetProperty(unit, kAudioUnitProperty_HostCallbacks, kAudioUnitScope_Global, 0, &hostCallbacks, sizeof(hostCallbacks));
+  OSStatus status = noErr;
+  if (renderMethod == FwakRenderMethodCallback) {
+    status = AudioUnitSetProperty(unit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &callback, sizeof(callback));
+    if (status != noErr) {
+      fprintf(stderr, "AudioUnitSetProperty render callback failed: %d\n", (int)status);
+      AudioComponentInstanceDispose(unit);
+      FwakFreeAudio(&input);
+      return 5;
+    }
   }
   status = AudioUnitInitialize(unit);
   if (status != noErr) {
@@ -518,29 +680,53 @@ static int FwakRender(NSString* name, NSString* inputPath, NSString* outputPath,
     return 7;
   }
 
-  AudioBufferList* outputList = calloc(1, sizeof(AudioBufferList) + sizeof(AudioBuffer) * (output.channels - 1));
-  float** blockData = calloc(output.channels, sizeof(float*));
-  for (UInt32 channel = 0; channel < output.channels; channel += 1) {
-    blockData[channel] = calloc(maxFrames, sizeof(float));
+  AudioBufferList* inputList = FwakAllocateBufferList(output.channels);
+  AudioBufferList* outputList = FwakAllocateBufferList(output.channels);
+  float** inputBlockData = FwakAllocateBlockData(output.channels, maxFrames);
+  float** outputBlockData = FwakAllocateBlockData(output.channels, maxFrames);
+  if (!inputList || !outputList || !inputBlockData || !outputBlockData) {
+    fprintf(stderr, "Could not allocate render block buffers.\n");
+    free(inputList);
+    free(outputList);
+    FwakFreeBlockData(inputBlockData, output.channels);
+    FwakFreeBlockData(outputBlockData, output.channels);
+    FwakFreeAudio(&output);
+    AudioUnitUninitialize(unit);
+    AudioComponentInstanceDispose(unit);
+    FwakFreeAudio(&input);
+    return 7;
   }
-  outputList->mNumberBuffers = output.channels;
   AudioTimeStamp timestamp = {0};
   timestamp.mFlags = kAudioTimeStampSampleTimeValid;
 
   for (UInt32 frame = 0; frame < output.frames; frame += maxFrames) {
     UInt32 framesThisBlock = MIN(maxFrames, output.frames - frame);
+    FwakFillInputBlock(&input, inputBlockData, frame, framesThisBlock, maxFrames);
+    FwakBindBufferList(inputList, inputBlockData, output.channels, framesThisBlock);
     for (UInt32 channel = 0; channel < output.channels; channel += 1) {
-      memset(blockData[channel], 0, sizeof(float) * maxFrames);
-      outputList->mBuffers[channel].mNumberChannels = 1;
-      outputList->mBuffers[channel].mDataByteSize = framesThisBlock * sizeof(float);
-      outputList->mBuffers[channel].mData = blockData[channel];
+      memset(outputBlockData[channel], 0, sizeof(float) * maxFrames);
     }
+    FwakBindBufferList(outputList, outputBlockData, output.channels, framesThisBlock);
     timestamp.mSampleTime = frame;
-    status = AudioUnitRender(unit, NULL, &timestamp, 0, framesThisBlock, outputList);
+    if (renderMethod == FwakRenderMethodProcessInPlace) {
+      status = AudioUnitProcess(unit, NULL, &timestamp, framesThisBlock, inputList);
+      if (status == noErr) {
+        for (UInt32 channel = 0; channel < output.channels; channel += 1) {
+          memcpy(outputBlockData[channel], inputBlockData[channel], framesThisBlock * sizeof(float));
+        }
+      }
+    } else if (renderMethod == FwakRenderMethodProcessMultiple) {
+      const AudioBufferList* inputLists[1] = { inputList };
+      AudioBufferList* outputLists[1] = { outputList };
+      status = AudioUnitProcessMultiple(unit, NULL, &timestamp, framesThisBlock, 1, inputLists, 1, outputLists);
+    } else {
+      status = AudioUnitRender(unit, NULL, &timestamp, 0, framesThisBlock, outputList);
+    }
     if (status != noErr) {
-      fprintf(stderr, "AudioUnitRender failed: %d\n", (int)status);
-      for (UInt32 channel = 0; channel < output.channels; channel += 1) free(blockData[channel]);
-      free(blockData);
+      fprintf(stderr, "%s failed: %d\n", renderMethod == FwakRenderMethodProcessMultiple ? "AudioUnitProcessMultiple" : renderMethod == FwakRenderMethodProcessInPlace ? "AudioUnitProcess" : "AudioUnitRender", (int)status);
+      FwakFreeBlockData(inputBlockData, output.channels);
+      FwakFreeBlockData(outputBlockData, output.channels);
+      free(inputList);
       free(outputList);
       FwakFreeAudio(&output);
       AudioUnitUninitialize(unit);
@@ -549,12 +735,13 @@ static int FwakRender(NSString* name, NSString* inputPath, NSString* outputPath,
       return 8;
     }
     for (UInt32 channel = 0; channel < output.channels; channel += 1) {
-      memcpy(output.data[channel] + frame, blockData[channel], framesThisBlock * sizeof(float));
+      memcpy(output.data[channel] + frame, outputBlockData[channel], framesThisBlock * sizeof(float));
     }
   }
 
-  for (UInt32 channel = 0; channel < output.channels; channel += 1) free(blockData[channel]);
-  free(blockData);
+  FwakFreeBlockData(inputBlockData, output.channels);
+  FwakFreeBlockData(outputBlockData, output.channels);
+  free(inputList);
   free(outputList);
   AudioUnitUninitialize(unit);
   AudioComponentInstanceDispose(unit);
@@ -571,10 +758,22 @@ static int FwakRender(NSString* name, NSString* inputPath, NSString* outputPath,
     @"type": FwakFourCC(description.componentType),
     @"subtype": FwakFourCC(description.componentSubType),
     @"manufacturer": FwakFourCC(description.componentManufacturer),
+    @"renderMethod": renderMethod == FwakRenderMethodProcessMultiple ? @"process-multiple" : renderMethod == FwakRenderMethodProcessInPlace ? @"process" : @"callback",
     @"frames": @(output.frames)
   });
   FwakFreeAudio(&output);
   return 0;
+}
+
+static FwakRenderMethod FwakParseRenderMethod(NSString* value) {
+  NSString* normalized = value.lowercaseString;
+  if ([normalized isEqualToString:@"process-multiple"] || [normalized isEqualToString:@"processmultiple"]) {
+    return FwakRenderMethodProcessMultiple;
+  }
+  if ([normalized isEqualToString:@"process"] || [normalized isEqualToString:@"process-in-place"] || [normalized isEqualToString:@"processinplace"]) {
+    return FwakRenderMethodProcessInPlace;
+  }
+  return FwakRenderMethodCallback;
 }
 
 static NSDictionary* FwakParseOverride(NSString* raw) {
@@ -597,6 +796,8 @@ int main(int argc, char** argv) {
     NSString* input = nil;
     NSString* output = nil;
     double tailSeconds = 2.0;
+    BOOL exactMatch = NO;
+    FwakRenderMethod renderMethod = FwakRenderMethodCallback;
     NSMutableArray<NSDictionary*>* overrides = [NSMutableArray array];
 
     for (int index = 1; index < argc; index += 1) {
@@ -615,6 +816,10 @@ int main(int argc, char** argv) {
         output = [NSString stringWithUTF8String:argv[++index]];
       } else if ([arg isEqualToString:@"--tail"] && index + 1 < argc) {
         tailSeconds = atof(argv[++index]);
+      } else if ([arg isEqualToString:@"--render-method"] && index + 1 < argc) {
+        renderMethod = FwakParseRenderMethod([NSString stringWithUTF8String:argv[++index]]);
+      } else if ([arg isEqualToString:@"--exact"]) {
+        exactMatch = YES;
       } else if ([arg isEqualToString:@"--set"] && index + 1 < argc) {
         NSDictionary* override = FwakParseOverride([NSString stringWithUTF8String:argv[++index]]);
         if (!override) {
@@ -630,15 +835,15 @@ int main(int argc, char** argv) {
     }
     if ([mode isEqualToString:@"--parameters"]) {
       if (!name) {
-        fprintf(stderr, "Usage: profile-au-host --parameters --name <component name> [--set <id-or-name>=<value>]\n");
+        fprintf(stderr, "Usage: profile-au-host --parameters --name <component name> [--exact] [--set <id-or-name>=<value>]\n");
         return 1;
       }
-      return FwakPrintParameters(name, overrides);
+      return FwakPrintParameters(name, exactMatch, overrides);
     }
     if (!name || !input || !output) {
-      fprintf(stderr, "Usage: profile-au-host --render --name <component name> --input <input.wav> --output <output.wav> [--tail seconds] [--set <id-or-name>=<value>]\n");
+      fprintf(stderr, "Usage: profile-au-host --render --name <component name> --input <input.wav> --output <output.wav> [--exact] [--render-method callback|process|process-multiple] [--tail seconds] [--set <id-or-name>=<value>]\n");
       return 1;
     }
-    return FwakRender(name, input, output, tailSeconds, overrides);
+    return FwakRender(name, exactMatch, input, output, tailSeconds, overrides, renderMethod);
   }
 }

@@ -420,7 +420,7 @@ function selectInstalledAuPlugin(inventory, target) {
  * @param {UadPluginInventoryEntry} plugin
  * @param {string} inputPath
  * @param {string} outputPath
- * @param {{ tailSeconds?: number, parameterArgs?: string[] }} [options]
+ * @param {{ exact?: boolean, tailSeconds?: number, parameterArgs?: string[], renderMethod?: string }} [options]
  * @returns {{ ok: boolean, status: number | null, stdout: string, stderr: string }}
  */
 function renderAuPluginProbe(auHostPath, plugin, inputPath, outputPath, options = {}) {
@@ -431,6 +431,9 @@ function renderAuPluginProbe(auHostPath, plugin, inputPath, outputPath, options 
       "--render",
       "--name",
       plugin.displayName,
+      ...(options.exact ? ["--exact"] : []),
+      "--render-method",
+      options.renderMethod ?? "callback",
       "--input",
       inputPath,
       "--output",
@@ -578,7 +581,8 @@ function buildPilotAssemblySpec(target, context) {
  *   signalLimit?: number,
  *   stateLimit?: number,
  *   candidateLimit?: number,
- *   tailSeconds?: number
+ *   tailSeconds?: number,
+ *   renderMethod?: string
  * }} options
  * @returns {Promise<EmulationPilotReport>}
  */
@@ -623,6 +627,12 @@ async function runEmulationPilots(options) {
     const resolvedSignalIds = probeManifest.signals?.map((entry) => entry.id) ?? [];
     const parameterMap = queryAuHostParameters(auHostPath, selectedPlugin, []);
     writeAnalysisReport(path.join(targetDir, "uad-parameters.json"), parameterMap);
+    const renderPlugin = {
+      ...selectedPlugin,
+      displayName: typeof parameterMap.component === "string" && parameterMap.component
+        ? parameterMap.component
+        : selectedPlugin.displayName
+    };
 
     const uadStates = (target.uadStates ?? []).slice(0, options.stateLimit && options.stateLimit > 0 ? options.stateLimit : undefined);
     const candidateStates = (target.candidateStates ?? []).slice(0, options.candidateLimit && options.candidateLimit > 0 ? options.candidateLimit : undefined);
@@ -636,7 +646,7 @@ async function runEmulationPilots(options) {
     for (const state of uadStates) {
       const stateDir = path.join(targetDir, "uad", state.id);
       const materialized = materializeParameterOverrides(state.parameterOverrides ?? {}, parameterMap);
-      writeAnalysisReport(path.join(stateDir, "parameters.json"), queryAuHostParameters(auHostPath, selectedPlugin, materialized.args));
+      writeAnalysisReport(path.join(stateDir, "parameters.json"), queryAuHostParameters(auHostPath, renderPlugin, materialized.args, { exact: true }));
       /** @type {Record<string, string>} */
       const outputs = {};
       for (const signalId of resolvedSignalIds) {
@@ -646,8 +656,10 @@ async function runEmulationPilots(options) {
         }
         const inputPath = path.join(probeDir, manifestEntry.path);
         const outputPath = path.join(stateDir, `${signalId}.wav`);
-        const renderResult = renderAuPluginProbe(auHostPath, selectedPlugin, inputPath, outputPath, {
+        const renderResult = renderAuPluginProbe(auHostPath, renderPlugin, inputPath, outputPath, {
+          exact: true,
           parameterArgs: materialized.args,
+          renderMethod: options.renderMethod ?? "callback",
           tailSeconds: options.tailSeconds
         });
         /** @type {JsonObject} */
@@ -659,6 +671,8 @@ async function runEmulationPilots(options) {
           appliedParameters: materialized.applied,
           skippedParameters: materialized.skipped,
           outputPath,
+          mode: "headless-audio-unit-cli",
+          uiStaging: false,
           status: renderResult.status,
           stderr: renderResult.stderr.trim()
         };
@@ -797,6 +811,7 @@ async function runEmulationPilots(options) {
       uadStateCount: uadStates.length,
       candidateStateCount: candidateStates.length,
       comparisonCount: comparisons.length,
+      renderMethod: options.renderMethod ?? "callback",
       validComparisonCount: comparisons.filter((comparison) => comparison.referenceEngaged !== false).length,
       referenceEngagedCount: [...referenceEngagementByStateSignal.values()].filter(Boolean).length,
       referencePassThroughCount: [...referenceEngagementByStateSignal.values()].filter((value) => !value).length,
@@ -819,6 +834,9 @@ async function runEmulationPilots(options) {
     },
     auHostPath,
     outputDir,
+    mode: "headless-audio-unit-cli",
+    uiStaging: false,
+    renderMethod: options.renderMethod ?? "callback",
     targets: targetReports
   };
 

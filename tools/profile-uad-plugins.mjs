@@ -61,6 +61,7 @@ const report = createUadPluginProfile({
   render,
   renderCommand: typeof args["render-command"] === "string" ? args["render-command"] : process.env.FWAK_PROFILE_RENDER_COMMAND,
   renderLimit: args["render-limit"] ? Number(args["render-limit"]) : undefined,
+  renderMethod: typeof args["render-method"] === "string" ? args["render-method"] : undefined,
   root,
   signalLimit: args["signal-limit"] ? Number(args["signal-limit"]) : undefined
 });

@@ -431,6 +431,7 @@ export interface EmulationPilotReport extends JsonObject {
   host?: JsonObject;
   auHostPath?: string;
   outputDir?: string;
+  renderMethod?: string;
   targets?: JsonObject[];
 }
 
