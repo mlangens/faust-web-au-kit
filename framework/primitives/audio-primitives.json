@@ -2095,6 +2095,696 @@
         "Keep model transforms declarative so target models can be compared.",
         "Capture source assumptions explicitly in emulation specs."
       ]
+    },
+    "compression.opto-program-leveler": {
+      "family": "compression",
+      "title": "Opto Program Leveler",
+      "description": "An opto-style compressor primitive for LA-2A/LA-3A family behavior with slow light-cell memory, program-dependent release, and smooth gain riding.",
+      "dspIntent": "Separate opto leveling from generic compression so agentic fits can tune memory, overshoot, and release tails without pretending every vintage compressor is FET-like.",
+      "faustLibraries": [
+        "compressors.lib",
+        "envelopes.lib",
+        "filters.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "uadx-opto-family-profile",
+        "sonicVerification": "uadx-local-harvest-2026-04-28",
+        "evidence": [
+          "uad-plugin-manuals",
+          "generated/profiling/uadx-exhaustive-native-render-v2"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "peak-reduction",
+          "surface": "primary gain-reduction knob"
+        },
+        {
+          "role": "gain-makeup",
+          "surface": "output/makeup knob"
+        },
+        {
+          "role": "program-memory",
+          "surface": "advanced fit trim"
+        },
+        {
+          "role": "emphasis-sidechain",
+          "surface": "detector emphasis trim"
+        }
+      ],
+      "surfaceRoles": [
+        "gain-history",
+        "vu-meter",
+        "two-knob-leveler-panel"
+      ],
+      "analysisProbes": [
+        "tone-burst recovery",
+        "program-dependent release",
+        "stepped-sine gain curve",
+        "harmonic residual"
+      ],
+      "agentDesignNotes": [
+        "Use long-memory release probes before fitting static ratio.",
+        "Expose peak reduction and makeup as the main UX; keep detector memory as a fit control."
+      ]
+    },
+    "compression.tube-vari-mu-stage": {
+      "family": "compression",
+      "title": "Tube Vari-Mu Stage",
+      "description": "A tube variable-mu dynamics primitive for 175-B/176, Fairchild, and variable-mu references where compression ratio, harmonic color, and tube bias shift with drive.",
+      "dspIntent": "Model compression and coloration as one level-dependent tube gain element with soft-knee curvature, transformer coloration, and time-constant programs.",
+      "faustLibraries": [
+        "compressors.lib",
+        "envelopes.lib",
+        "wdmodels.lib",
+        "filters.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "uadx-tube-vari-mu-family-profile",
+        "sonicVerification": "uadx-local-harvest-2026-04-28",
+        "evidence": [
+          "uad-plugin-manuals",
+          "generated/profiling/uadx-exhaustive-native-render-v2"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "input-drive",
+          "surface": "large calibrated input knob"
+        },
+        {
+          "role": "threshold-or-compression",
+          "surface": "compression control"
+        },
+        {
+          "role": "time-constant-program",
+          "surface": "stepped timing selector"
+        },
+        {
+          "role": "tube-bias",
+          "surface": "fit trim"
+        }
+      ],
+      "surfaceRoles": [
+        "transfer-curve",
+        "gain-history",
+        "harmonic-meter"
+      ],
+      "analysisProbes": [
+        "level sweep harmonic growth",
+        "tone-burst release program",
+        "program-bed pumping",
+        "noise-floor coloration"
+      ],
+      "agentDesignNotes": [
+        "Fit gain staging first because the apparent ratio is drive-dependent.",
+        "Pair harmonic residuals with gain-reduction traces; tube color is not a post-effect."
+      ]
+    },
+    "compression.vca-bus-detector": {
+      "family": "compression",
+      "title": "VCA Bus Detector",
+      "description": "A VCA/API/SSL/dbx-style compressor primitive for punch, bus glue, feed-forward/feed-back detector choices, auto release, and detector filtering.",
+      "dspIntent": "Represent clean but characterful VCA compression as detector topology plus timing law, not as a generic ratio slider with makeup gain.",
+      "faustLibraries": [
+        "compressors.lib",
+        "envelopes.lib",
+        "filters.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "uadx-vca-bus-family-profile",
+        "sonicVerification": "uadx-local-harvest-2026-04-28",
+        "evidence": [
+          "uad-plugin-manuals",
+          "generated/profiling/uadx-exhaustive-native-render-v2"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "threshold",
+          "surface": "transfer curve handle"
+        },
+        {
+          "role": "ratio",
+          "surface": "stepped ratio buttons"
+        },
+        {
+          "role": "attack-release",
+          "surface": "timing selector bank"
+        },
+        {
+          "role": "sidechain-hp",
+          "surface": "detector filter strip"
+        }
+      ],
+      "surfaceRoles": [
+        "transfer-curve",
+        "gain-history",
+        "sidechain-editor"
+      ],
+      "analysisProbes": [
+        "transient peak capture",
+        "bus-program material",
+        "auto-release decay",
+        "static transfer sweep"
+      ],
+      "agentDesignNotes": [
+        "Use transient-click and drum-bus probes to separate punch from level matching.",
+        "Keep detector filter and timing visible because they define the bus-compressor feel."
+      ]
+    },
+    "analog.channel-strip-signal-path": {
+      "family": "analog",
+      "title": "Channel Strip Signal Path",
+      "description": "A console/channel-strip primitive that assembles preamp, filters, EQ, dynamics, routing, metering, and output trim as one ordered signal path.",
+      "dspIntent": "Avoid treating channel strips as loose controls by representing module order, bypasses, and shared gain staging explicitly.",
+      "faustLibraries": [
+        "filters.lib",
+        "compressors.lib",
+        "wdmodels.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "uadx-channel-strip-family-profile",
+        "sonicVerification": "uadx-local-harvest-2026-04-28",
+        "evidence": [
+          "uad-plugin-manuals",
+          "generated/profiling/uadx-exhaustive-native-render-v2"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "module-order",
+          "surface": "strip/rack lane"
+        },
+        {
+          "role": "preamp-drive",
+          "surface": "input section"
+        },
+        {
+          "role": "eq-module",
+          "surface": "band strip or graph"
+        },
+        {
+          "role": "dynamics-module",
+          "surface": "detector/transfer panel"
+        }
+      ],
+      "surfaceRoles": [
+        "module-rack",
+        "routing-strip",
+        "meter-stack"
+      ],
+      "analysisProbes": [
+        "fullband sweep by module",
+        "gain-staging harmonic sweep",
+        "module bypass null",
+        "program material"
+      ],
+      "agentDesignNotes": [
+        "Represent channel-strip modules as ordered blocks so agents can move or bypass them coherently.",
+        "Stage input/output levels before fitting EQ or compression modules."
+      ]
+    },
+    "saturation.multiband-enhancer-exciter": {
+      "family": "saturation",
+      "title": "Multiband Enhancer Exciter",
+      "description": "A multiband enhancer/exciter primitive for A-Type, Verve, and similar color processors that split spectrum, add harmonic emphasis, and recombine with level discipline.",
+      "dspIntent": "Model enhancement as band-selective nonlinear generation plus crossover/recombination rather than a broadband waveshaper.",
+      "faustLibraries": [
+        "filters.lib",
+        "filterbanks.lib",
+        "wdmodels.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "uadx-enhancer-family-profile",
+        "sonicVerification": "uadx-local-harvest-2026-04-28",
+        "evidence": [
+          "uad-plugin-manuals",
+          "generated/profiling/uadx-exhaustive-native-render-v2"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "band-split",
+          "surface": "multiband editor"
+        },
+        {
+          "role": "harmonic-amount",
+          "surface": "per-band drive"
+        },
+        {
+          "role": "tilt-or-focus",
+          "surface": "spectral focus handle"
+        },
+        {
+          "role": "mix",
+          "surface": "parallel blend"
+        }
+      ],
+      "surfaceRoles": [
+        "multiband-editor",
+        "harmonic-meter",
+        "spectrum-overlay"
+      ],
+      "analysisProbes": [
+        "stepped-sine harmonic growth",
+        "two-tone IMD",
+        "pink-noise tilt",
+        "alias stress"
+      ],
+      "agentDesignNotes": [
+        "Check crossover summing before fitting color.",
+        "Use band-specific harmonic residuals instead of one global THD number."
+      ]
+    },
+    "space.recording-room-scene": {
+      "family": "space",
+      "title": "Recording Room Scene",
+      "description": "A studio/chamber/room primitive for captured spaces with mic position, source placement, early reflections, decay, and room tone.",
+      "dspIntent": "Treat spaces like Capitol, Hitsville, Ocean Way, and Sound City as mic-scene models rather than generic decay knobs.",
+      "faustLibraries": [
+        "reverbs.lib",
+        "delays.lib",
+        "filters.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "uadx-room-scene-family-profile",
+        "sonicVerification": "uadx-local-harvest-2026-04-28",
+        "evidence": [
+          "uad-plugin-manuals",
+          "generated/profiling/uadx-exhaustive-native-render-v2"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "source-position",
+          "surface": "room field"
+        },
+        {
+          "role": "mic-distance",
+          "surface": "mic placement handle"
+        },
+        {
+          "role": "room-decay",
+          "surface": "decay contour"
+        },
+        {
+          "role": "wet-dry",
+          "surface": "scene blend"
+        }
+      ],
+      "surfaceRoles": [
+        "hybrid-room-field",
+        "decay-field",
+        "mic-scene-view"
+      ],
+      "analysisProbes": [
+        "impulse early reflections",
+        "gated-noise decay slope",
+        "stereo isolation",
+        "room-tone floor"
+      ],
+      "agentDesignNotes": [
+        "Fit early reflection timing separately from late decay.",
+        "Expose mic/source placement visually; sliders are a poor primary representation for room scenes."
+      ]
+    },
+    "space.vintage-digital-reverb": {
+      "family": "space",
+      "title": "Vintage Digital Reverb",
+      "description": "A vintage algorithmic reverb primitive for Lexicon-style modulation, chorused tails, bandwidth limits, diffusion, and program selection.",
+      "dspIntent": "Capture early digital reverb as a modulated algorithm with tonal bandwidth and program topology, not simply an impulse response.",
+      "faustLibraries": [
+        "reverbs.lib",
+        "delays.lib",
+        "filters.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "uadx-vintage-digital-reverb-profile",
+        "sonicVerification": "uadx-local-harvest-2026-04-28",
+        "evidence": [
+          "uad-plugin-manuals",
+          "generated/profiling/uadx-exhaustive-native-render-v2"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "program",
+          "surface": "algorithm selector"
+        },
+        {
+          "role": "decay",
+          "surface": "decay handle"
+        },
+        {
+          "role": "modulation-depth",
+          "surface": "tail motion control"
+        },
+        {
+          "role": "bandwidth-damping",
+          "surface": "tone strip"
+        }
+      ],
+      "surfaceRoles": [
+        "decay-field",
+        "tail-modulation-view",
+        "program-bank"
+      ],
+      "analysisProbes": [
+        "impulse diffusion",
+        "tail modulation sidebands",
+        "band-limited decay",
+        "stereo decorrelation"
+      ],
+      "agentDesignNotes": [
+        "Do not fit vintage digital reverbs as static convolution only.",
+        "Use steady tones and impulses to expose tail modulation."
+      ]
+    },
+    "space.plate-reverb": {
+      "family": "space",
+      "title": "Plate Reverb",
+      "description": "A plate reverb primitive for dense metallic onset, smooth decay, damping, pre-delay, and stereo pickup coloration.",
+      "dspIntent": "Separate plate behavior from room/chamber models so dense early buildup and damping can be fit directly.",
+      "faustLibraries": [
+        "reverbs.lib",
+        "filters.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "uadx-plate-family-profile",
+        "sonicVerification": "uadx-local-harvest-2026-04-28",
+        "evidence": [
+          "uad-plugin-manuals",
+          "generated/profiling/uadx-exhaustive-native-render-v2"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "predelay",
+          "surface": "time offset handle"
+        },
+        {
+          "role": "decay",
+          "surface": "decay contour"
+        },
+        {
+          "role": "damping",
+          "surface": "tone control"
+        },
+        {
+          "role": "pickup-balance",
+          "surface": "stereo width control"
+        }
+      ],
+      "surfaceRoles": [
+        "decay-field",
+        "stereo-meter",
+        "tone-popover"
+      ],
+      "analysisProbes": [
+        "impulse density ramp",
+        "gated-noise decay",
+        "high-frequency damping",
+        "stereo correlation"
+      ],
+      "agentDesignNotes": [
+        "Use density/onset probes; plate quality is not just decay length.",
+        "Fit damping over time rather than with a static EQ snapshot only."
+      ]
+    },
+    "delay.tape-echo-feedback": {
+      "family": "delay",
+      "title": "Tape Echo Feedback",
+      "description": "A tape echo primitive for multi-head delay, feedback saturation, wow/flutter, head filtering, splice noise, and spring/space side paths.",
+      "dspIntent": "Represent tape echo as transport plus feedback topology so agents can fit repeat timing, tone decay, and modulation together.",
+      "faustLibraries": [
+        "delays.lib",
+        "filters.lib",
+        "noises.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "uadx-tape-echo-family-profile",
+        "sonicVerification": "uadx-local-harvest-2026-04-28",
+        "evidence": [
+          "uad-plugin-manuals",
+          "generated/profiling/uadx-exhaustive-native-render-v2"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "head-selection",
+          "surface": "multi-head timeline"
+        },
+        {
+          "role": "feedback",
+          "surface": "repeat decay lane"
+        },
+        {
+          "role": "wow-flutter",
+          "surface": "transport modulation"
+        },
+        {
+          "role": "echo-tone",
+          "surface": "feedback filter"
+        }
+      ],
+      "surfaceRoles": [
+        "delay-timeline",
+        "feedback-lane",
+        "transport-meter"
+      ],
+      "analysisProbes": [
+        "impulse repeat spacing",
+        "feedback decay spectrum",
+        "steady-tone wow/flutter",
+        "noise floor"
+      ],
+      "agentDesignNotes": [
+        "Fit repeat spacing before color.",
+        "Feedback-path saturation should be inside the loop, not a post-process."
+      ]
+    },
+    "instrument.morphing-analog-synth": {
+      "family": "instrument",
+      "title": "Morphing Analog Synth Voice",
+      "description": "A synth-voice primitive for Minimoog, PolyMAX, Opal, Anthem, and related UADx instruments with oscillator drift, filter drive, morphing, envelopes, and modulation.",
+      "dspIntent": "Upgrade generic oscillator/filter voices with performance, morph, drift, and modulation behavior needed by modern analog-inspired instruments.",
+      "faustLibraries": [
+        "oscillators.lib",
+        "filters.lib",
+        "envelopes.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "uadx-synth-instrument-family-profile",
+        "sonicVerification": "uadx-local-harvest-2026-04-28",
+        "evidence": [
+          "uad-plugin-manuals",
+          "generated/profiling/uadx-exhaustive-native-render-v2"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "oscillator-model",
+          "surface": "voice module"
+        },
+        {
+          "role": "filter-cutoff-resonance",
+          "surface": "filter canvas"
+        },
+        {
+          "role": "morph-or-macro",
+          "surface": "macro pad"
+        },
+        {
+          "role": "modulation-routing",
+          "surface": "source/target dock"
+        }
+      ],
+      "surfaceRoles": [
+        "module-rack",
+        "filter-canvas",
+        "modulation-dock",
+        "keyboard-strip"
+      ],
+      "analysisProbes": [
+        "note-on spectrum",
+        "filter sweep",
+        "modulation sidebands",
+        "voice drift"
+      ],
+      "agentDesignNotes": [
+        "Treat instruments as controllable sources, not audio effects with a dry input.",
+        "Expose modulation and performance controls as first-class primitive roles."
+      ]
+    },
+    "pitch.vocal-tuning-formant-chain": {
+      "family": "pitch",
+      "title": "Vocal Tuning Formant Chain",
+      "description": "A vocal production primitive for key detection, pitch correction, formant/tone shaping, de-essing, dynamics, and mix-ready vocal macros.",
+      "dspIntent": "Represent vocal suites as analysis plus corrective pitch/time processing and spectral/dynamics polish rather than a single pitch knob.",
+      "faustLibraries": [
+        "analyzers.lib",
+        "filters.lib",
+        "compressors.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "uadx-vocal-suite-family-profile",
+        "sonicVerification": "uadx-local-harvest-2026-04-28",
+        "evidence": [
+          "uad-plugin-manuals",
+          "generated/profiling/uadx-exhaustive-native-render-v2"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "key-scale-detection",
+          "surface": "key/tuner display"
+        },
+        {
+          "role": "correction-amount",
+          "surface": "pitch lane"
+        },
+        {
+          "role": "formant-tone",
+          "surface": "vocal tone pad"
+        },
+        {
+          "role": "vocal-dynamics",
+          "surface": "leveling strip"
+        }
+      ],
+      "surfaceRoles": [
+        "pitch-lane",
+        "tuner-display",
+        "vocal-chain-strip"
+      ],
+      "analysisProbes": [
+        "vocal-like formant phrase",
+        "known-tone pitch track",
+        "sibilance focus",
+        "program material"
+      ],
+      "agentDesignNotes": [
+        "Keep detection confidence visible to agents and users.",
+        "Profile pitch tracking separately from vocal tone and dynamics."
+      ]
+    },
+    "eq.resonant-subharmonic-enhancer": {
+      "family": "equalization",
+      "title": "Resonant Subharmonic Enhancer",
+      "description": "A low-frequency resonance/enhancement primitive for VOG-like processors that synthesize or emphasize controlled sub-band weight without broad EQ boosts.",
+      "dspIntent": "Model resonant bass enhancement as tuned low-frequency excitation plus filtering and dynamics, not as a static shelf.",
+      "faustLibraries": [
+        "filters.lib",
+        "oscillators.lib",
+        "envelopes.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "uadx-low-resonance-family-profile",
+        "sonicVerification": "uadx-local-harvest-2026-04-28",
+        "evidence": [
+          "uad-plugin-manuals",
+          "generated/profiling/uadx-exhaustive-native-render-v2"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "resonant-frequency",
+          "surface": "low-band handle"
+        },
+        {
+          "role": "resonance-amount",
+          "surface": "macro knob"
+        },
+        {
+          "role": "subharmonic-mix",
+          "surface": "blend control"
+        },
+        {
+          "role": "range-limit",
+          "surface": "band boundary"
+        }
+      ],
+      "surfaceRoles": [
+        "low-frequency-canvas",
+        "spectrum-overlay",
+        "macro-control"
+      ],
+      "analysisProbes": [
+        "low-sweep head bump",
+        "program low-end bed",
+        "two-tone IMD",
+        "phase response"
+      ],
+      "agentDesignNotes": [
+        "Use low-frequency sweeps to find the resonance peak before matching level.",
+        "Guard against phase and headroom surprises when adding subharmonic weight."
+      ]
+    },
+    "modulation.rotary-speaker-chain": {
+      "family": "modulation",
+      "title": "Rotary Speaker Chain",
+      "description": "A rotary speaker primitive for horn/drum speed, acceleration, cabinet filtering, mic spread, crossover, and amplitude/Doppler modulation.",
+      "dspIntent": "Treat rotary speaker behavior as a modulated cabinet/mic chain with inertia, not as a simple chorus LFO.",
+      "faustLibraries": [
+        "delays.lib",
+        "filters.lib",
+        "oscillators.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "uadx-rotary-family-profile",
+        "sonicVerification": "uadx-local-harvest-2026-04-28",
+        "evidence": [
+          "uad-plugin-manuals",
+          "generated/profiling/uadx-exhaustive-native-render-v2"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "speed",
+          "surface": "slow/fast switch"
+        },
+        {
+          "role": "acceleration",
+          "surface": "ramp trim"
+        },
+        {
+          "role": "horn-drum-balance",
+          "surface": "crossover balance"
+        },
+        {
+          "role": "mic-spread",
+          "surface": "stereo field"
+        }
+      ],
+      "surfaceRoles": [
+        "rotary-motion-view",
+        "cabinet-field",
+        "stereo-meter"
+      ],
+      "analysisProbes": [
+        "steady-tone modulation sidebands",
+        "speed-ramp capture",
+        "cabinet impulse response",
+        "stereo decorrelation"
+      ],
+      "agentDesignNotes": [
+        "Fit acceleration and speed switching as separate behaviors.",
+        "Rotary speaker primitives compose naturally with organ/electromechanical instruments."
+      ]
     }
   },
   "variantPrimitiveMap": {

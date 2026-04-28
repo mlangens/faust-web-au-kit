@@ -35,16 +35,40 @@ const vst3Dirs = [
 
 const primitiveRules = [
   {
+    id: "compression.tube-vari-mu-stage",
+    pattern: /\b(175[-\s]?b|176\b|fairchild|660|670|variable mu|varimu|manley variable mu)\b/u
+  },
+  {
+    id: "compression.opto-program-leveler",
+    pattern: /\b(la[-\s]?2a?|la[-\s]?3a|la3a|teletronix|opto)\b/u
+  },
+  {
+    id: "compression.vca-bus-detector",
+    pattern: /\b(api 2500|ssl.*g bus|g bus|dbx 160|4k buss|vca bus|buss compressor)\b/u
+  },
+  {
     id: "phase.all-pass-alignment-network",
-    pattern: /\b(ibp|little labs|phase|alignment)\b/u
+    pattern: /\b(ibp|little labs ibp|phase|alignment)\b/u
+  },
+  {
+    id: "eq.resonant-subharmonic-enhancer",
+    pattern: /\b(vog|voice of god|subharmonic|low frequency resonance)\b/u
   },
   {
     id: "tape.magnetic-recorder-stage",
     pattern: /\b(studer|ampex|atr|a800|oxide|tape|space echo|re-201|ep-34|fatso)\b/u
   },
   {
+    id: "delay.tape-echo-feedback",
+    pattern: /\b(galaxy|space echo|re-201|ep-34|tape echo|echoplex|echo plex)\b/u
+  },
+  {
     id: "compression.vintage-compressor-model",
-    pattern: /\b(1176(?:[a-z]+)?|la-2|la-2a|teletronix|fairchild|660|670|dbx|api 2500|ssl.*bus|g bus|distressor|variable mu|varimu|compressor|limiter|fatso|33609|cl 1b|tla-100|capitol compressor)\b/u
+    pattern: /\b(1176(?:[a-z]+)?|la[-\s]?2a?|la[-\s]?3a|teletronix|fairchild|175[-\s]?b|176\b|660|670|dbx|api 2500|ssl.*bus|g bus|distressor|variable mu|varimu|compressor|limiter|fatso|33609|cl 1b|tla-100|capitol compressor)\b/u
+  },
+  {
+    id: "analog.channel-strip-signal-path",
+    pattern: /\b(channel strip|api vision|ssl e|avalon|vt[-\s]?737|voxbox|century|la[-\s]?6176|6176|channelstrip)\b/u
   },
   {
     id: "analog.preamp-console-stage",
@@ -60,11 +84,27 @@ const primitiveRules = [
   },
   {
     id: "space.mechanical-room-reverb",
-    pattern: /\b(reverb|plate|chamber|room|studio|ocean way|sound city|dreamverb|realverb|lexicon|emt|akg|bx20|reflection)\b/u
+    pattern: /\b(reverb|plate|chamber|room|ocean way|sound city|dreamverb|realverb|lexicon|emt|akg|bx20|reflection)\b/u
+  },
+  {
+    id: "space.recording-room-scene",
+    pattern: /\b(capitol chambers|hitsville chambers|ocean way|sound city|studio room|live room|recording room)\b/u
+  },
+  {
+    id: "space.vintage-digital-reverb",
+    pattern: /\b(lexicon|224|dreamverb|realverb|digital reverb)\b/u
+  },
+  {
+    id: "space.plate-reverb",
+    pattern: /\b(pure plate|plate reverb|emt 140|plate)\b/u
   },
   {
     id: "modulation.vintage-delay-modulation",
     pattern: /\b(chorus|flanger|doubler|dimension|delay|echo|brigade|ce-1|sdd|cooper|modulation|re-201|ep-34)\b/u
+  },
+  {
+    id: "modulation.rotary-speaker-chain",
+    pattern: /\b(rotary speaker|waterfall rotary|leslie|rotary)\b/u
   },
   {
     id: "amp.cabinet-mic-chain",
@@ -79,12 +119,24 @@ const primitiveRules = [
     pattern: /\b(ravel|electra|b-3|b3|waterfall|rotary|piano|organ|keys|wurlitzer|rhodes)\b/u
   },
   {
+    id: "instrument.morphing-analog-synth",
+    pattern: /\b(anthem|minimoog|moog|opal|polymax|poly max|analog synth|morphing synthesizer)\b/u
+  },
+  {
     id: "saturation.virtual-analog-stage",
-    pattern: /\b(saturator|culture vulture|distortion|overdrive|tube|vsm|inflator|maximizer|enhancer)\b/u
+    pattern: /\b(saturator|culture vulture|distortion|overdrive|tube|vsm|inflator|maximizer|enhancer|verve)\b/u
+  },
+  {
+    id: "saturation.multiband-enhancer-exciter",
+    pattern: /\b(a[-\s]?type multiband|multiband enhancer|enhancer|exciter|verve|analog machines)\b/u
   },
   {
     id: "compression.true-peak-limiter",
     pattern: /\b(precision limiter|maximizer|limiter)\b/u
+  },
+  {
+    id: "pitch.vocal-tuning-formant-chain",
+    pattern: /\b(topline|vocal suite|key finder|pitch correction|formant|tuner)\b/u
   },
   {
     id: "metering.analysis-suite",
@@ -123,11 +175,48 @@ function uadProductKey(value) {
     .replace(/^uadx\s+/iu, "")
     .replace(/^uaudio[_\s-]+/iu, "")
     .replace(/[_-]+/gu, " ")
-    .replace(/\b(?:compressor|limiter|equalizer|eq|synth|plugin|plug in)\b/giu, "")
+    .replace(/\b(?:plugin|plug in)\b/giu, "")
     .replace(/^ua\s+(?=\d)/iu, "")
+    .replace(/\bla\s+([23]a)\b/giu, "la$1")
+    .replace(/\beqp\s+(\d+a)\b/giu, "eqp-$1")
     .replace(/\s+/gu, " ")
     .trim()
     .toLowerCase();
+}
+
+/**
+ * @param {string} value
+ * @returns {string[]}
+ */
+function uadProductTokens(value) {
+  return uadProductKey(value)
+    .replace(/[^a-z0-9]+/giu, " ")
+    .split(/\s+/u)
+    .filter(Boolean);
+}
+
+/**
+ * @param {string} componentKey
+ * @param {string} pluginKey
+ * @returns {number}
+ */
+function scoreUadProductTokenMatch(componentKey, pluginKey) {
+  const componentTokens = new Set(uadProductTokens(componentKey));
+  const pluginTokens = uadProductTokens(pluginKey);
+  if (!componentTokens.size || !pluginTokens.length) {
+    return 0;
+  }
+  const common = pluginTokens.filter((token) => componentTokens.has(token)).length;
+  if (common === 0) {
+    return 0;
+  }
+  if (common === pluginTokens.length) {
+    return 70 + common;
+  }
+  if (common === componentTokens.size) {
+    return 45 + common;
+  }
+  return (common / Math.max(pluginTokens.length, componentTokens.size)) * 30;
 }
 
 /**
@@ -432,12 +521,18 @@ function classifyAuHostComponentRuntime(component) {
 function scoreAuHostComponent(component, plugin) {
   const componentKey = uadProductKey(String(component.name ?? ""));
   const pluginKey = uadProductKey(plugin.displayName);
+  const compactComponentKey = componentKey.replace(/[^a-z0-9]+/giu, "");
+  const compactPluginKey = pluginKey.replace(/[^a-z0-9]+/giu, "");
+  const tokenScore = scoreUadProductTokenMatch(componentKey, pluginKey);
   let score = 0;
   if (componentKey === pluginKey) {
     score += 100;
+  } else if (compactComponentKey === compactPluginKey) {
+    score += 95;
   } else if (componentKey.includes(pluginKey) || pluginKey.includes(componentKey)) {
     score += 40;
   }
+  score += tokenScore;
   if (String(component.type ?? "") === "aufx") {
     score += 5;
   }
@@ -457,7 +552,13 @@ function resolveAuHostComponent(auHostPath, plugin) {
   const candidates = components
     .filter((component) => {
       const componentKey = uadProductKey(String(component.name ?? ""));
-      return componentKey === pluginKey || componentKey.includes(pluginKey) || pluginKey.includes(componentKey);
+      const compactComponentKey = componentKey.replace(/[^a-z0-9]+/giu, "");
+      const compactPluginKey = pluginKey.replace(/[^a-z0-9]+/giu, "");
+      return componentKey === pluginKey
+        || compactComponentKey === compactPluginKey
+        || componentKey.includes(pluginKey)
+        || pluginKey.includes(componentKey)
+        || scoreUadProductTokenMatch(componentKey, pluginKey) >= 30;
     })
     .sort((left, right) => scoreAuHostComponent(right, plugin) - scoreAuHostComponent(left, plugin));
   return candidates[0] ?? null;
@@ -567,6 +668,9 @@ function listAuHostComponents(auHostPath) {
  *   renderCommand?: string,
  *   parameterOverrides?: string[],
  *   auHost?: boolean,
+ *   runtimeFilter?: string[],
+ *   formatFilter?: string[],
+ *   preferProducts?: boolean,
  *   auDirs?: string[],
  *   vst3Dirs?: string[]
  * }} options
@@ -577,14 +681,29 @@ function createUadPluginProfile(options) {
   const outputDir = path.resolve(options.outputDir);
   fs.mkdirSync(outputDir, { recursive: true });
   const filters = (options.pluginFilter ?? []).map((filter) => filter.toLowerCase());
+  const runtimeFilters = new Set((options.runtimeFilter ?? []).map((filter) => filter.toLowerCase()));
+  const formatFilters = new Set((options.formatFilter ?? []).map((filter) => filter.toLowerCase()));
   const discovered = discoverInstalledUadPlugins({ auDirs: options.auDirs, vst3Dirs: options.vst3Dirs });
   const filtered = discovered.filter((entry) => {
     if (!filters.length) {
-      return true;
+      return (!runtimeFilters.size || runtimeFilters.has(String(entry.runtimeKind ?? "").toLowerCase()))
+        && (!formatFilters.size || formatFilters.has(String(entry.format ?? "").toLowerCase()));
     }
-    return filters.some((filter) => entry.displayName.toLowerCase().includes(filter) || entry.normalizedName.includes(filter));
+    return filters.some((filter) => entry.displayName.toLowerCase().includes(filter) || entry.normalizedName.includes(filter))
+      && (!runtimeFilters.size || runtimeFilters.has(String(entry.runtimeKind ?? "").toLowerCase()))
+      && (!formatFilters.size || formatFilters.has(String(entry.format ?? "").toLowerCase()));
   });
-  const entries = filtered.slice(0, options.limit && options.limit > 0 ? options.limit : undefined);
+  const preferred = options.preferProducts
+    ? [...filtered.reduce((byProduct, entry) => {
+      const key = String(entry.productKey ?? entry.normalizedName);
+      const current = byProduct.get(key);
+      if (!current || compareUadProfilingPreference(entry, current) < 0) {
+        byProduct.set(key, entry);
+      }
+      return byProduct;
+    }, /** @type {Map<string, UadPluginInventoryEntry>} */ (new Map())).values()].sort(compareUadProfilingPreference)
+    : filtered;
+  const entries = preferred.slice(0, options.limit && options.limit > 0 ? options.limit : undefined);
   const plan = buildUadProfilePlan({ entries, root: sourceRoot, signalLimit: options.signalLimit });
   const unionPrimitiveIds = [...new Set(plan.flatMap((entry) => entry.primitiveIds ?? []))];
   const unionSignalIds = [...new Set(plan.flatMap((entry) => entry.signalIds ?? []))];
@@ -768,6 +887,7 @@ export {
   parseAuHostJsonPayload,
   queryAuHostParameters,
   resolveAuHostComponent,
+  scoreAuHostComponent,
   uadProductKey,
   primitiveRules
 };

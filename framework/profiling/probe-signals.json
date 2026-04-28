@@ -577,6 +577,65 @@
       "tape.transport",
       "nonlinear.character",
       "musical.program"
+    ],
+    "analog.channel-strip-signal-path": [
+      "universal.baseline",
+      "nonlinear.character",
+      "dynamics.behavior",
+      "phase.alignment"
+    ],
+    "compression.opto-program-leveler": [
+      "dynamics.behavior",
+      "musical.program"
+    ],
+    "compression.tube-vari-mu-stage": [
+      "dynamics.behavior",
+      "nonlinear.character",
+      "musical.program"
+    ],
+    "compression.vca-bus-detector": [
+      "dynamics.behavior",
+      "musical.program"
+    ],
+    "delay.tape-echo-feedback": [
+      "space.decay",
+      "phase.alignment",
+      "tape.transport"
+    ],
+    "eq.resonant-subharmonic-enhancer": [
+      "universal.baseline",
+      "nonlinear.character",
+      "phase.alignment"
+    ],
+    "instrument.morphing-analog-synth": [
+      "universal.baseline",
+      "musical.program"
+    ],
+    "modulation.rotary-speaker-chain": [
+      "phase.alignment",
+      "space.decay",
+      "musical.program"
+    ],
+    "pitch.vocal-tuning-formant-chain": [
+      "universal.baseline",
+      "musical.program"
+    ],
+    "saturation.multiband-enhancer-exciter": [
+      "nonlinear.character",
+      "musical.program"
+    ],
+    "space.plate-reverb": [
+      "space.decay",
+      "musical.program"
+    ],
+    "space.recording-room-scene": [
+      "space.decay",
+      "phase.alignment",
+      "musical.program"
+    ],
+    "space.vintage-digital-reverb": [
+      "space.decay",
+      "phase.alignment"
     ]
   }
 }

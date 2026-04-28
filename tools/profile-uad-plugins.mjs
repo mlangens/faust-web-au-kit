@@ -54,15 +54,18 @@ const outputDir = path.resolve(root, String(args.out ?? args.output ?? "generate
 const render = Boolean(args.render);
 const report = createUadPluginProfile({
   auHost: args["no-au-host"] !== true,
+  formatFilter: listArg(args.format),
   limit: args.limit ? Number(args.limit) : undefined,
   outputDir,
   pluginFilter: listArg(args.plugin),
+  preferProducts: args["prefer-products"] === true,
   parameterOverrides: listArg(args.set),
   render,
   renderCommand: typeof args["render-command"] === "string" ? args["render-command"] : process.env.FWAK_PROFILE_RENDER_COMMAND,
   renderLimit: args["render-limit"] ? Number(args["render-limit"]) : undefined,
   renderMethod: typeof args["render-method"] === "string" ? args["render-method"] : undefined,
   root,
+  runtimeFilter: listArg(args.runtime),
   signalLimit: args["signal-limit"] ? Number(args["signal-limit"]) : undefined
 });
 

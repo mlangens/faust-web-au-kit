@@ -7,6 +7,7 @@ import {
   compareUadProfilingPreference,
   inferPrimitiveIdsForPluginName,
   normalizePluginName,
+  scoreAuHostComponent,
   uadProductKey
 } from "../../tools/lib/uad-plugin-profiler-tools.mjs";
 
@@ -19,6 +20,16 @@ test("UAD plugin name inference maps owned vintage plugins to sonic primitives",
   assert.ok(inferPrimitiveIdsForPluginName("uaudio_pultec_eqp-1a.component").primitiveIds.includes("eq.passive-vintage-program-eq"));
   assert.ok(inferPrimitiveIdsForPluginName("UAD Little Labs IBP.component").primitiveIds.includes("phase.all-pass-alignment-network"));
   assert.ok(inferPrimitiveIdsForPluginName("uaudio_neve_1073.vst3").primitiveIds.includes("analog.preamp-console-stage"));
+  assert.ok(inferPrimitiveIdsForPluginName("uaudio_175_b.component").primitiveIds.includes("compression.tube-vari-mu-stage"));
+  assert.ok(inferPrimitiveIdsForPluginName("uaudio_la3a.component").primitiveIds.includes("compression.opto-program-leveler"));
+  assert.ok(inferPrimitiveIdsForPluginName("uaudio_ssl_g_bus_compressor.component").primitiveIds.includes("compression.vca-bus-detector"));
+  assert.ok(inferPrimitiveIdsForPluginName("uaudio_capitol_chambers.component").primitiveIds.includes("space.recording-room-scene"));
+  assert.ok(inferPrimitiveIdsForPluginName("uaudio_lexicon_224.component").primitiveIds.includes("space.vintage-digital-reverb"));
+  assert.ok(inferPrimitiveIdsForPluginName("uaudio_pure_plate.component").primitiveIds.includes("space.plate-reverb"));
+  assert.ok(inferPrimitiveIdsForPluginName("uaudio_topline_vocal_suite.component").primitiveIds.includes("pitch.vocal-tuning-formant-chain"));
+  assert.ok(inferPrimitiveIdsForPluginName("uaudio_a_type_multiband.component").primitiveIds.includes("saturation.multiband-enhancer-exciter"));
+  assert.ok(inferPrimitiveIdsForPluginName("uaudio_minimoog.component").primitiveIds.includes("instrument.morphing-analog-synth"));
+  assert.ok(inferPrimitiveIdsForPluginName("uaudio_little_labs_vog.component").primitiveIds.includes("eq.resonant-subharmonic-enhancer"));
 });
 
 test("UAD profile plan assigns primitive-specific probe signals and renderability", () => {
@@ -56,8 +67,11 @@ test("UAD profile plan assigns primitive-specific probe signals and renderabilit
 test("UAD profiling preference treats UADx native plugins as first-choice references", () => {
   assert.equal(classifyUadRuntime("uaudio_ua_1176_rev_a", "/Library/Audio/Plug-Ins/Components/uaudio_ua_1176_rev_a.component"), "uadx-native");
   assert.equal(classifyUadRuntime("UAD UA 1176 Rev A", "/Library/Audio/Plug-Ins/Components/UAD UA 1176 Rev A.component"), "uad-dsp");
-  assert.equal(uadProductKey("Universal Audio (UADx): UADx 1176 Rev A Compressor"), "1176 rev a");
+  assert.equal(uadProductKey("Universal Audio (UADx): UADx 1176 Rev A Compressor"), "1176 rev a compressor");
   assert.equal(uadProductKey("uaudio_ua_1176_rev_a.component"), "1176 rev a");
+  assert.equal(uadProductKey("Universal Audio (UADx): UADx LA-3A Compressor"), "la3a compressor");
+  assert.equal(uadProductKey("uaudio_la3a.component"), "la3a");
+  assert.equal(uadProductKey("uaudio_capitol_compressor.component"), "capitol compressor");
 
   const sorted = [
     {
@@ -81,4 +95,33 @@ test("UAD profiling preference treats UADx native plugins as first-choice refere
   ].sort(compareUadProfilingPreference);
 
   assert.equal(sorted[0]?.id, "au:uadx");
+});
+
+test("UAD AU host scoring resolves bundle shorthand to richer registry names", () => {
+  const plugin = {
+    id: "au:capitol-compressor",
+    format: "au",
+    displayName: "uaudio_capitol_compressor",
+    normalizedName: "capitol compressor",
+    productKey: "capitol compressor",
+    runtimeKind: "uadx-native",
+    path: "/Library/Audio/Plug-Ins/Components/uaudio_capitol_compressor.component"
+  };
+  const masteringCompressor = {
+    name: "Universal Audio (UADx): UADx Capitol Mastering Compressor",
+    type: "aufx",
+    manufacturer: "UADx"
+  };
+  const chambers = {
+    name: "Universal Audio (UADx): UADx Capitol Chambers",
+    type: "aufx",
+    manufacturer: "UADx"
+  };
+
+  assert.ok(scoreAuHostComponent(masteringCompressor, plugin) > scoreAuHostComponent(chambers, plugin));
+  assert.ok(scoreAuHostComponent({
+    name: "Universal Audio (UADx): UADx LA-3A Compressor",
+    type: "aufx",
+    manufacturer: "UADx"
+  }, { ...plugin, displayName: "uaudio_la3a" }) > 90);
 });

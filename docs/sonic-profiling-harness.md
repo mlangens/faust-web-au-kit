@@ -37,6 +37,15 @@ npm run profile:uad -- --plugin "1176" --render --render-limit 1 --signal-limit 
 The built-in host currently targets Audio Units. VST3 rendering should use an external command backend until the framework has a native VST3 host.
 When both generations are installed, UADx native plugins are preferred over hardware-backed `!UAD` plugins. The native bundles usually appear as `uaudio_*` on disk and as `Universal Audio (UADx): ...` in the AU registry, and they do not require powered-on UAD hardware for profiling.
 The built-in host stays headless: it links AudioToolbox/AudioUnit/Foundation only, never AppKit/Cocoa/WebKit. Use `--render-method callback|process|process-multiple` to run render-method diagnostics; `callback` is the default profiling route.
+Use `--runtime uadx-native|uad-dsp|unknown`, `--format au|vst3`, and `--prefer-products` to collapse duplicate AU/VST installs into one preferred product reference before planning probes.
+
+The native UADx exhaustion pass used:
+
+```sh
+npm run profile:uad -- --runtime uadx-native --format au --prefer-products --render --signal-limit 6 --out generated/profiling/uadx-exhaustive-native-render-v2
+```
+
+That run captured 65/65 native UADx AU parameter maps and 390/390 headless probe renders. See `docs/uadx-primitive-exhaustion.md` for the primitive expansion summary.
 
 To verify that local AU DSP is actually engaging before running expensive profiling:
 
@@ -90,7 +99,7 @@ This runs the first end-to-end emulation loop:
 - Compare UAD and Faust WAVs with time-domain error, correlation, spectral fingerprints, harmonic fingerprints, and loudness deltas.
 - Write per-target `assembly-spec.json` files that name the current best candidate state and the largest residuals to fix next.
 
-The two default pilots are intentionally different: `uad-1176-rev-a` exercises vintage compression/nonlinear dynamics through `press-deck`, while `uad-pultec-eqp-1a` exercises passive EQ/analog coloration through `atlas-curve`. Together they prove that the harness is not hard-coded to the 1176 case.
+The two default pilots are intentionally different: `uad-1176-rev-a` exercises vintage compression/nonlinear dynamics through `fet-76`, while `uad-pultec-eqp-1a` exercises passive EQ/analog coloration through `atlas-curve`. Together they prove that the harness is not hard-coded to the 1176 case.
 
 Every UAD render is also compared against its dry probe input. If the reference output is effectively pass-through, the pilot keeps the artifact and parameter snapshot but excludes those comparisons from candidate scoring. This prevents an unengaged host, authorization issue, or bypassed plugin from producing false emulation wins.
 
