@@ -159,6 +159,51 @@
         "Add drawable modulators, envelope followers, MIDI pitch control, and preset sequencing.",
         "Validate with pitch-tracking tones, feedback stability guards, modulation sidebands, and latency probes."
       ]
+    },
+    "analog": {
+      "title": "Analog Color and Console Stages",
+      "auditFinding": "Vintage plug-ins frequently combine subtle transformer, tube, op-amp, impedance, and console-path behavior with otherwise simple gain or EQ controls.",
+      "sophisticationPath": [
+        "Start with calibrated input/output gain, polarity, pad, and impedance roles.",
+        "Add level-dependent harmonic fingerprints, noise, crosstalk, hum, and frequency-dependent coloration.",
+        "Validate with level sweeps, stepped gain staging, harmonic residuals, null tests, and channel-correlation probes."
+      ]
+    },
+    "tape": {
+      "title": "Magnetic Tape and Recorder Transport",
+      "auditFinding": "Tape models bundle saturation, head bump, bias, tape speed, wow/flutter, calibration, hiss, crosstalk, and transport behavior into one sonic primitive family.",
+      "sophisticationPath": [
+        "Start with tape speed, input, output, bias, and noise roles.",
+        "Add frequency-dependent saturation, head bump, hysteresis-like memory, wow/flutter, and repro/record calibration.",
+        "Validate with sine-level sweeps, low-frequency head bump scans, wow/flutter modulation, hiss spectra, and transient smear probes."
+      ]
+    },
+    "amp": {
+      "title": "Amplifier, Cabinet, and Mic Chain",
+      "auditFinding": "Guitar/bass amp references are whole signal chains: preamp, tone stack, power stage, speaker/cabinet, microphone, room, and impedance interactions.",
+      "sophisticationPath": [
+        "Start with gain stages, tone stack, cabinet IR, and mic placement roles.",
+        "Add dynamic power-stage sag, speaker resonance, transformer color, and room/mic blend.",
+        "Validate with stepped drive sweeps, chord intermodulation, cabinet impulse response, and touch-response envelopes."
+      ]
+    },
+    "modulation": {
+      "title": "Vintage Delay and Modulation",
+      "auditFinding": "Chorus, flanger, tape echo, BBD, and digital delay classics share time-varying delay, feedback, clock color, noise, and filtering primitives.",
+      "sophisticationPath": [
+        "Start with delay time, depth, rate, feedback, mix, and tone roles.",
+        "Add BBD/tape/early-digital bandwidth limits, companding, clock noise, wow/flutter, and stereo phase offsets.",
+        "Validate with impulse repeats, modulation sidebands, feedback stability, noise floor, and stereo decorrelation probes."
+      ]
+    },
+    "microphone": {
+      "title": "Microphone and Recording Chain Modeling",
+      "auditFinding": "Mic modeling references expose source mic, target mic, proximity, axis, room, and preamp-chain behavior that should become reusable profiling surfaces.",
+      "sophisticationPath": [
+        "Start with source/target model selection, proximity, axis, and output roles.",
+        "Add capsule resonance, polar behavior, room/mic blend, and preamp coupling.",
+        "Validate with response curves, proximity sweeps, polar snapshots, and transient coloration probes."
+      ]
     }
   },
   "primitives": {
@@ -1144,23 +1189,715 @@
         "Use matrix topology rather than a flat control list for pitch/time feedback effects.",
         "Require stability guards for feedback paths before native staging."
       ]
+    },
+    "analog.preamp-console-stage": {
+      "family": "analog",
+      "title": "Vintage Preamp or Console Stage",
+      "description": "A level-dependent analog input/output stage covering transformer, tube, transistor, op-amp, impedance, crosstalk, hum, and noise color.",
+      "dspIntent": "Model gain staging as a nonlinear calibrated circuit path rather than a transparent trim control.",
+      "faustLibraries": [
+        "wdmodels.lib",
+        "filters.lib",
+        "signals.lib"
+      ],
+      "maturity": {
+        "stage": "observed",
+        "implementation": "metadata-and-corpus-model",
+        "sonicVerification": "planned",
+        "evidence": [
+          "uad-plugin-manuals"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "input-gain",
+          "unit": "dB",
+          "surface": "channel strip"
+        },
+        {
+          "role": "impedance-or-pad",
+          "surface": "preamp module"
+        },
+        {
+          "role": "polarity",
+          "surface": "channel utility"
+        },
+        {
+          "role": "output-trim",
+          "unit": "dB",
+          "surface": "output stage"
+        }
+      ],
+      "surfaceRoles": [
+        "module-rack",
+        "routing-matrix",
+        "meter-stack"
+      ],
+      "analysisProbes": [
+        "sine level harmonic sweep",
+        "noise floor spectrum",
+        "crosstalk/null probe",
+        "frequency-response coloration"
+      ],
+      "measurementProfiles": [
+        {
+          "probe": "stepped sine gain sweep",
+          "target": "harmonic growth curve"
+        },
+        {
+          "probe": "silence/noise capture",
+          "target": "noise and hum fingerprint"
+        },
+        {
+          "probe": "dual-channel isolation sweep",
+          "target": "crosstalk below modeled threshold"
+        }
+      ],
+      "uiExtractionSignals": [
+        "input/output trims grouped around a preamp module",
+        "pad, polarity, impedance, line/mic toggles",
+        "VU or clip meter near gain stage"
+      ],
+      "agentDesignNotes": [
+        "Prefer calibrated stage descriptors over generic Drive controls.",
+        "Track input/output level separately so emulation fitting can distinguish color from loudness."
+      ]
+    },
+    "tape.magnetic-recorder-stage": {
+      "family": "tape",
+      "title": "Magnetic Tape Recorder Stage",
+      "description": "Tape transport primitive with tape speed, formula, bias, calibration, head bump, saturation, noise, wow/flutter, and record/repro coloration.",
+      "dspIntent": "Represent tape as a memory-bearing recorder path with frequency-dependent saturation and transport modulation.",
+      "faustLibraries": [
+        "filters.lib",
+        "oscillators.lib",
+        "noises.lib"
+      ],
+      "maturity": {
+        "stage": "observed",
+        "implementation": "metadata-and-corpus-model",
+        "sonicVerification": "planned",
+        "evidence": [
+          "uad-plugin-manuals"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "tape-speed",
+          "surface": "transport selector"
+        },
+        {
+          "role": "bias",
+          "surface": "calibration panel"
+        },
+        {
+          "role": "record-level",
+          "unit": "dB",
+          "surface": "input meter"
+        },
+        {
+          "role": "wow-flutter",
+          "surface": "transport stability"
+        }
+      ],
+      "surfaceRoles": [
+        "timeline-editor",
+        "meter-stack",
+        "analysis-report"
+      ],
+      "analysisProbes": [
+        "head-bump response",
+        "harmonic compression sweep",
+        "wow/flutter sidebands",
+        "hiss spectrum"
+      ],
+      "measurementProfiles": [
+        {
+          "probe": "low-frequency log sweep",
+          "target": "head bump frequency/Q"
+        },
+        {
+          "probe": "1 kHz stepped level sweep",
+          "target": "compression and harmonic growth"
+        },
+        {
+          "probe": "steady tone modulation capture",
+          "target": "wow/flutter rate and depth"
+        },
+        {
+          "probe": "silence capture",
+          "target": "hiss/noise spectrum"
+        }
+      ],
+      "uiExtractionSignals": [
+        "tape speed, formula, bias, calibration, repro/record controls",
+        "transport-like labels",
+        "VU meters with input/output calibration"
+      ],
+      "agentDesignNotes": [
+        "Separate transport modulation from saturation.",
+        "Fit tape noise and head bump as explicit submodels instead of baking them into one waveshaper."
+      ]
+    },
+    "compression.vintage-compressor-model": {
+      "family": "compression",
+      "title": "Vintage Compressor Model",
+      "description": "A model-aware compressor primitive for FET, opto, vari-mu, diode bridge, VCA, and transient-shaper behavior coupled to analog color.",
+      "dspIntent": "Treat compressor model as detector topology, gain-cell memory, timing behavior, and coloration, not as a style label.",
+      "faustLibraries": [
+        "compressors.lib",
+        "envelopes.lib",
+        "wdmodels.lib"
+      ],
+      "maturity": {
+        "stage": "observed",
+        "implementation": "metadata-and-corpus-model",
+        "sonicVerification": "planned",
+        "evidence": [
+          "uad-plugin-manuals",
+          "dmg-trackcomp-2"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "model",
+          "surface": "model selector"
+        },
+        {
+          "role": "attack-release",
+          "unit": "ms",
+          "surface": "timing strip"
+        },
+        {
+          "role": "ratio-or-mode",
+          "surface": "transfer curve"
+        },
+        {
+          "role": "sidechain-filter",
+          "surface": "detector editor"
+        }
+      ],
+      "surfaceRoles": [
+        "transfer-curve",
+        "history-trace",
+        "sidechain-editor",
+        "meter-stack"
+      ],
+      "analysisProbes": [
+        "static transfer sweep",
+        "tone-burst recovery",
+        "program-dependent release",
+        "color residual"
+      ],
+      "measurementProfiles": [
+        {
+          "probe": "level sweep",
+          "target": "ratio/knee fit"
+        },
+        {
+          "probe": "tone burst train",
+          "target": "attack/release fit"
+        },
+        {
+          "probe": "two-tone program material",
+          "target": "program-dependent memory"
+        },
+        {
+          "probe": "bypassed-level matched null",
+          "target": "analog color residual"
+        }
+      ],
+      "uiExtractionSignals": [
+        "named model selector or legacy unit faceplate",
+        "attack/release/ratio controls near GR meter",
+        "sidechain filter/listen controls",
+        "input-output gain pair"
+      ],
+      "agentDesignNotes": [
+        "Infer model family before fitting timing constants.",
+        "Pair dynamics envelope loss with harmonic/color residual loss."
+      ]
+    },
+    "eq.passive-vintage-program-eq": {
+      "family": "equalization",
+      "title": "Passive Vintage Program EQ",
+      "description": "A broad musical EQ primitive for passive, inductor/capacitor, stepped-frequency, boost/attenuate, and interacting-band equalizers.",
+      "dspIntent": "Model interaction between boost, attenuation, bandwidth, and passive makeup amplification instead of independent textbook bands.",
+      "faustLibraries": [
+        "filters.lib",
+        "wdmodels.lib"
+      ],
+      "maturity": {
+        "stage": "observed",
+        "implementation": "metadata-and-corpus-model",
+        "sonicVerification": "planned",
+        "evidence": [
+          "uad-plugin-manuals"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "stepped-frequency",
+          "surface": "stepped band selector"
+        },
+        {
+          "role": "boost",
+          "unit": "dB",
+          "surface": "program EQ band"
+        },
+        {
+          "role": "attenuation",
+          "unit": "dB",
+          "surface": "program EQ band"
+        },
+        {
+          "role": "makeup-color",
+          "surface": "tube/amp stage"
+        }
+      ],
+      "surfaceRoles": [
+        "graph-canvas",
+        "band-strip",
+        "module-rack"
+      ],
+      "analysisProbes": [
+        "stepped response overlay",
+        "boost-attenuate interaction",
+        "makeup amplifier color"
+      ],
+      "measurementProfiles": [
+        {
+          "probe": "all stepped-frequency response captures",
+          "target": "curve bank fit"
+        },
+        {
+          "probe": "boost/attenuate interaction grid",
+          "target": "interaction surface fit"
+        },
+        {
+          "probe": "level-matched color residual",
+          "target": "makeup-stage residual"
+        }
+      ],
+      "uiExtractionSignals": [
+        "stepped frequency switches",
+        "separate boost and attenuation controls",
+        "broad shelves/peaks",
+        "passive EQ or program EQ language"
+      ],
+      "agentDesignNotes": [
+        "Do not approximate passive program EQs as independent peaking filters unless the interaction error is measured.",
+        "Expose stepped controls as topology data for Faust generation."
+      ]
+    },
+    "space.mechanical-room-reverb": {
+      "family": "space",
+      "title": "Mechanical, Chamber, and Vintage Digital Reverb",
+      "description": "A reverb primitive for springs, plates, chambers, rooms, and early digital algorithms with mic placement, damping, modulation, and decay coloration.",
+      "dspIntent": "Represent reverb as an impulse/decay system with source-room-mic geometry or vintage algorithm controls.",
+      "faustLibraries": [
+        "reverbs.lib",
+        "delays.lib",
+        "filters.lib"
+      ],
+      "maturity": {
+        "stage": "observed",
+        "implementation": "metadata-and-corpus-model",
+        "sonicVerification": "planned",
+        "evidence": [
+          "uad-plugin-manuals"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "decay",
+          "unit": "s",
+          "surface": "tail field"
+        },
+        {
+          "role": "pre-delay",
+          "unit": "ms",
+          "surface": "timeline"
+        },
+        {
+          "role": "damping",
+          "surface": "decay EQ"
+        },
+        {
+          "role": "mic-position",
+          "surface": "room/mic field"
+        }
+      ],
+      "surfaceRoles": [
+        "reverb-space",
+        "graph-canvas",
+        "timeline-editor",
+        "meter-stack"
+      ],
+      "analysisProbes": [
+        "impulse response",
+        "decay slope by band",
+        "early reflection pattern",
+        "modulated tail spectrum"
+      ],
+      "measurementProfiles": [
+        {
+          "probe": "impulse capture",
+          "target": "IR/tail model"
+        },
+        {
+          "probe": "band-limited decay analysis",
+          "target": "decay EQ fit"
+        },
+        {
+          "probe": "stereo impulse capture",
+          "target": "stereo/early-reflection geometry"
+        },
+        {
+          "probe": "sustained tone through tail",
+          "target": "modulated tail fingerprint"
+        }
+      ],
+      "uiExtractionSignals": [
+        "plate/spring/chamber/room labels",
+        "mic or room placement graphics",
+        "decay/damping/pre-delay controls",
+        "algorithm or program selectors"
+      ],
+      "agentDesignNotes": [
+        "Store IR-derived fingerprints separately from macro controls.",
+        "Use room/mic surfaces when references expose studio/chamber placement."
+      ]
+    },
+    "modulation.vintage-delay-modulation": {
+      "family": "modulation",
+      "title": "Vintage Delay, Chorus, Flanger, and Ensemble",
+      "description": "A time-modulation primitive for tape echo, BBD chorus/flanger, early digital delay, ensemble, doubler, and spatial modulation units.",
+      "dspIntent": "Model modulated delay as delay-line topology plus bandwidth, noise, feedback, companding, clocking, and stereo phase behavior.",
+      "faustLibraries": [
+        "delays.lib",
+        "oscillators.lib",
+        "filters.lib",
+        "noises.lib"
+      ],
+      "maturity": {
+        "stage": "observed",
+        "implementation": "metadata-and-corpus-model",
+        "sonicVerification": "planned",
+        "evidence": [
+          "uad-plugin-manuals"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "delay-time",
+          "unit": "ms",
+          "surface": "timeline"
+        },
+        {
+          "role": "rate-depth",
+          "surface": "modulation dock"
+        },
+        {
+          "role": "feedback",
+          "unit": "%",
+          "surface": "feedback lane"
+        },
+        {
+          "role": "mode",
+          "surface": "algorithm selector"
+        }
+      ],
+      "surfaceRoles": [
+        "delay-timeline",
+        "modulation-dock",
+        "routing-matrix",
+        "meter-stack"
+      ],
+      "analysisProbes": [
+        "impulse repeat spacing",
+        "modulation sidebands",
+        "feedback decay stability",
+        "noise/bandwidth fingerprint"
+      ],
+      "measurementProfiles": [
+        {
+          "probe": "impulse train",
+          "target": "delay/feedback topology"
+        },
+        {
+          "probe": "steady sine modulation capture",
+          "target": "rate-depth sidebands"
+        },
+        {
+          "probe": "feedback decay probe",
+          "target": "stability and decay"
+        },
+        {
+          "probe": "silence/noise capture",
+          "target": "noise and bandwidth color"
+        }
+      ],
+      "uiExtractionSignals": [
+        "rate/depth or chorus/flange labels",
+        "echo heads or delay time controls",
+        "feedback/repeats controls",
+        "BBD/tape/digital mode labels"
+      ],
+      "agentDesignNotes": [
+        "Fit delay topology before fitting color.",
+        "Separate LFO shape, delay-line color, and feedback filtering."
+      ]
+    },
+    "amp.cabinet-mic-chain": {
+      "family": "amp",
+      "title": "Amp, Cabinet, Speaker, and Mic Chain",
+      "description": "A full instrument amplification chain primitive covering preamp drive, tone stack, power amp, speaker cabinet, mic placement, room, and output gain.",
+      "dspIntent": "Model amp products as cascaded nonlinear and convolutional blocks whose response changes with level and playing dynamics.",
+      "faustLibraries": [
+        "filters.lib",
+        "wdmodels.lib"
+      ],
+      "maturity": {
+        "stage": "observed",
+        "implementation": "metadata-and-corpus-model",
+        "sonicVerification": "planned",
+        "evidence": [
+          "uad-plugin-manuals"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "preamp-drive",
+          "surface": "amp faceplate"
+        },
+        {
+          "role": "tone-stack",
+          "surface": "tone controls"
+        },
+        {
+          "role": "cabinet",
+          "surface": "cabinet selector"
+        },
+        {
+          "role": "mic-position",
+          "surface": "mic field"
+        }
+      ],
+      "surfaceRoles": [
+        "module-rack",
+        "filter-canvas",
+        "routing-matrix",
+        "analysis-report"
+      ],
+      "analysisProbes": [
+        "chord intermodulation",
+        "cabinet impulse response",
+        "touch response envelope",
+        "speaker resonance sweep"
+      ],
+      "measurementProfiles": [
+        {
+          "probe": "stepped guitar-like excitation",
+          "target": "drive/intermodulation fit"
+        },
+        {
+          "probe": "cabinet impulse capture",
+          "target": "cabinet IR fit"
+        },
+        {
+          "probe": "sparse transient plucks",
+          "target": "touch dynamics"
+        },
+        {
+          "probe": "low-frequency sweep",
+          "target": "speaker resonance fit"
+        }
+      ],
+      "uiExtractionSignals": [
+        "amp faceplate controls",
+        "cabinet/speaker/mic selectors",
+        "room or ambience controls",
+        "gain/master split"
+      ],
+      "agentDesignNotes": [
+        "Keep cabinet/mic convolution separate from nonlinear amp stages.",
+        "Profile with program material, not only sine waves."
+      ]
+    },
+    "instrument.electromechanical-keyboard": {
+      "family": "instrument",
+      "title": "Electromechanical Keyboard or Organ",
+      "description": "A playable instrument primitive for piano, electric piano, organ, drawbar, rotary speaker, key noise, release, and pickup/body resonance models.",
+      "dspIntent": "Represent sampled/modelled keys as excitation, resonator/body, noise, articulation, performance, and effects modules.",
+      "faustLibraries": [
+        "oscillators.lib",
+        "envelopes.lib",
+        "filters.lib"
+      ],
+      "maturity": {
+        "stage": "observed",
+        "implementation": "metadata-and-corpus-model",
+        "sonicVerification": "planned",
+        "evidence": [
+          "uad-plugin-manuals"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "tone-model",
+          "surface": "instrument module"
+        },
+        {
+          "role": "articulation-noise",
+          "surface": "detail panel"
+        },
+        {
+          "role": "rotary-or-effects",
+          "surface": "effects rack"
+        },
+        {
+          "role": "performance",
+          "surface": "keyboard strip"
+        }
+      ],
+      "surfaceRoles": [
+        "keyboard-strip",
+        "module-rack",
+        "modulation-dock",
+        "meter-stack"
+      ],
+      "analysisProbes": [
+        "note-on spectrum",
+        "release noise",
+        "velocity response",
+        "rotary modulation"
+      ],
+      "measurementProfiles": [
+        {
+          "probe": "MIDI velocity sweep",
+          "target": "velocity/timbre curve"
+        },
+        {
+          "probe": "note release capture",
+          "target": "release/noise model"
+        },
+        {
+          "probe": "held chord spectrum",
+          "target": "resonator/body fit"
+        },
+        {
+          "probe": "rotary speed transition",
+          "target": "rotary modulation fit"
+        }
+      ],
+      "uiExtractionSignals": [
+        "keyboard or drawbar surfaces",
+        "velocity/expression controls",
+        "rotary/chorus/effects panels",
+        "key noise or release controls"
+      ],
+      "agentDesignNotes": [
+        "Model performance and articulation as primitives, not static synth controls.",
+        "Tie UI profiling to MIDI-driven sonic probes."
+      ]
+    },
+    "microphone.modeling-chain": {
+      "family": "microphone",
+      "title": "Microphone Modeling Chain",
+      "description": "A microphone modeling primitive covering source mic, target mic, proximity, axis, polar response, room, and preamp coupling.",
+      "dspIntent": "Treat mic modeling as a capture-to-target transform with frequency, transient, phase, proximity, and polar behavior.",
+      "faustLibraries": [
+        "filters.lib",
+        "analyzers.lib"
+      ],
+      "maturity": {
+        "stage": "observed",
+        "implementation": "metadata-and-corpus-model",
+        "sonicVerification": "planned",
+        "evidence": [
+          "uad-plugin-manuals"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "source-model",
+          "surface": "model selector"
+        },
+        {
+          "role": "target-model",
+          "surface": "model browser"
+        },
+        {
+          "role": "proximity",
+          "surface": "mic distance"
+        },
+        {
+          "role": "axis-or-polar",
+          "surface": "polar field"
+        }
+      ],
+      "surfaceRoles": [
+        "routing-matrix",
+        "graph-canvas",
+        "analysis-report"
+      ],
+      "analysisProbes": [
+        "frequency response transform",
+        "proximity sweep",
+        "polar snapshot",
+        "transient coloration"
+      ],
+      "measurementProfiles": [
+        {
+          "probe": "calibrated response sweep",
+          "target": "source-target transform"
+        },
+        {
+          "probe": "distance/proximity sweep",
+          "target": "proximity model"
+        },
+        {
+          "probe": "off-axis response set",
+          "target": "polar response"
+        },
+        {
+          "probe": "transient capture",
+          "target": "transient/phase fit"
+        }
+      ],
+      "uiExtractionSignals": [
+        "source and target mic selectors",
+        "proximity/distance controls",
+        "polar or axis controls",
+        "room/preamp coupling controls"
+      ],
+      "agentDesignNotes": [
+        "Keep model transforms declarative so target models can be compared.",
+        "Capture source assumptions explicitly in emulation specs."
+      ]
     }
   },
   "variantPrimitiveMap": {
     "spectral-eq": [
       "eq.parametric-band",
       "eq.dynamic-band",
-      "eq.circuit-model-topology"
+      "eq.circuit-model-topology",
+      "eq.passive-vintage-program-eq"
     ],
     "character-compressor": [
       "compression.feedforward-sidechain",
-      "compression.detector-ballistics"
+      "compression.detector-ballistics",
+      "compression.vintage-compressor-model",
+      "analog.preamp-console-stage"
     ],
     "mastering-limiter": [
       "compression.feedforward-sidechain",
       "compression.detector-ballistics",
       "saturation.memoryless-waveshaper",
-      "compression.true-peak-limiter"
+      "compression.true-peak-limiter",
+      "compression.vintage-compressor-model",
+      "analog.preamp-console-stage"
     ],
     "multiband-dynamics": [
       "eq.filterbank-crossover",
@@ -1185,7 +1922,8 @@
     ],
     "routable-filter": [
       "eq.parametric-band",
-      "saturation.virtual-analog-stage"
+      "saturation.virtual-analog-stage",
+      "analog.preamp-console-stage"
     ],
     "dual-filter": [
       "eq.parametric-band"
@@ -1196,17 +1934,21 @@
     ],
     "space-reverb": [
       "space.reverb-macro-field",
-      "eq.parametric-band"
+      "eq.parametric-band",
+      "space.mechanical-room-reverb"
     ],
     "mod-delay": [
       "delay.tap-feedback-network",
       "eq.parametric-band",
-      "saturation.memoryless-waveshaper"
+      "saturation.memoryless-waveshaper",
+      "modulation.vintage-delay-modulation",
+      "tape.magnetic-recorder-stage"
     ],
     "modular-synth": [
       "instrument.oscillator-filter-voice",
       "eq.parametric-band",
-      "saturation.virtual-analog-stage"
+      "saturation.virtual-analog-stage",
+      "instrument.electromechanical-keyboard"
     ],
     "simple-synth": [
       "instrument.oscillator-filter-voice",
@@ -1253,23 +1995,49 @@
     ],
     "pitch": [
       "pitch.modulated-feedback-shifter"
+    ],
+    "preamplifier": [
+      "analog.preamp-console-stage",
+      "saturation.virtual-analog-stage"
+    ],
+    "tape": [
+      "tape.magnetic-recorder-stage",
+      "saturation.virtual-analog-stage"
+    ],
+    "amp": [
+      "amp.cabinet-mic-chain",
+      "saturation.virtual-analog-stage"
+    ],
+    "modulation": [
+      "modulation.vintage-delay-modulation"
+    ],
+    "microphone": [
+      "microphone.modeling-chain"
+    ],
+    "keyboard": [
+      "instrument.electromechanical-keyboard"
     ]
   },
   "productPrimitiveMap": {
     "atlas-curve": [
       "eq.parametric-band",
       "eq.dynamic-band",
-      "eq.circuit-model-topology"
+      "eq.circuit-model-topology",
+      "eq.passive-vintage-program-eq"
     ],
     "press-deck": [
       "compression.feedforward-sidechain",
-      "compression.detector-ballistics"
+      "compression.detector-ballistics",
+      "compression.vintage-compressor-model",
+      "analog.preamp-console-stage"
     ],
     "headroom": [
       "compression.feedforward-sidechain",
       "compression.detector-ballistics",
       "saturation.memoryless-waveshaper",
-      "compression.true-peak-limiter"
+      "compression.true-peak-limiter",
+      "compression.vintage-compressor-model",
+      "analog.preamp-console-stage"
     ],
     "split-stack": [
       "eq.filterbank-crossover",
@@ -1289,12 +2057,15 @@
     ],
     "room-bloom": [
       "space.reverb-macro-field",
-      "eq.parametric-band"
+      "eq.parametric-band",
+      "space.mechanical-room-reverb"
     ],
     "relay-tape": [
       "delay.tap-feedback-network",
       "eq.parametric-band",
-      "saturation.memoryless-waveshaper"
+      "saturation.memoryless-waveshaper",
+      "modulation.vintage-delay-modulation",
+      "tape.magnetic-recorder-stage"
     ],
     "mirror-field": [
       "instrument.oscillator-filter-voice",
@@ -1310,6 +2081,9 @@
       "compression.feedforward-sidechain",
       "compression.detector-ballistics",
       "compression.split-band-focus"
+    ],
+    "contour-forge": [
+      "analog.preamp-console-stage"
     ]
   },
   "maturityModel": {

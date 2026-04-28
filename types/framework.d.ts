@@ -217,6 +217,11 @@ export interface DspPrimitiveControlRole extends JsonObject {
   surface?: string;
 }
 
+export interface DspPrimitiveMeasurementProfile extends JsonObject {
+  probe?: string;
+  target?: string;
+}
+
 export type PrimitiveMaturityStage =
   | "observed"
   | "modeled"
@@ -243,6 +248,8 @@ export interface DspPrimitive extends JsonObject {
   controlRoles?: DspPrimitiveControlRole[];
   surfaceRoles?: string[];
   analysisProbes?: string[];
+  measurementProfiles?: DspPrimitiveMeasurementProfile[];
+  uiExtractionSignals?: string[];
   agentDesignNotes?: string[];
 }
 
@@ -268,9 +275,20 @@ export interface ReferenceCorpusEntry extends JsonObject {
   role?: string;
   extractionStatus?: PrimitiveMaturityStage;
   manualUrl?: string | null;
+  sourcePackId?: string | null;
   observedPrimitiveIds?: string[];
   featureSignals?: string[];
   extractionNotes?: string;
+}
+
+export interface ReferenceCorpusSourcePack extends JsonObject {
+  id?: string;
+  sourceType?: string;
+  path?: string;
+  sourceUrl?: string;
+  articleCount?: number;
+  pagination?: string;
+  extractionStatus?: PrimitiveMaturityStage;
 }
 
 export interface ReferenceCorpus extends JsonObject {
@@ -279,6 +297,7 @@ export interface ReferenceCorpus extends JsonObject {
   displayName?: string;
   description?: string;
   methodology?: JsonObject;
+  sourcePacks?: ReferenceCorpusSourcePack[];
   entries?: ReferenceCorpusEntry[];
 }
 
@@ -290,6 +309,7 @@ export interface ReferenceCorpusEvidence extends JsonObject {
   role?: string;
   extractionStatus?: string;
   manualUrl?: string | null;
+  sourcePackId?: string | null;
   featureSignals?: string[];
   extractionNotes?: string;
 }

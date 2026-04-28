@@ -319,6 +319,52 @@
         "FFT, octave, spectrograph, lissajous, scope, phase, loudness, RMS, and tuner meters"
       ],
       "extractionNotes": "Confirms that analysis and utility surfaces belong in the framework primitive layer, not just in effect products."
+    },
+    {
+      "id": "uad-plugin-manuals",
+      "referenceType": "outside-plugin-collection",
+      "vendor": "Universal Audio",
+      "productName": "UAD Plug-In Manuals",
+      "role": "large vintage-character reference corpus",
+      "extractionStatus": "observed",
+      "manualUrl": "https://help.uaudio.com/hc/en-us/sections/4573072157460",
+      "sourcePackId": "uad-plugin-manuals",
+      "observedPrimitiveIds": [
+        "analog.preamp-console-stage",
+        "amp.cabinet-mic-chain",
+        "compression.detector-ballistics",
+        "compression.split-band-focus",
+        "compression.true-peak-limiter",
+        "compression.vintage-compressor-model",
+        "eq.circuit-model-topology",
+        "eq.passive-vintage-program-eq",
+        "instrument.electromechanical-keyboard",
+        "instrument.oscillator-filter-voice",
+        "metering.analysis-suite",
+        "microphone.modeling-chain",
+        "modulation.vintage-delay-modulation",
+        "saturation.virtual-analog-stage",
+        "space.mechanical-room-reverb",
+        "tape.magnetic-recorder-stage"
+      ],
+      "featureSignals": [
+        "113 plugin manual/help articles across the paginated UAD plug-in manual section",
+        "dense vintage compressor, EQ, preamp, tape, reverb, modulation, amp, microphone, and instrument references",
+        "manual titles and article bodies indicate model-specific analog character and hardware-inspired workflows",
+        "vintage-derived primitives require sonic probes for harmonic growth, program-dependent dynamics, IR/decay, transport modulation, cabinet/mic chains, and UI screenshot segmentation"
+      ],
+      "extractionNotes": "UAD is treated as a broad outside reference corpus for vintage primitive derivation. Article inventory is stored separately so the top-level corpus stays compact while retaining pagination coverage."
+    }
+  ],
+  "sourcePacks": [
+    {
+      "id": "uad-plugin-manuals",
+      "sourceType": "zendesk-section-crawl",
+      "path": "framework/reference-corpus/uad-plugin-manuals.json",
+      "sourceUrl": "https://help.uaudio.com/hc/en-us/sections/4573072157460",
+      "articleCount": 113,
+      "pagination": "2 pages via Zendesk Help Center API",
+      "extractionStatus": "observed"
     }
   ]
 }

@@ -67,9 +67,45 @@ function loadReferenceCorpus(options = {}) {
   if (!Array.isArray(corpus.entries) || corpus.entries.length === 0) {
     throw new Error(`Reference corpus "${corpusPath}" must declare entries.`);
   }
+  if (corpus.sourcePacks != null && !Array.isArray(corpus.sourcePacks)) {
+    throw new Error(`Reference corpus "${corpusPath}" sourcePacks must be an array when provided.`);
+  }
 
   const primitiveLibrary = loadPrimitiveLibrary({ root: resolverRoot });
   const primitiveIds = new Set(Object.keys(primitiveLibrary.primitives ?? {}));
+  const sourcePackIds = new Set();
+  for (const sourcePack of corpus.sourcePacks ?? []) {
+    const sourcePackId = optionalString(sourcePack.id);
+    if (!sourcePackId) {
+      throw new Error(`Reference corpus "${corpusPath}" contains a source pack without an id.`);
+    }
+    if (sourcePackIds.has(sourcePackId)) {
+      throw new Error(`Reference corpus "${corpusPath}" declares duplicate source pack "${sourcePackId}".`);
+    }
+    sourcePackIds.add(sourcePackId);
+    const relativePath = optionalString(sourcePack.path);
+    if (!relativePath) {
+      throw new Error(`Reference corpus source pack "${sourcePackId}" must declare a path.`);
+    }
+    const sourcePackPath = path.resolve(resolverRoot, relativePath);
+    const sourcePackBody = readJsonFileSync(sourcePackPath);
+    if (!isPlainObject(sourcePackBody)) {
+      throw new Error(`Reference corpus source pack "${sourcePackId}" must contain a JSON object.`);
+    }
+    const articleCount = Number(sourcePack.articleCount ?? 0);
+    if (articleCount > 0 && Number(sourcePackBody.articleCount ?? 0) !== articleCount) {
+      throw new Error(`Reference corpus source pack "${sourcePackId}" expected ${articleCount} articles.`);
+    }
+    for (const article of Array.isArray(sourcePackBody.articles) ? sourcePackBody.articles : []) {
+      const articleBody = isPlainObject(article) ? article : {};
+      for (const primitiveId of stringList(articleBody.inferredPrimitiveIds)) {
+        if (!primitiveIds.has(primitiveId)) {
+          throw new Error(`Reference corpus source pack "${sourcePackId}" references unknown primitive "${primitiveId}".`);
+        }
+      }
+    }
+  }
+
   const entryIds = new Set();
   for (const entry of corpus.entries) {
     const entryId = optionalString(entry.id);
@@ -85,6 +121,9 @@ function loadReferenceCorpus(options = {}) {
     }
     if (!optionalString(entry.productName)) {
       throw new Error(`Reference corpus entry "${entryId}" must declare a productName.`);
+    }
+    if (entry.sourcePackId != null && !sourcePackIds.has(String(entry.sourcePackId))) {
+      throw new Error(`Reference corpus entry "${entryId}" references unknown source pack "${entry.sourcePackId}".`);
     }
     const observedPrimitiveIds = stringList(entry.observedPrimitiveIds);
     if (!observedPrimitiveIds.length) {
@@ -113,6 +152,7 @@ function evidenceFromEntry(entry) {
     role: optionalString(entry.role),
     extractionStatus: optionalString(entry.extractionStatus),
     manualUrl: typeof entry.manualUrl === "string" ? entry.manualUrl : null,
+    sourcePackId: typeof entry.sourcePackId === "string" ? entry.sourcePackId : null,
     featureSignals: stringList(entry.featureSignals),
     extractionNotes: optionalString(entry.extractionNotes)
   };

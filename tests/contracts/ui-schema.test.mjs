@@ -320,8 +320,18 @@ test("EQ, compression, and saturation flagship schemas resolve more sophisticate
   const { schema: press } = loadGeneratedProject("press-deck");
   const { schema: ember } = loadGeneratedProject("ember-drive");
 
-  assert.deepEqual(atlas.ui.primitiveIds, ["eq.parametric-band", "eq.dynamic-band", "eq.circuit-model-topology"]);
-  assert.deepEqual(press.ui.primitiveIds, ["compression.feedforward-sidechain", "compression.detector-ballistics"]);
+  assert.deepEqual(atlas.ui.primitiveIds, [
+    "eq.parametric-band",
+    "eq.dynamic-band",
+    "eq.circuit-model-topology",
+    "eq.passive-vintage-program-eq"
+  ]);
+  assert.deepEqual(press.ui.primitiveIds, [
+    "compression.feedforward-sidechain",
+    "compression.detector-ballistics",
+    "compression.vintage-compressor-model",
+    "analog.preamp-console-stage"
+  ]);
   assert.deepEqual(
     ember.ui.primitiveIds,
     [
@@ -333,7 +343,10 @@ test("EQ, compression, and saturation flagship schemas resolve more sophisticate
   );
   assert.equal(atlas.ui.primitiveArchitecture.primitives["eq.dynamic-band"].family, "equalization");
   assert.equal(atlas.ui.primitiveArchitecture.primitives["eq.circuit-model-topology"].maturity.stage, "modeled");
+  assert.equal(atlas.ui.primitiveArchitecture.primitives["eq.passive-vintage-program-eq"].family, "equalization");
   assert.equal(press.ui.primitiveArchitecture.primitives["compression.detector-ballistics"].family, "compression");
+  assert.equal(press.ui.primitiveArchitecture.primitives["compression.vintage-compressor-model"].family, "compression");
+  assert.equal(press.ui.primitiveArchitecture.primitives["analog.preamp-console-stage"].family, "analog");
   assert.equal(ember.ui.primitiveArchitecture.primitives["saturation.antialiasing-strategy"].family, "saturation");
 });
 

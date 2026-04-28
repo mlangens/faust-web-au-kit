@@ -1,0 +1,1225 @@
+{
+  "$schemaVersion": 1,
+  "id": "uad-plugin-manuals",
+  "sourceSectionUrl": "https://help.uaudio.com/hc/en-us/sections/4573072157460",
+  "sourceApiUrl": "https://help.uaudio.com/api/v2/help_center/en-us/sections/4573072157460/articles.json?per_page=100",
+  "fetchedAt": "2026-04-28T00:45:11.739Z",
+  "articleCount": 113,
+  "pagination": {
+    "pageCount": 2,
+    "observedCount": 113
+  },
+  "primitiveCounts": {
+    "metering.analysis-suite": 15,
+    "compression.split-band-focus": 3,
+    "compression.detector-ballistics": 17,
+    "compression.vintage-compressor-model": 17,
+    "space.mechanical-room-reverb": 15,
+    "tape.magnetic-recorder-stage": 7,
+    "amp.cabinet-mic-chain": 21,
+    "saturation.virtual-analog-stage": 21,
+    "instrument.oscillator-filter-voice": 4,
+    "eq.circuit-model-topology": 14,
+    "analog.preamp-console-stage": 19,
+    "modulation.vintage-delay-modulation": 9,
+    "instrument.electromechanical-keyboard": 4,
+    "compression.true-peak-limiter": 4,
+    "microphone.modeling-chain": 3,
+    "eq.passive-vintage-program-eq": 3
+  },
+  "articles": [
+    {
+      "id": "5085501350932",
+      "title": "Using UAD Plug-Ins Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/5085501350932-Using-UAD-Plug-Ins-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 26609,
+      "inferredPrimitiveIds": [
+        "metering.analysis-suite"
+      ]
+    },
+    {
+      "id": "17949313152532",
+      "title": "Using an External Sidechain with UAD Plug-Ins",
+      "url": "https://help.uaudio.com/hc/en-us/articles/17949313152532-Using-an-External-Sidechain-with-UAD-Plug-Ins",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 8819,
+      "inferredPrimitiveIds": [
+        "compression.split-band-focus"
+      ]
+    },
+    {
+      "id": "38338846512276",
+      "title": "Using MIDI Learn in UAD Plug-Ins",
+      "url": "https://help.uaudio.com/hc/en-us/articles/38338846512276-Using-MIDI-Learn-in-UAD-Plug-Ins",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 11267,
+      "inferredPrimitiveIds": [
+        "metering.analysis-suite"
+      ]
+    },
+    {
+      "id": "18748722793876",
+      "title": "UAD Direct Developer Plug-In Manuals",
+      "url": "https://help.uaudio.com/hc/en-us/articles/18748722793876-UAD-Direct-Developer-Plug-In-Manuals",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 17519,
+      "inferredPrimitiveIds": [
+        "metering.analysis-suite"
+      ]
+    },
+    {
+      "id": "34530260482324",
+      "title": "1176 Classic FET Compressor Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/34530260482324-1176-Classic-FET-Compressor-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 9453,
+      "inferredPrimitiveIds": [
+        "compression.detector-ballistics",
+        "compression.vintage-compressor-model"
+      ]
+    },
+    {
+      "id": "34757792026004",
+      "title": "A-Type Multiband Enhancer Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/34757792026004-A-Type-Multiband-Enhancer-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 23576,
+      "inferredPrimitiveIds": [
+        "metering.analysis-suite"
+      ]
+    },
+    {
+      "id": "28320595155988",
+      "title": "AKG BX20 Spring Reverb Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/28320595155988-AKG-BX20-Spring-Reverb-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 18220,
+      "inferredPrimitiveIds": [
+        "space.mechanical-room-reverb"
+      ]
+    },
+    {
+      "id": "28281608779540",
+      "title": "Ampex ATR-102 Master Tape Recorder Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/28281608779540-Ampex-ATR-102-Master-Tape-Recorder-Manual",
+      "updatedAt": "2026-01-20T21:22:05Z",
+      "bodyLength": 37908,
+      "inferredPrimitiveIds": [
+        "tape.magnetic-recorder-stage",
+        "amp.cabinet-mic-chain",
+        "saturation.virtual-analog-stage"
+      ]
+    },
+    {
+      "id": "32491139365140",
+      "title": "Ampex ATR-102 Mastering Tape Recorder Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/32491139365140-Ampex-ATR-102-Mastering-Tape-Recorder-Manual",
+      "updatedAt": "2026-01-20T21:17:57Z",
+      "bodyLength": 64976,
+      "inferredPrimitiveIds": [
+        "tape.magnetic-recorder-stage",
+        "amp.cabinet-mic-chain",
+        "saturation.virtual-analog-stage"
+      ]
+    },
+    {
+      "id": "38277904513044",
+      "title": "Anthem Analog Synthesizer Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/38277904513044-Anthem-Analog-Synthesizer-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 34241,
+      "inferredPrimitiveIds": [
+        "instrument.oscillator-filter-voice"
+      ]
+    },
+    {
+      "id": "4419505673620",
+      "title": "API 2500 Bus Compressor Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/4419505673620-API-2500-Bus-Compressor-Manual",
+      "updatedAt": "2026-01-09T23:26:18Z",
+      "bodyLength": 22786,
+      "inferredPrimitiveIds": [
+        "compression.detector-ballistics",
+        "compression.vintage-compressor-model"
+      ]
+    },
+    {
+      "id": "32524771071636",
+      "title": "API 500 Series EQ Collection Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/32524771071636-API-500-Series-EQ-Collection-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 11710,
+      "inferredPrimitiveIds": [
+        "eq.circuit-model-topology"
+      ]
+    },
+    {
+      "id": "32684792936596",
+      "title": "API Preamp Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/32684792936596-API-Preamp-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 16808,
+      "inferredPrimitiveIds": [
+        "analog.preamp-console-stage",
+        "amp.cabinet-mic-chain",
+        "saturation.virtual-analog-stage"
+      ]
+    },
+    {
+      "id": "4419513327124",
+      "title": "API Vision Channel Strip Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/4419513327124-API-Vision-Channel-Strip-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 52215,
+      "inferredPrimitiveIds": [
+        "analog.preamp-console-stage"
+      ]
+    },
+    {
+      "id": "18741383023892",
+      "title": "Avalon VT-737 Tube Channel Strip Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/18741383023892-Avalon-VT-737-Tube-Channel-Strip-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 30657,
+      "inferredPrimitiveIds": [
+        "analog.preamp-console-stage"
+      ]
+    },
+    {
+      "id": "33030737223188",
+      "title": "Bermuda Triangle Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33030737223188-Bermuda-Triangle-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 7199,
+      "inferredPrimitiveIds": [
+        "amp.cabinet-mic-chain",
+        "saturation.virtual-analog-stage"
+      ]
+    },
+    {
+      "id": "7360583462036",
+      "title": "Brigade Chorus Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/7360583462036-Brigade-Chorus-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 9135,
+      "inferredPrimitiveIds": [
+        "modulation.vintage-delay-modulation"
+      ]
+    },
+    {
+      "id": "33030796802068",
+      "title": "Cambridge EQ Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33030796802068-Cambridge-EQ-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 16582,
+      "inferredPrimitiveIds": [
+        "eq.circuit-model-topology"
+      ]
+    },
+    {
+      "id": "18741463946516",
+      "title": "Capitol Chambers Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/18741463946516-Capitol-Chambers-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 31148,
+      "inferredPrimitiveIds": [
+        "space.mechanical-room-reverb"
+      ]
+    },
+    {
+      "id": "15388033304724",
+      "title": "Capitol Mastering Compressor Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/15388033304724-Capitol-Mastering-Compressor-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 21893,
+      "inferredPrimitiveIds": [
+        "compression.detector-ballistics",
+        "compression.vintage-compressor-model"
+      ]
+    },
+    {
+      "id": "11912560531860",
+      "title": "Century Tube Channel Strip Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/11912560531860-Century-Tube-Channel-Strip-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 21503,
+      "inferredPrimitiveIds": [
+        "analog.preamp-console-stage"
+      ]
+    },
+    {
+      "id": "33030860246676",
+      "title": "Cooper Time Cube MkII Delay Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33030860246676-Cooper-Time-Cube-MkII-Delay-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 10259,
+      "inferredPrimitiveIds": [
+        "modulation.vintage-delay-modulation"
+      ]
+    },
+    {
+      "id": "35426861699220",
+      "title": "CS-1 Channel Strip Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/35426861699220-CS-1-Channel-Strip-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 25038,
+      "inferredPrimitiveIds": [
+        "analog.preamp-console-stage"
+      ]
+    },
+    {
+      "id": "18741620620692",
+      "title": "dbx 160 Compressor Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/18741620620692-dbx-160-Compressor-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 7804,
+      "inferredPrimitiveIds": [
+        "compression.detector-ballistics",
+        "compression.vintage-compressor-model"
+      ]
+    },
+    {
+      "id": "30847237412500",
+      "title": "Dream '65 Reverb Amp Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/30847237412500-Dream-65-Reverb-Amp-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 13640,
+      "inferredPrimitiveIds": [
+        "space.mechanical-room-reverb",
+        "amp.cabinet-mic-chain",
+        "saturation.virtual-analog-stage"
+      ]
+    },
+    {
+      "id": "33030899033236",
+      "title": "DreamVerb Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33030899033236-DreamVerb-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 28575,
+      "inferredPrimitiveIds": [
+        "space.mechanical-room-reverb",
+        "amp.cabinet-mic-chain",
+        "saturation.virtual-analog-stage"
+      ]
+    },
+    {
+      "id": "15388071477652",
+      "title": "Electra 88 Vintage Keys Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/15388071477652-Electra-88-Vintage-Keys-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 63160,
+      "inferredPrimitiveIds": [
+        "instrument.electromechanical-keyboard"
+      ]
+    },
+    {
+      "id": "18741515014676",
+      "title": "Empirical Labs EL8 Distressor Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/18741515014676-Empirical-Labs-EL8-Distressor-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 32910,
+      "inferredPrimitiveIds": [
+        "compression.detector-ballistics",
+        "compression.vintage-compressor-model"
+      ]
+    },
+    {
+      "id": "33030906406676",
+      "title": "Empirical Labs EL7 Fatso Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33030906406676-Empirical-Labs-EL7-Fatso-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 29329,
+      "inferredPrimitiveIds": [
+        "compression.detector-ballistics",
+        "compression.vintage-compressor-model",
+        "tape.magnetic-recorder-stage"
+      ]
+    },
+    {
+      "id": "33030978351892",
+      "title": "EMT 140 Plate Reverb Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33030978351892-EMT-140-Plate-Reverb-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 11862,
+      "inferredPrimitiveIds": [
+        "space.mechanical-room-reverb"
+      ]
+    },
+    {
+      "id": "33031098095380",
+      "title": "EMT 250 Electronic Reverberator Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33031098095380-EMT-250-Electronic-Reverberator-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 28804,
+      "inferredPrimitiveIds": [
+        "space.mechanical-room-reverb"
+      ]
+    },
+    {
+      "id": "33141081493012",
+      "title": "EP-34 Tape Echo Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33141081493012-EP-34-Tape-Echo-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 11884,
+      "inferredPrimitiveIds": [
+        "tape.magnetic-recorder-stage"
+      ]
+    },
+    {
+      "id": "13293388042900",
+      "title": "Fairchild Tube Limiter Collection Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/13293388042900-Fairchild-Tube-Limiter-Collection-Manual",
+      "updatedAt": "2026-02-05T21:02:33Z",
+      "bodyLength": 32737,
+      "inferredPrimitiveIds": [
+        "compression.detector-ballistics",
+        "compression.vintage-compressor-model",
+        "compression.true-peak-limiter"
+      ]
+    },
+    {
+      "id": "33147831920532",
+      "title": "Fender '55 Tweed Deluxe Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33147831920532-Fender-55-Tweed-Deluxe-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 46109,
+      "inferredPrimitiveIds": [
+        "metering.analysis-suite"
+      ]
+    },
+    {
+      "id": "4419513003668",
+      "title": "Galaxy Tape Echo Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/4419513003668-Galaxy-Tape-Echo-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 17585,
+      "inferredPrimitiveIds": [
+        "tape.magnetic-recorder-stage"
+      ]
+    },
+    {
+      "id": "33147784558612",
+      "title": "Harrison 32C EQ Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33147784558612-Harrison-32C-EQ-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 7603,
+      "inferredPrimitiveIds": [
+        "eq.circuit-model-topology"
+      ]
+    },
+    {
+      "id": "18737805108500",
+      "title": "Helios Type 69 Preamp & EQ Collection Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/18737805108500-Helios-Type-69-Preamp-EQ-Collection-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 33172,
+      "inferredPrimitiveIds": [
+        "eq.circuit-model-topology",
+        "analog.preamp-console-stage",
+        "amp.cabinet-mic-chain",
+        "saturation.virtual-analog-stage"
+      ]
+    },
+    {
+      "id": "18739731158932",
+      "title": "Hemisphere Mic Collection Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/18739731158932-Hemisphere-Mic-Collection-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 33257,
+      "inferredPrimitiveIds": [
+        "microphone.modeling-chain"
+      ]
+    },
+    {
+      "id": "5912073858836",
+      "title": "Hitsville EQ Collection Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/5912073858836-Hitsville-EQ-Collection-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 25023,
+      "inferredPrimitiveIds": [
+        "eq.circuit-model-topology",
+        "eq.passive-vintage-program-eq"
+      ]
+    },
+    {
+      "id": "10095944517396",
+      "title": "Hitsville Reverb Chambers Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/10095944517396-Hitsville-Reverb-Chambers-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 38799,
+      "inferredPrimitiveIds": [
+        "space.mechanical-room-reverb"
+      ]
+    },
+    {
+      "id": "33194439877396",
+      "title": "Ibanez Tube Screamer TS808 Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33194439877396-Ibanez-Tube-Screamer-TS808-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 7322,
+      "inferredPrimitiveIds": [
+        "amp.cabinet-mic-chain",
+        "saturation.virtual-analog-stage"
+      ]
+    },
+    {
+      "id": "33194525793684",
+      "title": "Korg SDD-3000 Digital Delay Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33194525793684-Korg-SDD-3000-Digital-Delay-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 32992,
+      "inferredPrimitiveIds": [
+        "modulation.vintage-delay-modulation"
+      ]
+    },
+    {
+      "id": "19378009641748",
+      "title": "LA-2A Tube Compressor Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/19378009641748-LA-2A-Tube-Compressor-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 9349,
+      "inferredPrimitiveIds": [
+        "compression.detector-ballistics",
+        "compression.vintage-compressor-model"
+      ]
+    },
+    {
+      "id": "26600175702932",
+      "title": "LA-6176 Signature Channel Strip Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/26600175702932-LA-6176-Signature-Channel-Strip-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 32868,
+      "inferredPrimitiveIds": [
+        "analog.preamp-console-stage"
+      ]
+    },
+    {
+      "id": "4419497193492",
+      "title": "Lexicon 224 Digital Reverb Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/4419497193492-Lexicon-224-Digital-Reverb-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 43302,
+      "inferredPrimitiveIds": [
+        "space.mechanical-room-reverb"
+      ]
+    },
+    {
+      "id": "33194625601044",
+      "title": "Lexicon 480L Digital Reverb and Effects Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33194625601044-Lexicon-480L-Digital-Reverb-and-Effects-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 95046,
+      "inferredPrimitiveIds": [
+        "space.mechanical-room-reverb"
+      ]
+    },
+    {
+      "id": "30847259997972",
+      "title": "Lion '68 Super Lead Amp Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/30847259997972-Lion-68-Super-Lead-Amp-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 23330,
+      "inferredPrimitiveIds": [
+        "amp.cabinet-mic-chain",
+        "saturation.virtual-analog-stage"
+      ]
+    },
+    {
+      "id": "35454419978388",
+      "title": "Little Labs IBP Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/35454419978388-Little-Labs-IBP-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 5207,
+      "inferredPrimitiveIds": [
+        "metering.analysis-suite"
+      ]
+    },
+    {
+      "id": "33194891100052",
+      "title": "Little Labs VOG Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33194891100052-Little-Labs-VOG-Manual",
+      "updatedAt": "2026-04-01T17:00:00Z",
+      "bodyLength": 13805,
+      "inferredPrimitiveIds": [
+        "metering.analysis-suite"
+      ]
+    },
+    {
+      "id": "18739889642388",
+      "title": "Manley Massive Passive EQ Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/18739889642388-Manley-Massive-Passive-EQ-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 25005,
+      "inferredPrimitiveIds": [
+        "eq.circuit-model-topology",
+        "eq.passive-vintage-program-eq"
+      ]
+    },
+    {
+      "id": "17820107242644",
+      "title": "Manley Tube Preamp Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/17820107242644-Manley-Tube-Preamp-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 17893,
+      "inferredPrimitiveIds": [
+        "analog.preamp-console-stage",
+        "amp.cabinet-mic-chain",
+        "saturation.virtual-analog-stage"
+      ]
+    },
+    {
+      "id": "18737967080340",
+      "title": "Manley Variable Mu Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/18737967080340-Manley-Variable-Mu-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 24028,
+      "inferredPrimitiveIds": [
+        "compression.detector-ballistics",
+        "compression.vintage-compressor-model"
+      ]
+    },
+    {
+      "id": "17790028958228",
+      "title": "Manley VOXBOX Channel Strip Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/17790028958228-Manley-VOXBOX-Channel-Strip-Manual",
+      "updatedAt": "2026-02-05T20:54:52Z",
+      "bodyLength": 32300,
+      "inferredPrimitiveIds": [
+        "analog.preamp-console-stage"
+      ]
+    },
+    {
+      "id": "360041479272",
+      "title": "Moog® Minimoog Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/360041479272-Moog-Minimoog-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 52836,
+      "inferredPrimitiveIds": [
+        "instrument.oscillator-filter-voice"
+      ]
+    },
+    {
+      "id": "33194429199764",
+      "title": "Moog Multimode Filter Collection Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33194429199764-Moog-Multimode-Filter-Collection-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 64880,
+      "inferredPrimitiveIds": [
+        "metering.analysis-suite"
+      ]
+    },
+    {
+      "id": "33531569312788",
+      "title": "MXR Flanger/Doubler Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33531569312788-MXR-Flanger-Doubler-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 14706,
+      "inferredPrimitiveIds": [
+        "modulation.vintage-delay-modulation"
+      ]
+    },
+    {
+      "id": "4419497223188",
+      "title": "Neve 1073 Preamp & EQ Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/4419497223188-Neve-1073-Preamp-EQ-Manual",
+      "updatedAt": "2026-02-05T20:49:46Z",
+      "bodyLength": 29397,
+      "inferredPrimitiveIds": [
+        "eq.circuit-model-topology",
+        "analog.preamp-console-stage",
+        "amp.cabinet-mic-chain",
+        "saturation.virtual-analog-stage"
+      ]
+    },
+    {
+      "id": "33532491721364",
+      "title": "Neve 1081 Equalizer Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33532491721364-Neve-1081-Equalizer-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 11569,
+      "inferredPrimitiveIds": [
+        "eq.circuit-model-topology"
+      ]
+    },
+    {
+      "id": "33536643185556",
+      "title": "Neve 1084 Preamp & EQ Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33536643185556-Neve-1084-Preamp-EQ-Manual",
+      "updatedAt": "2026-02-05T20:43:00Z",
+      "bodyLength": 28540,
+      "inferredPrimitiveIds": [
+        "eq.circuit-model-topology",
+        "analog.preamp-console-stage",
+        "amp.cabinet-mic-chain",
+        "saturation.virtual-analog-stage"
+      ]
+    },
+    {
+      "id": "33532552555412",
+      "title": "Neve 31102 Console EQ Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33532552555412-Neve-31102-Console-EQ-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 9454,
+      "inferredPrimitiveIds": [
+        "eq.circuit-model-topology",
+        "analog.preamp-console-stage"
+      ]
+    },
+    {
+      "id": "33532446950292",
+      "title": "Neve 88RS Channel Strip Collection Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33532446950292-Neve-88RS-Channel-Strip-Collection-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 44348,
+      "inferredPrimitiveIds": [
+        "analog.preamp-console-stage"
+      ]
+    },
+    {
+      "id": "33536131639956",
+      "title": "Neve® Dynamics Collection Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33536131639956-Neve-Dynamics-Collection-Manual",
+      "updatedAt": "2026-01-28T18:16:30Z",
+      "bodyLength": 38608,
+      "inferredPrimitiveIds": [
+        "metering.analysis-suite"
+      ]
+    },
+    {
+      "id": "33535973905812",
+      "title": "Neve Preamp Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33535973905812-Neve-Preamp-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 13914,
+      "inferredPrimitiveIds": [
+        "analog.preamp-console-stage",
+        "amp.cabinet-mic-chain",
+        "saturation.virtual-analog-stage"
+      ]
+    },
+    {
+      "id": "33536543046804",
+      "title": "Ocean Way Mic Collection Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33536543046804-Ocean-Way-Mic-Collection-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 1152,
+      "inferredPrimitiveIds": [
+        "microphone.modeling-chain"
+      ]
+    },
+    {
+      "id": "42552298695060",
+      "title": "Ocean Way Studios Deluxe Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/42552298695060-Ocean-Way-Studios-Deluxe-Manual",
+      "updatedAt": "2026-04-10T20:18:28Z",
+      "bodyLength": 71617,
+      "inferredPrimitiveIds": [
+        "space.mechanical-room-reverb"
+      ]
+    },
+    {
+      "id": "33699356960276",
+      "title": "Ocean Way Studios Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33699356960276-Ocean-Way-Studios-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 64537,
+      "inferredPrimitiveIds": [
+        "space.mechanical-room-reverb"
+      ]
+    },
+    {
+      "id": "4421163605908",
+      "title": "Opal Morphing Synthesizer Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/4421163605908-Opal-Morphing-Synthesizer-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 109673,
+      "inferredPrimitiveIds": [
+        "instrument.oscillator-filter-voice"
+      ]
+    },
+    {
+      "id": "11914703390740",
+      "title": "Oxide Tape Recorder Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/11914703390740-Oxide-Tape-Recorder-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 13749,
+      "inferredPrimitiveIds": [
+        "tape.magnetic-recorder-stage"
+      ]
+    },
+    {
+      "id": "43356770492692",
+      "title": "Paradise Guitar Studio Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/43356770492692-Paradise-Guitar-Studio-Manual",
+      "updatedAt": "2026-01-30T19:42:23Z",
+      "bodyLength": 99107,
+      "inferredPrimitiveIds": [
+        "metering.analysis-suite"
+      ]
+    },
+    {
+      "id": "10207494851220",
+      "title": "PolyMAX Synth Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/10207494851220-PolyMAX-Synth-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 37207,
+      "inferredPrimitiveIds": [
+        "instrument.oscillator-filter-voice"
+      ]
+    },
+    {
+      "id": "33536262658068",
+      "title": "Precision Buss Compressor Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33536262658068-Precision-Buss-Compressor-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 9709,
+      "inferredPrimitiveIds": [
+        "compression.detector-ballistics",
+        "compression.vintage-compressor-model"
+      ]
+    },
+    {
+      "id": "33536331318804",
+      "title": "Precision Channel Strip Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33536331318804-Precision-Channel-Strip-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 13189,
+      "inferredPrimitiveIds": [
+        "analog.preamp-console-stage"
+      ]
+    },
+    {
+      "id": "33536699791892",
+      "title": "Precision De-Esser Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33536699791892-Precision-De-Esser-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 6345,
+      "inferredPrimitiveIds": [
+        "compression.split-band-focus"
+      ]
+    },
+    {
+      "id": "33536359160212",
+      "title": "Precision Delay Modulation Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33536359160212-Precision-Delay-Modulation-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 15351,
+      "inferredPrimitiveIds": [
+        "modulation.vintage-delay-modulation"
+      ]
+    },
+    {
+      "id": "33536774357780",
+      "title": "Precision Enhancer Hz Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33536774357780-Precision-Enhancer-Hz-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 8037,
+      "inferredPrimitiveIds": [
+        "metering.analysis-suite"
+      ]
+    },
+    {
+      "id": "33536813282452",
+      "title": "Precision Enhancer kHz Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33536813282452-Precision-Enhancer-kHz-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 5557,
+      "inferredPrimitiveIds": [
+        "metering.analysis-suite"
+      ]
+    },
+    {
+      "id": "33536849410708",
+      "title": "Precision Equalizer Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33536849410708-Precision-Equalizer-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 9405,
+      "inferredPrimitiveIds": [
+        "eq.circuit-model-topology"
+      ]
+    },
+    {
+      "id": "33536978639252",
+      "title": "Precision K-Stereo Ambience Recovery Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33536978639252-Precision-K-Stereo-Ambience-Recovery-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 18424,
+      "inferredPrimitiveIds": [
+        "space.mechanical-room-reverb"
+      ]
+    },
+    {
+      "id": "33537016551700",
+      "title": "Precision Limiter Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33537016551700-Precision-Limiter-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 12320,
+      "inferredPrimitiveIds": [
+        "compression.detector-ballistics",
+        "compression.vintage-compressor-model",
+        "compression.true-peak-limiter"
+      ]
+    },
+    {
+      "id": "33537023172628",
+      "title": "Precision Maximizer Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33537023172628-Precision-Maximizer-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 10825,
+      "inferredPrimitiveIds": [
+        "compression.true-peak-limiter"
+      ]
+    },
+    {
+      "id": "33537058867860",
+      "title": "Precision Multiband Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33537058867860-Precision-Multiband-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 23786,
+      "inferredPrimitiveIds": [
+        "metering.analysis-suite"
+      ]
+    },
+    {
+      "id": "33537160710548",
+      "title": "Precision Reflection Engine Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33537160710548-Precision-Reflection-Engine-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 9213,
+      "inferredPrimitiveIds": [
+        "metering.analysis-suite"
+      ]
+    },
+    {
+      "id": "7183176266260",
+      "title": "Pultec Passive EQ Collection Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/7183176266260-Pultec-Passive-EQ-Collection-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 22702,
+      "inferredPrimitiveIds": [
+        "eq.circuit-model-topology",
+        "eq.passive-vintage-program-eq"
+      ]
+    },
+    {
+      "id": "4419497304340",
+      "title": "Pure Plate Reverb Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/4419497304340-Pure-Plate-Reverb-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 9908,
+      "inferredPrimitiveIds": [
+        "space.mechanical-room-reverb"
+      ]
+    },
+    {
+      "id": "33537195027476",
+      "title": "Putnam Mic Collection Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33537195027476-Putnam-Mic-Collection-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 1142,
+      "inferredPrimitiveIds": [
+        "microphone.modeling-chain"
+      ]
+    },
+    {
+      "id": "360041911111",
+      "title": "Ravel™ Grand Piano Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/360041911111-Ravel-Grand-Piano-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 21720,
+      "inferredPrimitiveIds": [
+        "instrument.electromechanical-keyboard"
+      ]
+    },
+    {
+      "id": "33537175596564",
+      "title": "Raw Distortion Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33537175596564-Raw-Distortion-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 7712,
+      "inferredPrimitiveIds": [
+        "amp.cabinet-mic-chain",
+        "saturation.virtual-analog-stage"
+      ]
+    },
+    {
+      "id": "33537278497428",
+      "title": "RealVerb Pro Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33537278497428-RealVerb-Pro-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 26290,
+      "inferredPrimitiveIds": [
+        "space.mechanical-room-reverb"
+      ]
+    },
+    {
+      "id": "33538165732500",
+      "title": "Roland CE-1 Chorus Ensemble Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33538165732500-Roland-CE-1-Chorus-Ensemble-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 6753,
+      "inferredPrimitiveIds": [
+        "modulation.vintage-delay-modulation"
+      ]
+    },
+    {
+      "id": "33538284818964",
+      "title": "Roland Dimension D Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33538284818964-Roland-Dimension-D-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 3704,
+      "inferredPrimitiveIds": [
+        "modulation.vintage-delay-modulation"
+      ]
+    },
+    {
+      "id": "33538271334164",
+      "title": "Roland RE-201 Space Echo Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33538271334164-Roland-RE-201-Space-Echo-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 17778,
+      "inferredPrimitiveIds": [
+        "modulation.vintage-delay-modulation"
+      ]
+    },
+    {
+      "id": "30847299809556",
+      "title": "Ruby '63 Top Boost Amp Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/30847299809556-Ruby-63-Top-Boost-Amp-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 15665,
+      "inferredPrimitiveIds": [
+        "amp.cabinet-mic-chain",
+        "saturation.virtual-analog-stage"
+      ]
+    },
+    {
+      "id": "40062124308756",
+      "title": "Showtime '64 Tube Amp Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/40062124308756-Showtime-64-Tube-Amp-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 9930,
+      "inferredPrimitiveIds": [
+        "amp.cabinet-mic-chain",
+        "saturation.virtual-analog-stage"
+      ]
+    },
+    {
+      "id": "18738187503380",
+      "title": "Sound City Studios Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/18738187503380-Sound-City-Studios-Manual",
+      "updatedAt": "2026-03-10T17:21:18Z",
+      "bodyLength": 121257,
+      "inferredPrimitiveIds": [
+        "space.mechanical-room-reverb"
+      ]
+    },
+    {
+      "id": "33538335681428",
+      "title": "SPL Transient Designer Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33538335681428-SPL-Transient-Designer-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 17692,
+      "inferredPrimitiveIds": [
+        "compression.detector-ballistics",
+        "compression.vintage-compressor-model"
+      ]
+    },
+    {
+      "id": "30847477384212",
+      "title": "SSL 4000 E Channel Strip Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/30847477384212-SSL-4000-E-Channel-Strip-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 46937,
+      "inferredPrimitiveIds": [
+        "analog.preamp-console-stage"
+      ]
+    },
+    {
+      "id": "30847649785748",
+      "title": "SSL 4000 G Bus Compressor Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/30847649785748-SSL-4000-G-Bus-Compressor-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 19918,
+      "inferredPrimitiveIds": [
+        "compression.detector-ballistics",
+        "compression.vintage-compressor-model",
+        "analog.preamp-console-stage"
+      ]
+    },
+    {
+      "id": "4419513099156",
+      "title": "Studer A800 Multichannel Tape Recorder Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/4419513099156-Studer-A800-Multichannel-Tape-Recorder-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 25708,
+      "inferredPrimitiveIds": [
+        "tape.magnetic-recorder-stage"
+      ]
+    },
+    {
+      "id": "7360582279828",
+      "title": "Studio D Chorus Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/7360582279828-Studio-D-Chorus-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 5093,
+      "inferredPrimitiveIds": [
+        "modulation.vintage-delay-modulation"
+      ]
+    },
+    {
+      "id": "4419496124180",
+      "title": "Teletronix LA-2A Leveler Collection Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/4419496124180-Teletronix-LA-2A-Leveler-Collection-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 16831,
+      "inferredPrimitiveIds": [
+        "compression.detector-ballistics",
+        "compression.vintage-compressor-model"
+      ]
+    },
+    {
+      "id": "13925934548884",
+      "title": "Teletronix LA-3A Compressor Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/13925934548884-Teletronix-LA-3A-Compressor-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 9459,
+      "inferredPrimitiveIds": [
+        "compression.detector-ballistics",
+        "compression.vintage-compressor-model"
+      ]
+    },
+    {
+      "id": "30847129107732",
+      "title": "Topline Vocal Suite and Topline Key Finder Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/30847129107732-Topline-Vocal-Suite-and-Topline-Key-Finder-Manual",
+      "updatedAt": "2026-02-09T22:40:21Z",
+      "bodyLength": 56000,
+      "inferredPrimitiveIds": [
+        "compression.split-band-focus"
+      ]
+    },
+    {
+      "id": "33542576197908",
+      "title": "Thermionic Culture Vulture Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33542576197908-Thermionic-Culture-Vulture-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 12129,
+      "inferredPrimitiveIds": [
+        "amp.cabinet-mic-chain",
+        "saturation.virtual-analog-stage"
+      ]
+    },
+    {
+      "id": "33542671805972",
+      "title": "Trident A-Range EQ Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33542671805972-Trident-A-Range-EQ-Manual",
+      "updatedAt": "2026-02-20T00:16:25Z",
+      "bodyLength": 9087,
+      "inferredPrimitiveIds": [
+        "eq.circuit-model-topology"
+      ]
+    },
+    {
+      "id": "33937466692628",
+      "title": "TS Overdrive Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33937466692628-TS-Overdrive-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 6235,
+      "inferredPrimitiveIds": [
+        "amp.cabinet-mic-chain",
+        "saturation.virtual-analog-stage"
+      ]
+    },
+    {
+      "id": "4419447352980",
+      "title": "UA 1176 Classic Limiter Collection Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/4419447352980-UA-1176-Classic-Limiter-Collection-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 25388,
+      "inferredPrimitiveIds": [
+        "compression.detector-ballistics",
+        "compression.vintage-compressor-model",
+        "compression.true-peak-limiter"
+      ]
+    },
+    {
+      "id": "15707665525780",
+      "title": "UA 175-B & 176 Tube Compressor Collection Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/15707665525780-UA-175-B-176-Tube-Compressor-Collection-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 20924,
+      "inferredPrimitiveIds": [
+        "compression.detector-ballistics",
+        "compression.vintage-compressor-model"
+      ]
+    },
+    {
+      "id": "17475989779860",
+      "title": "UA 610 Tube Preamp & EQ Collection Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/17475989779860-UA-610-Tube-Preamp-EQ-Collection-Manual",
+      "updatedAt": "2026-01-12T18:00:01Z",
+      "bodyLength": 24177,
+      "inferredPrimitiveIds": [
+        "eq.circuit-model-topology",
+        "analog.preamp-console-stage",
+        "amp.cabinet-mic-chain",
+        "saturation.virtual-analog-stage"
+      ]
+    },
+    {
+      "id": "33542693659284",
+      "title": "V76 Preamplifier Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/33542693659284-V76-Preamplifier-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 18874,
+      "inferredPrimitiveIds": [
+        "analog.preamp-console-stage",
+        "amp.cabinet-mic-chain",
+        "saturation.virtual-analog-stage"
+      ]
+    },
+    {
+      "id": "25190283956500",
+      "title": "Vibe Analog Machines Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/25190283956500-Vibe-Analog-Machines-Manual",
+      "updatedAt": "2026-04-14T16:52:04Z",
+      "bodyLength": 5338,
+      "inferredPrimitiveIds": [
+        "metering.analysis-suite"
+      ]
+    },
+    {
+      "id": "4421163858836",
+      "title": "Waterfall B3 Organ Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/4421163858836-Waterfall-B3-Organ-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 41307,
+      "inferredPrimitiveIds": [
+        "instrument.electromechanical-keyboard"
+      ]
+    },
+    {
+      "id": "12735041523988",
+      "title": "Waterfall Rotary Speaker Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/12735041523988-Waterfall-Rotary-Speaker-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 14322,
+      "inferredPrimitiveIds": [
+        "instrument.electromechanical-keyboard"
+      ]
+    },
+    {
+      "id": "34758701036308",
+      "title": "Woodrow '55 Instrument Amp Manual",
+      "url": "https://help.uaudio.com/hc/en-us/articles/34758701036308-Woodrow-55-Instrument-Amp-Manual",
+      "updatedAt": "2025-11-26T22:55:43Z",
+      "bodyLength": 14034,
+      "inferredPrimitiveIds": [
+        "amp.cabinet-mic-chain",
+        "saturation.virtual-analog-stage"
+      ]
+    }
+  ]
+}

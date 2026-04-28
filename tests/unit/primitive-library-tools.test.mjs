@@ -40,8 +40,18 @@ test("suite products resolve EQ, compression, and saturation primitive assemblag
   const emberIds = resolveProjectPrimitiveIds(loadProjectRuntime(["--app", "ember-drive"]), library);
   const limiterIds = resolveProjectPrimitiveIds(loadProjectRuntime(["--app", "limiter-lab"]), library);
 
-  assert.deepEqual(atlasIds, ["eq.parametric-band", "eq.dynamic-band", "eq.circuit-model-topology"]);
-  assert.deepEqual(pressIds, ["compression.feedforward-sidechain", "compression.detector-ballistics"]);
+  assert.deepEqual(atlasIds, [
+    "eq.parametric-band",
+    "eq.dynamic-band",
+    "eq.circuit-model-topology",
+    "eq.passive-vintage-program-eq"
+  ]);
+  assert.deepEqual(pressIds, [
+    "compression.feedforward-sidechain",
+    "compression.detector-ballistics",
+    "compression.vintage-compressor-model",
+    "analog.preamp-console-stage"
+  ]);
   assert.deepEqual(
     emberIds,
     [
@@ -82,12 +92,29 @@ test("reference corpus treats outside plugins as primitive evidence and Northlin
   assert.ok(entries.filter((entry) => entry.referenceType === "outside-plugin").length >= 10);
 });
 
+test("UAD source pack covers the paginated manual section and vintage primitive derivations", () => {
+  const corpus = loadReferenceCorpus();
+  const uadEntry = corpus.entries?.find((entry) => entry.id === "uad-plugin-manuals");
+  const uadSourcePack = corpus.sourcePacks?.find((entry) => entry.id === "uad-plugin-manuals");
+
+  assert.equal(uadEntry?.referenceType, "outside-plugin-collection");
+  assert.equal(uadEntry?.sourcePackId, "uad-plugin-manuals");
+  assert.equal(uadSourcePack?.articleCount, 113);
+  assert.ok(uadEntry?.observedPrimitiveIds?.includes("tape.magnetic-recorder-stage"));
+  assert.ok(uadEntry?.observedPrimitiveIds?.includes("compression.vintage-compressor-model"));
+  assert.ok(uadEntry?.observedPrimitiveIds?.includes("amp.cabinet-mic-chain"));
+  assert.ok(uadEntry?.observedPrimitiveIds?.includes("space.mechanical-room-reverb"));
+});
+
 test("reference corpus resolves evidence for broader non-Northline primitives", () => {
   const evidence = resolvePrimitiveCorpusEvidence([
     "compression.true-peak-limiter",
     "metering.analysis-suite",
     "pitch.modulated-feedback-shifter",
-    "spatial.channel-toolkit"
+    "spatial.channel-toolkit",
+    "tape.magnetic-recorder-stage",
+    "analog.preamp-console-stage",
+    "modulation.vintage-delay-modulation"
   ]);
 
   assert.equal(evidence.id, "fwak-reference-corpus");
@@ -96,4 +123,7 @@ test("reference corpus resolves evidence for broader non-Northline primitives", 
   assert.ok(evidence.evidenceByPrimitive["metering.analysis-suite"].some((entry) => entry.id === "dmg-track-range"));
   assert.ok(evidence.evidenceByPrimitive["pitch.modulated-feedback-shifter"].some((entry) => entry.id === "dmg-pitchfunk"));
   assert.ok(evidence.evidenceByPrimitive["spatial.channel-toolkit"].some((entry) => entry.id === "dmg-dualism"));
+  assert.ok(evidence.evidenceByPrimitive["tape.magnetic-recorder-stage"].some((entry) => entry.id === "uad-plugin-manuals"));
+  assert.ok(evidence.evidenceByPrimitive["analog.preamp-console-stage"].some((entry) => entry.sourcePackId === "uad-plugin-manuals"));
+  assert.ok(evidence.evidenceByPrimitive["modulation.vintage-delay-modulation"].some((entry) => entry.id === "uad-plugin-manuals"));
 });
