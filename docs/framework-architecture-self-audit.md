@@ -45,6 +45,7 @@ It defines:
 - Adjacent starter primitives for reverb, delay, and instrument voices so every suite product resolves at least one agent-readable assemblage.
 - DMG-informed primitives for EQ model topology, true-peak limiting, split-band detector focus, channel utility, metering/analysis, and pitch-time feedback.
 - UAD-informed vintage primitives for analog preamp/console stages, tape machines, vintage compressor models, passive program EQs, mechanical or vintage digital reverbs, BBD/tape modulation, amp/cab/mic chains, electromechanical instruments, and microphone modeling chains.
+- Phase-alignment primitives for all-pass rotation, sample delay, polarity, null-depth feedback, and mic/cab/parallel alignment workflows.
 - Reusable primitive definitions with DSP intent, Faust library hints, control roles, surface roles, analysis probes, and agent design notes.
 - Variant/category/product maps that resolve suite products into primitive assemblages.
 
@@ -102,7 +103,7 @@ Export generation now embeds a resolved primitive architecture in every generate
 - Keep primitives framework-level, not product-level. Products should assemble primitives rather than invent private language for the same EQ/compression/saturation concepts.
 - Treat generated schemas as the agent API. Anything an agent needs to design, preview, stage, or test should be visible there.
 - Make surfaces primitive-aware next. The current pass embeds primitive metadata; the next pass should let graph, transfer, region, and modulation surfaces read primitive roles directly.
-- Extend the sonic staging harness to consume `analysisProbes`. This turns primitive declarations into automated audio tests instead of static descriptions.
+- Extend the sonic staging harness to consume `analysisProbes`. This now starts with `framework/profiling/probe-signals.json`, UAD plugin inventory/profiling, Faust assemblage renders, and parameter snapshots for host-controlled captures.
 - Move Faust snippets toward primitive modules over time. The current library is metadata-first; future work should add reusable Faust includes for crossover, detector, waveshaper, and band-handle control normalization patterns.
 
 ## Source Trail

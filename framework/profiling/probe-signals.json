@@ -1,0 +1,577 @@
+{
+  "$schemaVersion": 1,
+  "id": "fwak-sonic-probe-corpus",
+  "displayName": "FWAK Sonic Probe Corpus",
+  "description": "Deterministic input signals for profiling reference plugins and Faust primitive assemblages with shared analysis targets.",
+  "defaults": {
+    "sampleRate": 48000,
+    "channels": 2,
+    "bitDepth": "float32",
+    "seed": 732451
+  },
+  "signals": {
+    "silence-noise-floor": {
+      "generator": "silence",
+      "durationSeconds": 4,
+      "description": "Absolute silence used to measure self-noise, hum, hiss, denormal behavior, and plugin idle coloration.",
+      "analysisTargets": [
+        "noise-floor-db",
+        "hum-bands",
+        "dc-offset",
+        "stereo-correlation"
+      ],
+      "tags": [
+        "universal",
+        "noise",
+        "analog",
+        "tape"
+      ]
+    },
+    "dirac-impulse-stereo": {
+      "generator": "impulse",
+      "durationSeconds": 3,
+      "amplitude": 0.8,
+      "description": "Single stereo impulse for latency, polarity, reverb onset, cabinet IR, and broad frequency response capture.",
+      "analysisTargets": [
+        "latency-samples",
+        "impulse-response",
+        "polarity",
+        "decay-envelope"
+      ],
+      "tags": [
+        "universal",
+        "space",
+        "amp",
+        "microphone"
+      ]
+    },
+    "log-sweep-fullband": {
+      "generator": "log-sweep",
+      "durationSeconds": 8,
+      "startFrequencyHz": 20,
+      "endFrequencyHz": 22000,
+      "levelDb": -18,
+      "description": "Full-band logarithmic sweep for magnitude response, phase coloration, cabinet/mic shape, and EQ verification.",
+      "analysisTargets": [
+        "frequency-response",
+        "phase-response",
+        "spectral-residual"
+      ],
+      "tags": [
+        "universal",
+        "eq",
+        "amp",
+        "microphone"
+      ]
+    },
+    "low-sweep-head-bump": {
+      "generator": "log-sweep",
+      "durationSeconds": 7,
+      "startFrequencyHz": 18,
+      "endFrequencyHz": 320,
+      "levelDb": -20,
+      "description": "Low-frequency sweep focused on tape head bump, transformer resonance, and low-end phase shifts.",
+      "analysisTargets": [
+        "low-frequency-response",
+        "head-bump-frequency",
+        "group-delay"
+      ],
+      "tags": [
+        "tape",
+        "analog",
+        "phase"
+      ]
+    },
+    "stepped-sine-level-sweep": {
+      "generator": "stepped-sine",
+      "durationSeconds": 8,
+      "frequencyHz": 1000,
+      "levelsDb": [
+        -42,
+        -36,
+        -30,
+        -24,
+        -18,
+        -12,
+        -9,
+        -6,
+        -3,
+        0
+      ],
+      "description": "1 kHz level ladder for harmonic growth, gain compression, makeup behavior, and saturation knee fitting.",
+      "analysisTargets": [
+        "harmonic-growth",
+        "static-transfer",
+        "gain-compression",
+        "thd"
+      ],
+      "tags": [
+        "dynamics",
+        "saturation",
+        "analog",
+        "tape"
+      ]
+    },
+    "tone-burst-train": {
+      "generator": "tone-burst",
+      "durationSeconds": 8,
+      "frequencyHz": 1000,
+      "levelDb": -12,
+      "burstMilliseconds": 120,
+      "gapMilliseconds": 380,
+      "description": "Repeated tone bursts for attack, release, hold, recovery, detector overshoot, and transient timing.",
+      "analysisTargets": [
+        "attack-fit",
+        "release-fit",
+        "gain-reduction-recovery",
+        "overshoot"
+      ],
+      "tags": [
+        "dynamics",
+        "gate",
+        "limiter"
+      ]
+    },
+    "program-dependent-bed": {
+      "generator": "program-bed",
+      "durationSeconds": 10,
+      "levelDb": -16,
+      "description": "Synthetic low/high program material that alternates crest factor and spectral density to expose memory and program-dependent release.",
+      "analysisTargets": [
+        "program-dependent-release",
+        "spectral-memory",
+        "gain-history"
+      ],
+      "tags": [
+        "dynamics",
+        "tape",
+        "saturation"
+      ]
+    },
+    "two-tone-imd": {
+      "generator": "two-tone",
+      "durationSeconds": 5,
+      "frequenciesHz": [
+        60,
+        7000
+      ],
+      "levelDb": -18,
+      "description": "Low/high two-tone intermodulation probe for nonlinear stages and transformer-like coupling.",
+      "analysisTargets": [
+        "intermodulation-products",
+        "sideband-growth",
+        "nonlinear-memory"
+      ],
+      "tags": [
+        "saturation",
+        "analog",
+        "tape",
+        "amp"
+      ]
+    },
+    "alias-stress-high-tone": {
+      "generator": "sine",
+      "durationSeconds": 4,
+      "frequencyHz": 18000,
+      "levelDb": -9,
+      "description": "High-frequency nonlinear stress probe for alias budgeting and oversampling verification.",
+      "analysisTargets": [
+        "alias-energy",
+        "foldback-products",
+        "anti-aliasing-fit"
+      ],
+      "tags": [
+        "saturation",
+        "limiter",
+        "amp"
+      ]
+    },
+    "steady-sine-wow-flutter": {
+      "generator": "sine",
+      "durationSeconds": 12,
+      "frequencyHz": 1000,
+      "levelDb": -18,
+      "description": "Long steady tone for wow/flutter, modulation sidebands, clock drift, and chorus-style pitch movement.",
+      "analysisTargets": [
+        "instantaneous-frequency",
+        "wow-flutter-rate",
+        "modulation-sidebands"
+      ],
+      "tags": [
+        "tape",
+        "modulation",
+        "delay"
+      ]
+    },
+    "pink-noise-calibrated": {
+      "generator": "pink-noise",
+      "durationSeconds": 8,
+      "levelDb": -20,
+      "description": "Deterministic pink noise for broadband coloration, analyzer surfaces, and program-like filter response.",
+      "analysisTargets": [
+        "spectral-tilt",
+        "octave-band-response",
+        "rms-stability"
+      ],
+      "tags": [
+        "universal",
+        "eq",
+        "metering"
+      ]
+    },
+    "white-noise-calibrated": {
+      "generator": "white-noise",
+      "durationSeconds": 6,
+      "levelDb": -24,
+      "description": "Deterministic white noise for de-esser/gate behavior, spectral flattening, and analyzer calibration.",
+      "analysisTargets": [
+        "spectral-flatness",
+        "detector-threshold",
+        "noise-classification"
+      ],
+      "tags": [
+        "metering",
+        "gate",
+        "de-esser"
+      ]
+    },
+    "transient-click-train": {
+      "generator": "transient-train",
+      "durationSeconds": 6,
+      "amplitude": 0.9,
+      "spacingMilliseconds": 250,
+      "description": "Sparse transient train for limiter peak capture, transient shapers, compressor overshoot, and latency.",
+      "analysisTargets": [
+        "peak-capture",
+        "transient-smear",
+        "latency-samples"
+      ],
+      "tags": [
+        "limiter",
+        "dynamics",
+        "transient"
+      ]
+    },
+    "gated-noise-decay": {
+      "generator": "gated-noise",
+      "durationSeconds": 8,
+      "levelDb": -18,
+      "burstMilliseconds": 350,
+      "gapMilliseconds": 900,
+      "description": "Gated noise bursts for reverb decay slope, diffusion, damping, gates, and ambience recovery.",
+      "analysisTargets": [
+        "decay-slope",
+        "rt60-estimate",
+        "diffusion-density",
+        "gate-chatter"
+      ],
+      "tags": [
+        "space",
+        "gate",
+        "ambience"
+      ]
+    },
+    "stereo-left-isolation": {
+      "generator": "channel-isolation",
+      "durationSeconds": 4,
+      "frequencyHz": 997,
+      "activeChannel": "left",
+      "levelDb": -12,
+      "description": "Left-only calibrated tone for crosstalk, channel bleed, stereo routing, and mic/room coupling checks.",
+      "analysisTargets": [
+        "crosstalk-db",
+        "routing-integrity",
+        "polarity"
+      ],
+      "tags": [
+        "stereo",
+        "analog",
+        "microphone"
+      ]
+    },
+    "stereo-right-isolation": {
+      "generator": "channel-isolation",
+      "durationSeconds": 4,
+      "frequencyHz": 997,
+      "activeChannel": "right",
+      "levelDb": -12,
+      "description": "Right-only calibrated tone paired with the left isolation probe.",
+      "analysisTargets": [
+        "crosstalk-db",
+        "routing-integrity",
+        "polarity"
+      ],
+      "tags": [
+        "stereo",
+        "analog",
+        "microphone"
+      ]
+    },
+    "phase-null-sweep": {
+      "generator": "phase-sweep",
+      "durationSeconds": 7,
+      "startFrequencyHz": 40,
+      "endFrequencyHz": 12000,
+      "levelDb": -18,
+      "description": "Opposed-channel sweep for all-pass alignment, polarity, phase-rotation, and combing behavior.",
+      "analysisTargets": [
+        "phase-rotation",
+        "group-delay",
+        "null-depth",
+        "comb-filter-residual"
+      ],
+      "tags": [
+        "phase",
+        "stereo",
+        "microphone"
+      ]
+    },
+    "musical-drum-bass-loop": {
+      "generator": "drum-bass-loop",
+      "durationSeconds": 8,
+      "levelDb": -16,
+      "description": "Synthetic kick/snare/hat plus bass loop for practical compression, saturation, tape, limiter, and analyzer behavior.",
+      "analysisTargets": [
+        "crest-factor-change",
+        "low-end-retention",
+        "transient-density",
+        "loudness-shift"
+      ],
+      "tags": [
+        "musical",
+        "dynamics",
+        "saturation",
+        "tape"
+      ]
+    },
+    "vocal-like-formant-phrase": {
+      "generator": "formant-phrase",
+      "durationSeconds": 7,
+      "levelDb": -18,
+      "description": "Synthetic vocal-like phrase with moving formants and sibilant bursts for de-essing, compression, mic, and preamp profiling.",
+      "analysisTargets": [
+        "sibilance-control",
+        "formant-coloration",
+        "transient-preservation",
+        "noise-floor-interaction"
+      ],
+      "tags": [
+        "musical",
+        "de-esser",
+        "microphone",
+        "preamp"
+      ]
+    },
+    "guitar-di-chords": {
+      "generator": "guitar-di",
+      "durationSeconds": 8,
+      "levelDb": -20,
+      "description": "Synthetic plucked guitar DI chord pattern for amp, cabinet, overdrive, compressor, and room profiling.",
+      "analysisTargets": [
+        "attack-color",
+        "cabinet-response",
+        "sustain-compression",
+        "harmonic-density"
+      ],
+      "tags": [
+        "musical",
+        "amp",
+        "saturation"
+      ]
+    }
+  },
+  "profiles": {
+    "universal.baseline": {
+      "description": "Minimum identity and health checks for any audio processor.",
+      "signalIds": [
+        "silence-noise-floor",
+        "dirac-impulse-stereo",
+        "log-sweep-fullband",
+        "pink-noise-calibrated"
+      ]
+    },
+    "dynamics.behavior": {
+      "description": "Dynamics transfer, attack/release, peak capture, and program memory.",
+      "signalIds": [
+        "stepped-sine-level-sweep",
+        "tone-burst-train",
+        "program-dependent-bed",
+        "transient-click-train",
+        "musical-drum-bass-loop"
+      ]
+    },
+    "nonlinear.character": {
+      "description": "Harmonic, intermodulation, aliasing, and level-dependent color probes.",
+      "signalIds": [
+        "stepped-sine-level-sweep",
+        "two-tone-imd",
+        "alias-stress-high-tone",
+        "musical-drum-bass-loop",
+        "guitar-di-chords"
+      ]
+    },
+    "tape.transport": {
+      "description": "Tape saturation, head bump, hiss, and transport modulation.",
+      "signalIds": [
+        "silence-noise-floor",
+        "low-sweep-head-bump",
+        "stepped-sine-level-sweep",
+        "steady-sine-wow-flutter",
+        "program-dependent-bed",
+        "musical-drum-bass-loop"
+      ]
+    },
+    "space.decay": {
+      "description": "Impulse, decay, diffusion, damping, stereo ambience, and room coloration.",
+      "signalIds": [
+        "dirac-impulse-stereo",
+        "gated-noise-decay",
+        "log-sweep-fullband",
+        "stereo-left-isolation",
+        "stereo-right-isolation"
+      ]
+    },
+    "phase.alignment": {
+      "description": "All-pass, polarity, channel isolation, combing, and mic-alignment behavior.",
+      "signalIds": [
+        "phase-null-sweep",
+        "stereo-left-isolation",
+        "stereo-right-isolation",
+        "dirac-impulse-stereo",
+        "log-sweep-fullband"
+      ]
+    },
+    "musical.program": {
+      "description": "Program-like material for sanity-checking lab measurements against audio that behaves more like a session.",
+      "signalIds": [
+        "musical-drum-bass-loop",
+        "vocal-like-formant-phrase",
+        "guitar-di-chords",
+        "program-dependent-bed"
+      ]
+    }
+  },
+  "primitiveProbeMap": {
+    "analog.preamp-console-stage": [
+      "universal.baseline",
+      "nonlinear.character",
+      "phase.alignment"
+    ],
+    "amp.cabinet-mic-chain": [
+      "universal.baseline",
+      "nonlinear.character",
+      "space.decay",
+      "musical.program"
+    ],
+    "compression.detector-ballistics": [
+      "dynamics.behavior"
+    ],
+    "compression.feedforward-sidechain": [
+      "dynamics.behavior",
+      "musical.program"
+    ],
+    "compression.multiband-dynamics": [
+      "dynamics.behavior",
+      "universal.baseline"
+    ],
+    "compression.split-band-focus": [
+      "dynamics.behavior",
+      "musical.program"
+    ],
+    "compression.true-peak-limiter": [
+      "dynamics.behavior",
+      "nonlinear.character"
+    ],
+    "compression.vintage-compressor-model": [
+      "dynamics.behavior",
+      "nonlinear.character",
+      "musical.program"
+    ],
+    "delay.tap-feedback-network": [
+      "space.decay",
+      "phase.alignment"
+    ],
+    "eq.circuit-model-topology": [
+      "universal.baseline",
+      "phase.alignment"
+    ],
+    "eq.dynamic-band": [
+      "universal.baseline",
+      "dynamics.behavior"
+    ],
+    "eq.filterbank-crossover": [
+      "universal.baseline",
+      "phase.alignment"
+    ],
+    "eq.parametric-band": [
+      "universal.baseline",
+      "phase.alignment"
+    ],
+    "eq.passive-vintage-program-eq": [
+      "universal.baseline",
+      "nonlinear.character",
+      "phase.alignment"
+    ],
+    "instrument.electromechanical-keyboard": [
+      "musical.program",
+      "space.decay"
+    ],
+    "instrument.oscillator-filter-voice": [
+      "universal.baseline",
+      "musical.program"
+    ],
+    "metering.analysis-suite": [
+      "universal.baseline",
+      "musical.program"
+    ],
+    "microphone.modeling-chain": [
+      "universal.baseline",
+      "phase.alignment",
+      "musical.program"
+    ],
+    "modulation.vintage-delay-modulation": [
+      "space.decay",
+      "phase.alignment",
+      "tape.transport"
+    ],
+    "phase.all-pass-alignment-network": [
+      "phase.alignment",
+      "universal.baseline"
+    ],
+    "pitch.modulated-feedback-shifter": [
+      "space.decay",
+      "phase.alignment",
+      "musical.program"
+    ],
+    "saturation.antialiasing-strategy": [
+      "nonlinear.character"
+    ],
+    "saturation.memoryless-waveshaper": [
+      "nonlinear.character"
+    ],
+    "saturation.multiband-drive": [
+      "nonlinear.character",
+      "musical.program"
+    ],
+    "saturation.virtual-analog-stage": [
+      "nonlinear.character",
+      "phase.alignment"
+    ],
+    "space.mechanical-room-reverb": [
+      "space.decay",
+      "musical.program"
+    ],
+    "space.reverb-macro-field": [
+      "space.decay"
+    ],
+    "spatial.channel-toolkit": [
+      "phase.alignment",
+      "universal.baseline"
+    ],
+    "tape.magnetic-recorder-stage": [
+      "tape.transport",
+      "nonlinear.character",
+      "musical.program"
+    ]
+  }
+}

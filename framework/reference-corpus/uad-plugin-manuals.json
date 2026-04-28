@@ -25,7 +25,8 @@
     "instrument.electromechanical-keyboard": 4,
     "compression.true-peak-limiter": 4,
     "microphone.modeling-chain": 3,
-    "eq.passive-vintage-program-eq": 3
+    "eq.passive-vintage-program-eq": 3,
+    "phase.all-pass-alignment-network": 1
   },
   "articles": [
     {
@@ -532,7 +533,8 @@
       "updatedAt": "2025-11-26T22:55:43Z",
       "bodyLength": 5207,
       "inferredPrimitiveIds": [
-        "metering.analysis-suite"
+        "metering.analysis-suite",
+        "phase.all-pass-alignment-network"
       ]
     },
     {

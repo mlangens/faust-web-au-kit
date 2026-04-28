@@ -147,6 +147,7 @@ for (const catalogName of fs.readdirSync(path.join(root, "ui", "catalog"))) {
   "apps",
   "framework",
   "framework/primitives",
+  "framework/profiling",
   "framework/reference-corpus",
   "preview/lib",
   "scripts",

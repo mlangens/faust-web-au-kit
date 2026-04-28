@@ -142,6 +142,15 @@
         "Validate with null tests, correlation traces, channel delay probes, and matrix round-trips."
       ]
     },
+    "phase": {
+      "title": "Phase Alignment",
+      "auditFinding": "Mic, cabinet, console, and parallel-processing workflows often need all-pass rotation and phase-alignment primitives rather than simple polarity flips.",
+      "sophisticationPath": [
+        "Start with polarity, sample delay, and first-order all-pass rotation as separate controls.",
+        "Add frequency-selective phase rotation, mono compatibility views, and null-depth feedback.",
+        "Validate with opposed-channel sweeps, group-delay traces, and comb-filter residual probes."
+      ]
+    },
     "metering": {
       "title": "Metering and Analysis",
       "auditFinding": "Analysis plugins are framework primitives in their own right: FFT, spectrograph, phase, loudness, scope, and tuner views should feed staging and agent evaluation.",
@@ -1082,6 +1091,98 @@
         "Validate matrix operations with null and round-trip probes."
       ]
     },
+    "phase.all-pass-alignment-network": {
+      "family": "phase",
+      "title": "All-Pass Phase Alignment Network",
+      "description": "A frequency-dependent phase-rotation primitive for mic alignment, cabinet blending, parallel processing, and polarity-aware tone correction.",
+      "dspIntent": "Model phase alignment as controllable all-pass rotation plus delay and polarity context instead of a binary invert switch.",
+      "faustLibraries": [
+        "filters.lib",
+        "delays.lib",
+        "routes.lib"
+      ],
+      "maturity": {
+        "stage": "observed",
+        "implementation": "metadata-and-profiling-model",
+        "sonicVerification": "planned",
+        "evidence": [
+          "uad-plugin-manuals",
+          "dmg-dualism"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "phase-rotation",
+          "unit": "deg",
+          "surface": "phase scope"
+        },
+        {
+          "role": "all-pass-frequency",
+          "unit": "Hz",
+          "scale": "log",
+          "surface": "alignment graph"
+        },
+        {
+          "role": "sample-delay",
+          "unit": "samples",
+          "surface": "latency lane"
+        },
+        {
+          "role": "polarity",
+          "surface": "routing matrix"
+        }
+      ],
+      "surfaceRoles": [
+        "phase-scope",
+        "routing-matrix",
+        "analysis-report"
+      ],
+      "analysisProbes": [
+        "phase null sweep",
+        "group delay trace",
+        "comb-filter residual",
+        "stereo isolation null"
+      ],
+      "probeProfileIds": [
+        "phase.alignment"
+      ],
+      "measurementProfiles": [
+        {
+          "probe": "opposed-channel sweep",
+          "target": "phase rotation and null depth",
+          "probeSignalIds": [
+            "phase-null-sweep"
+          ],
+          "metrics": [
+            "phase-rotation",
+            "group-delay",
+            "null-depth"
+          ]
+        },
+        {
+          "probe": "stereo isolation pair",
+          "target": "polarity and crosstalk behavior",
+          "probeSignalIds": [
+            "stereo-left-isolation",
+            "stereo-right-isolation"
+          ],
+          "metrics": [
+            "crosstalk-db",
+            "polarity",
+            "correlation"
+          ]
+        }
+      ],
+      "uiExtractionSignals": [
+        "phase rotation, delay, polarity, and alignment controls",
+        "null or correlation meter near alignment controls",
+        "mic/cabinet blend workflows with phase correction"
+      ],
+      "agentDesignNotes": [
+        "Do not collapse phase alignment into a generic stereo width control.",
+        "Capture group delay and null depth so agentic fitting can distinguish tone coloration from alignment."
+      ]
+    },
     "metering.analysis-suite": {
       "family": "metering",
       "title": "Analysis Suite",
@@ -1988,6 +2089,10 @@
       "instrument.oscillator-filter-voice"
     ],
     "utility": [
+      "spatial.channel-toolkit"
+    ],
+    "phase": [
+      "phase.all-pass-alignment-network",
       "spatial.channel-toolkit"
     ],
     "metering": [

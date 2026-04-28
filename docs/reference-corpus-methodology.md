@@ -46,8 +46,15 @@ The corpus currently includes Northline as a `sample-suite`, DMGAudio manuals as
 - `amp.cabinet-mic-chain`: extracted from amp, cabinet, speaker, mic, room, and overdrive references.
 - `instrument.electromechanical-keyboard`: extracted from piano, organ, rotary speaker, and vintage keys references.
 - `microphone.modeling-chain`: extracted from microphone modeling collection references.
+- `phase.all-pass-alignment-network`: extracted from phase-alignment, mic/cab blending, and Little Labs IBP-style workflows.
 
 The UAD source pack lives at `framework/reference-corpus/uad-plugin-manuals.json` and records 113 article links from the paginated UAD plug-in manual section with inferred primitive tags.
+
+## Profiling Harness
+
+The sonic profiling harness turns primitive evidence into reproducible test assets. `framework/profiling/probe-signals.json` defines deterministic probe inputs and maps primitive IDs to probe profiles. `npm run profile:uad` inventories locally owned UAD plugins, generates primitive-specific probes, captures parameter maps when Audio Units expose them, and can render through the built-in AU host or an external command. `npm run profile:faust` runs the same probe vocabulary against generated Faust assemblages.
+
+Parameter control is required for competent captures. Default-state probes are useful for baseline identity, but reference-quality profiling should store parameter snapshots, explicit overrides, or host-managed presets alongside every render.
 
 ## Guardrail
 

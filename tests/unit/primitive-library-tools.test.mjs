@@ -19,6 +19,7 @@ test("audio primitive library keeps every mapped primitive resolvable", () => {
   assert.ok(primitiveIds.has("eq.parametric-band"));
   assert.ok(primitiveIds.has("compression.feedforward-sidechain"));
   assert.ok(primitiveIds.has("saturation.memoryless-waveshaper"));
+  assert.ok(primitiveIds.has("phase.all-pass-alignment-network"));
 
   for (const [primitiveId, primitive] of Object.entries(library.primitives ?? {})) {
     assert.ok(primitive.maturity?.stage, `${primitiveId} should declare a maturity stage`);
@@ -104,6 +105,7 @@ test("UAD source pack covers the paginated manual section and vintage primitive 
   assert.ok(uadEntry?.observedPrimitiveIds?.includes("compression.vintage-compressor-model"));
   assert.ok(uadEntry?.observedPrimitiveIds?.includes("amp.cabinet-mic-chain"));
   assert.ok(uadEntry?.observedPrimitiveIds?.includes("space.mechanical-room-reverb"));
+  assert.ok(uadEntry?.observedPrimitiveIds?.includes("phase.all-pass-alignment-network"));
 });
 
 test("reference corpus resolves evidence for broader non-Northline primitives", () => {
@@ -114,7 +116,8 @@ test("reference corpus resolves evidence for broader non-Northline primitives", 
     "spatial.channel-toolkit",
     "tape.magnetic-recorder-stage",
     "analog.preamp-console-stage",
-    "modulation.vintage-delay-modulation"
+    "modulation.vintage-delay-modulation",
+    "phase.all-pass-alignment-network"
   ]);
 
   assert.equal(evidence.id, "fwak-reference-corpus");
@@ -126,4 +129,5 @@ test("reference corpus resolves evidence for broader non-Northline primitives", 
   assert.ok(evidence.evidenceByPrimitive["tape.magnetic-recorder-stage"].some((entry) => entry.id === "uad-plugin-manuals"));
   assert.ok(evidence.evidenceByPrimitive["analog.preamp-console-stage"].some((entry) => entry.sourcePackId === "uad-plugin-manuals"));
   assert.ok(evidence.evidenceByPrimitive["modulation.vintage-delay-modulation"].some((entry) => entry.id === "uad-plugin-manuals"));
+  assert.ok(evidence.evidenceByPrimitive["phase.all-pass-alignment-network"].some((entry) => entry.id === "uad-plugin-manuals"));
 });

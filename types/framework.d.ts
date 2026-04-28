@@ -220,6 +220,8 @@ export interface DspPrimitiveControlRole extends JsonObject {
 export interface DspPrimitiveMeasurementProfile extends JsonObject {
   probe?: string;
   target?: string;
+  probeSignalIds?: string[];
+  metrics?: string[];
 }
 
 export type PrimitiveMaturityStage =
@@ -248,6 +250,7 @@ export interface DspPrimitive extends JsonObject {
   controlRoles?: DspPrimitiveControlRole[];
   surfaceRoles?: string[];
   analysisProbes?: string[];
+  probeProfileIds?: string[];
   measurementProfiles?: DspPrimitiveMeasurementProfile[];
   uiExtractionSignals?: string[];
   agentDesignNotes?: string[];
@@ -265,6 +268,120 @@ export interface DspPrimitiveLibrary extends JsonObject {
   variantPrimitiveMap?: Record<string, string[]>;
   categoryPrimitiveMap?: Record<string, string[]>;
   productPrimitiveMap?: Record<string, string[]>;
+}
+
+export interface ProbeSignalDefinition extends JsonObject {
+  generator?: string;
+  durationSeconds?: number;
+  amplitude?: number;
+  levelDb?: number;
+  frequencyHz?: number;
+  startFrequencyHz?: number;
+  endFrequencyHz?: number;
+  activeChannel?: string;
+  burstMilliseconds?: number;
+  gapMilliseconds?: number;
+  spacingMilliseconds?: number;
+  frequenciesHz?: number[];
+  levelsDb?: number[];
+  description?: string;
+  analysisTargets?: string[];
+  tags?: string[];
+}
+
+export interface ProbeSignalProfile extends JsonObject {
+  description?: string;
+  signalIds?: string[];
+}
+
+export interface ProbeSignalCorpus extends JsonObject {
+  $schemaVersion?: number;
+  id?: string;
+  displayName?: string;
+  description?: string;
+  defaults?: JsonObject;
+  signals?: Record<string, ProbeSignalDefinition>;
+  profiles?: Record<string, ProbeSignalProfile>;
+  primitiveProbeMap?: Record<string, string[]>;
+}
+
+export interface ProbeSignalManifestEntry extends JsonObject {
+  id: string;
+  generator?: string;
+  path: string;
+  sampleRate: number;
+  channels: number;
+  frames: number;
+  durationSeconds: number;
+  tags?: string[];
+  analysisTargets?: string[];
+  description?: string;
+}
+
+export interface ProbeSignalManifest extends JsonObject {
+  id?: string;
+  corpusId?: string;
+  corpusPath?: string;
+  generatedAt?: string;
+  outputDir?: string;
+  defaults?: JsonObject;
+  primitiveIds?: string[];
+  profileIds?: string[];
+  signals?: ProbeSignalManifestEntry[];
+}
+
+export interface AudioAnalysisReport extends JsonObject {
+  signalId?: string;
+  generator?: string;
+  sampleRate?: number;
+  channels?: number;
+  frames?: number;
+  durationSeconds?: number;
+  channelsAnalysis?: JsonObject[];
+  mono?: JsonObject;
+  stereoCorrelation?: number | null;
+  spectralFingerprint?: Record<string, number>;
+  harmonicFingerprint?: Record<string, number>;
+  impulseLandmarks?: JsonObject | null;
+  zeroCrossingFrequency?: JsonObject | null;
+}
+
+export interface UadPluginInventoryEntry extends JsonObject {
+  id: string;
+  format: string;
+  displayName: string;
+  normalizedName: string;
+  path: string;
+  primitiveIds?: string[];
+}
+
+export interface UadPluginProfilePlanEntry extends UadPluginInventoryEntry {
+  matchedRules?: string[];
+  signalIds?: string[];
+  renderableByBuiltInAuHost?: boolean;
+}
+
+export interface UadPluginProfileReport extends JsonObject {
+  id?: string;
+  generatedAt?: string;
+  host?: JsonObject;
+  inventory?: JsonObject;
+  primitiveIds?: string[];
+  signalIds?: string[];
+  probeManifestPath?: string;
+  plan?: UadPluginProfilePlanEntry[];
+  render?: JsonObject;
+}
+
+export interface FaustAssemblageProfileReport extends JsonObject {
+  id?: string;
+  generatedAt?: string;
+  host?: JsonObject;
+  appKey?: string;
+  primitiveIds?: string[];
+  probeManifestPath?: string;
+  renderDir?: string;
+  analyses?: Record<string, JsonValue>;
 }
 
 export interface ReferenceCorpusEntry extends JsonObject {
