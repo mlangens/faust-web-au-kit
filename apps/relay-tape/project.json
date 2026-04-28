@@ -690,6 +690,63 @@
   "standalone": {
     "bundleId": "io.github.mlangens.faust-web-au-kit.relay-tape.app"
   },
+  "sonicStages": [
+    {
+      "id": "feedback-path-stays-bounded",
+      "title": "Feedback delay path stays bounded",
+      "description": "An impulse through the staged delay should remain valid, audible, and bounded when feedback and mix are raised.",
+      "fixture": {
+        "kind": "impulse",
+        "seconds": 1.4,
+        "amplitude": 0.8
+      },
+      "renders": [
+        {
+          "id": "baseline",
+          "parameters": {
+            "Feedback": 5,
+            "Mix": 20
+          }
+        },
+        {
+          "id": "feature",
+          "parameters": {
+            "Time": 280,
+            "Feedback": 62,
+            "Mix": 70,
+            "Smear": 35
+          }
+        }
+      ],
+      "assertions": [
+        {
+          "render": "feature",
+          "metric": "nanSamples",
+          "eq": 0
+        },
+        {
+          "render": "feature",
+          "metric": "peakDb",
+          "between": [
+            -12,
+            3
+          ]
+        },
+        {
+          "render": "feature",
+          "metric": "rmsDb",
+          "between": [
+            -70,
+            -30
+          ]
+        }
+      ],
+      "tags": [
+        "feature",
+        "delay"
+      ]
+    }
+  ],
   "benchmark": {
     "sampleRate": 48000,
     "blockSize": 256,

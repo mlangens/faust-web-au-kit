@@ -339,6 +339,53 @@
   "standalone": {
     "bundleId": "io.github.mlangens.faust-web-au-kit.pocket-cut.app"
   },
+  "sonicStages": [
+    {
+      "id": "cutoff-opens-pocket-filter",
+      "title": "Cutoff opens the compact filter",
+      "description": "Opening the cutoff should restore presence-band energy in the pocket filter scene.",
+      "fixture": {
+        "kind": "pink-noise",
+        "seconds": 1.1,
+        "amplitude": 0.26,
+        "seed": 812
+      },
+      "renders": [
+        {
+          "id": "baseline",
+          "parameters": {
+            "Cutoff": 360,
+            "Resonance": 0.2
+          }
+        },
+        {
+          "id": "feature",
+          "parameters": {
+            "Cutoff": 6200,
+            "Resonance": 0.55,
+            "Drive": 3
+          }
+        }
+      ],
+      "assertions": [
+        {
+          "render": "feature",
+          "metric": "nanSamples",
+          "eq": 0
+        },
+        {
+          "render": "feature",
+          "metric": "bandEnergyDb.presence",
+          "reference": "baseline",
+          "minDelta": 1
+        }
+      ],
+      "tags": [
+        "feature",
+        "filter"
+      ]
+    }
+  ],
   "benchmark": {
     "sampleRate": 48000,
     "blockSize": 256,

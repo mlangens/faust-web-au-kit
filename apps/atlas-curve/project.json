@@ -480,6 +480,51 @@
   "standalone": {
     "bundleId": "io.github.mlangens.faust-web-au-kit.atlas-curve.app"
   },
+  "sonicStages": [
+    {
+      "id": "bell-presence-lift",
+      "title": "Bell band lifts the presence region",
+      "description": "A multitone program should gain measurable presence-band energy when the bell node is pushed upward.",
+      "fixture": {
+        "kind": "multitone",
+        "seconds": 1.2,
+        "amplitude": 0.32
+      },
+      "renders": [
+        {
+          "id": "baseline",
+          "parameters": {
+            "Bell Gain": 0
+          }
+        },
+        {
+          "id": "feature",
+          "parameters": {
+            "Bell Freq": 2400,
+            "Bell Gain": 8,
+            "Bell Q": 1.4
+          }
+        }
+      ],
+      "assertions": [
+        {
+          "render": "feature",
+          "metric": "nanSamples",
+          "eq": 0
+        },
+        {
+          "render": "feature",
+          "metric": "rmsDb",
+          "reference": "baseline",
+          "minDelta": 0.5
+        }
+      ],
+      "tags": [
+        "feature",
+        "eq"
+      ]
+    }
+  ],
   "benchmark": {
     "sampleRate": 48000,
     "blockSize": 256,

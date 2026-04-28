@@ -19,6 +19,10 @@ function generatedAppBenchmarkPath(appKey) {
   return `/generated/apps/${appKey}/benchmark-results.json`;
 }
 
+function generatedAppSonicReportPath(appKey) {
+  return `/generated/apps/${appKey}/sonic-report.json`;
+}
+
 function generatedAppSchemaPath(appKey) {
   return `/generated/apps/${appKey}/ui_schema.json`;
 }
@@ -376,7 +380,8 @@ ${meterLines.join(",\n")}
       display: controlDisplay(resolvedUi, control)
     })),
     meters,
-    benchmarkPath: generatedAppBenchmarkPath(runtime.appKey)
+    benchmarkPath: generatedAppBenchmarkPath(runtime.appKey),
+    sonicReportPath: generatedAppSonicReportPath(runtime.appKey)
   };
 
   return { header, schema };
@@ -396,6 +401,7 @@ function writeWorkspaceManifest(runtime) {
         manifest: entry.manifest,
         schemaPath: generatedAppSchemaPath(entry.key),
         benchmarkPath: generatedAppBenchmarkPath(entry.key),
+        sonicReportPath: generatedAppSonicReportPath(entry.key),
         previewPath: entry.previewPath
       };
     })
@@ -411,6 +417,7 @@ export {
   buildProjectConfigArtifacts,
   buildUiManifestArtifacts,
   generatedAppBenchmarkPath,
+  generatedAppSonicReportPath,
   generatedAppSchemaPath,
   writeWorkspaceManifest
 };

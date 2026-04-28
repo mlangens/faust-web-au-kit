@@ -10,7 +10,7 @@ const exportProfile = resolveExportProfile(runtime.args);
 const stager = createExportStager(runtime.outputDir);
 
 try {
-  const shouldReuseCachedUiMetadata = exportProfile === "preview" || exportProfile === "native";
+  const shouldReuseCachedUiMetadata = exportProfile === "preview" || exportProfile === "native" || exportProfile === "sonic";
   const shouldReuseCachedNativeTargets = exportProfile === "native";
   const projectConfig = buildProjectConfigArtifacts(runtime);
   stager.stageTextArtifact("project_config.h", projectConfig.header);
