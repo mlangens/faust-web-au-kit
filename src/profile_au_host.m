@@ -499,6 +499,13 @@ static int FwakRender(NSString* name, NSString* inputPath, NSString* outputPath,
     FwakFreeAudio(&input);
     return 6;
   }
+  if (!FwakApplyOverrides(unit, overrides, &error)) {
+    fprintf(stderr, "%s\n", error.UTF8String);
+    AudioUnitUninitialize(unit);
+    AudioComponentInstanceDispose(unit);
+    FwakFreeAudio(&input);
+    return 6;
+  }
 
   FwakAudioData output = {0};
   output.sampleRate = input.sampleRate;

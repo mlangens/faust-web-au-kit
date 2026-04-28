@@ -379,9 +379,59 @@ export interface FaustAssemblageProfileReport extends JsonObject {
   host?: JsonObject;
   appKey?: string;
   primitiveIds?: string[];
+  controlOverrides?: Record<string, number>;
   probeManifestPath?: string;
   renderDir?: string;
   analyses?: Record<string, JsonValue>;
+}
+
+export interface EmulationUadState extends JsonObject {
+  id: string;
+  label?: string;
+  parameterOverrides?: Record<string, number>;
+}
+
+export interface EmulationCandidateState extends JsonObject {
+  id: string;
+  label?: string;
+  controlOverrides?: Record<string, number>;
+}
+
+export interface EmulationCandidateScore extends JsonObject {
+  candidateStateId: string;
+  averageScore: number;
+  signalCount: number;
+}
+
+export interface EmulationPilotTarget extends JsonObject {
+  id: string;
+  displayName?: string;
+  pluginFilters?: string[];
+  candidateApp: string;
+  primitiveIds?: string[];
+  signalIds?: string[];
+  uadStates?: EmulationUadState[];
+  candidateStates?: EmulationCandidateState[];
+}
+
+export interface EmulationAssemblySpec extends JsonObject {
+  id?: string;
+  generatedAt?: string;
+  reference?: JsonObject;
+  candidate?: JsonObject;
+  primitiveIds?: string[];
+  candidateScores?: EmulationCandidateScore[];
+  residuals?: JsonObject[];
+  notes?: string[];
+}
+
+export interface EmulationPilotReport extends JsonObject {
+  id?: string;
+  generatedAt?: string;
+  host?: JsonObject;
+  auHostPath?: string;
+  outputDir?: string;
+  targets?: JsonObject[];
 }
 
 export interface ReferenceCorpusEntry extends JsonObject {

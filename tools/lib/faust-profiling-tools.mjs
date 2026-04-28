@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { resolveProjectPrimitiveSet } from "./primitive-library-tools.mjs";
-import { loadProjectRuntime } from "./project-tools.mjs";
+import { gatherControls, loadProjectRuntime } from "./project-tools.mjs";
 import { createProbeSignalSet, readWavAsFloat32, writeFloat32Wav, probeSignalDefinition, loadProbeSignalCorpus } from "./probe-signal-tools.mjs";
 import { analyzeWavFile, writeAnalysisReport } from "./sonic-analysis-tools.mjs";
 import { readJsonFileSync, writeFileAtomically } from "./fs-tools.mjs";
@@ -76,13 +76,91 @@ function createWasmEnv(requiredImports) {
 }
 
 /**
+ * @param {unknown} value
+ * @returns {string}
+ */
+function normalizeControlKey(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[_/]+/gu, " ")
+    .replace(/[^a-z0-9]+/gu, " ")
+    .trim();
+}
+
+/**
+ * @param {import("../../types/framework").FaustControlItem} control
+ * @param {number} index
+ * @returns {string[]}
+ */
+function controlMatchKeys(control, index) {
+  return [
+    control.label,
+    control.address,
+    control.shortname,
+    control.address?.split("/").filter(Boolean).at(-1),
+    String(index)
+  ].map(normalizeControlKey).filter(Boolean);
+}
+
+/**
+ * @param {{
+ *   setParamValue?: Function,
+ *   dspOffset: number,
+ *   uiJson: JsonValue,
+ *   controlOverrides?: Record<string, number>
+ * }} options
+ * @returns {{ applied: Record<string, number>, missing: string[] }}
+ */
+function applyFaustControlOverrides(options) {
+  const overrides = options.controlOverrides ?? {};
+  const overrideEntries = Object.entries(overrides).filter(([, value]) => Number.isFinite(Number(value)));
+  if (!overrideEntries.length) {
+    return { applied: {}, missing: [] };
+  }
+  if (typeof options.setParamValue !== "function") {
+    throw new Error("Generated Faust WASM does not export setParamValue, so control overrides cannot be applied.");
+  }
+
+  const uiJson = /** @type {{ ui?: import("../../types/framework").FaustUiItem[] }} */ (options.uiJson ?? {});
+  const controls = gatherControls(uiJson.ui);
+  /** @type {Map<string, { index: number, label: string }>} */
+  const controlsByKey = new Map();
+  controls.forEach((control, index) => {
+    for (const key of controlMatchKeys(control, index)) {
+      if (!controlsByKey.has(key)) {
+        controlsByKey.set(key, { index: Number(control.index ?? index), label: control.label });
+      }
+    }
+  });
+
+  /** @type {Record<string, number>} */
+  const applied = {};
+  /** @type {string[]} */
+  const missing = [];
+  for (const [name, rawValue] of overrideEntries) {
+    const match = controlsByKey.get(normalizeControlKey(name));
+    if (!match) {
+      missing.push(name);
+      continue;
+    }
+    const value = Number(rawValue);
+    options.setParamValue(options.dspOffset, match.index, value);
+    applied[match.label] = value;
+  }
+
+  return { applied, missing };
+}
+
+/**
  * @param {{
  *   wasmPath: string,
  *   uiJsonPath: string,
  *   input: FloatWav,
  *   blockSize: number,
  *   oversamplingFactor?: number,
- *   tailSeconds?: number
+ *   tailSeconds?: number,
+ *   controlOverrides?: Record<string, number>
  * }} options
  * @returns {Promise<FloatWav>}
  */
@@ -91,7 +169,7 @@ async function renderFaustWasm(options) {
   const module = new WebAssembly.Module(wasmBytes);
   const imports = createWasmEnv(WebAssembly.Module.imports(module));
   const instance = await WebAssembly.instantiate(module, imports);
-  const exports = /** @type {{ memory: WebAssembly.Memory, init: Function, compute: Function }} */ (instance.exports);
+  const exports = /** @type {{ memory: WebAssembly.Memory, init: Function, compute: Function, setParamValue?: Function }} */ (instance.exports);
   const uiJson = readJsonFileSync(options.uiJsonPath);
   const sampleRate = options.input.sampleRate;
   const channels = Math.max(1, options.input.channels);
@@ -109,6 +187,15 @@ async function renderFaustWasm(options) {
   const outputPtrsBase = inputPtrsBase + Int32Array.BYTES_PER_ELEMENT * channels;
 
   exports.init(dspOffset, sampleRate * Math.max(1, options.oversamplingFactor ?? 1));
+  const appliedControls = applyFaustControlOverrides({
+    controlOverrides: options.controlOverrides,
+    dspOffset,
+    setParamValue: exports.setParamValue,
+    uiJson
+  });
+  if (appliedControls.missing.length) {
+    throw new Error(`Unknown Faust control override(s): ${appliedControls.missing.join(", ")}`);
+  }
 
   for (let channel = 0; channel < channels; channel += 1) {
     memI32[(inputPtrsBase >> 2) + channel] = inputBase + frameStrideBytes * channel;
@@ -157,15 +244,20 @@ async function renderFaustWasm(options) {
  *   root: string,
  *   outputDir: string,
  *   signalLimit?: number,
- *   tailSeconds?: number
+ *   signalIds?: string[],
+ *   tailSeconds?: number,
+ *   controlOverrides?: Record<string, number>,
+ *   skipExport?: boolean
  * }} options
  * @returns {Promise<FaustAssemblageProfileReport>}
  */
 async function profileFaustAssemblage(options) {
-  execFileSync(process.execPath, ["tools/export-targets.mjs", "--app", options.appKey], {
-    cwd: options.root,
-    stdio: "inherit"
-  });
+  if (!options.skipExport) {
+    execFileSync(process.execPath, ["tools/export-targets.mjs", "--app", options.appKey], {
+      cwd: options.root,
+      stdio: "inherit"
+    });
+  }
 
   const runtime = loadProjectRuntime(["--app", options.appKey]);
   const primitiveSet = resolveProjectPrimitiveSet(runtime);
@@ -177,6 +269,7 @@ async function profileFaustAssemblage(options) {
     outputDir: probeDir,
     primitiveIds: primitiveSet.primitiveIds,
     root: options.root,
+    signalIds: options.signalIds,
     limit: options.signalLimit
   });
   const corpus = loadProbeSignalCorpus({ root: options.root });
@@ -194,6 +287,7 @@ async function profileFaustAssemblage(options) {
       input,
       oversamplingFactor: runtime.project.oversampling.factor,
       tailSeconds: options.tailSeconds,
+      controlOverrides: options.controlOverrides,
       uiJsonPath,
       wasmPath
     });
@@ -215,6 +309,7 @@ async function profileFaustAssemblage(options) {
     },
     appKey: options.appKey,
     primitiveIds: primitiveSet.primitiveIds,
+    controlOverrides: options.controlOverrides ?? {},
     probeManifestPath: path.relative(outputDir, path.join(probeDir, "probe-manifest.json")),
     renderDir: path.relative(outputDir, renderDir),
     analyses
@@ -225,6 +320,7 @@ async function profileFaustAssemblage(options) {
 }
 
 export {
+  applyFaustControlOverrides,
   profileFaustAssemblage,
   renderFaustWasm
 };

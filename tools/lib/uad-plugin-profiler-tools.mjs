@@ -577,9 +577,12 @@ function createUadPluginProfile(options) {
 
 export {
   buildUadProfilePlan,
+  compileAuProfileHost,
   createUadPluginProfile,
   discoverInstalledUadPlugins,
   inferPrimitiveIdsForPluginName,
   normalizePluginName,
+  parseAuHostJsonPayload,
+  queryAuHostParameters,
   primitiveRules
 };

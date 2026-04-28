@@ -42,6 +42,7 @@
     "benchmark:silk-guard": "node ./tools/run-benchmarks.mjs --app silk-guard",
     "benchmark:split-stack": "node ./tools/run-benchmarks.mjs --app split-stack",
     "generate:probe-signals": "node ./tools/generate-probe-signals.mjs",
+    "profile:emulation-pilots": "node ./tools/run-emulation-pilots.mjs",
     "profile:faust": "node ./tools/profile-faust-assemblage.mjs",
     "profile:uad": "node ./tools/profile-uad-plugins.mjs",
     "preview": "node ./tools/preview-server.mjs",

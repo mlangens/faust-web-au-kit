@@ -58,6 +58,34 @@ npm run profile:faust -- --app relay-tape --signal-limit 8
 
 This exports the app, renders the generated WASM against the primitive-derived probe set, and writes output WAVs plus per-signal analysis reports.
 
+Control states can be applied to Faust renders for fitting work:
+
+```sh
+npm run profile:faust -- --app press-deck --signal stepped-sine-level-sweep,tone-burst-train --control "Ratio=4,Attack=12,Release=90,Threshold=-30"
+```
+
+## Emulation Pilots
+
+Use:
+
+```sh
+npm run profile:emulation-pilots -- --target uad-1176-rev-a --target uad-pultec-eqp-1a --signal-limit 6
+```
+
+This runs the first end-to-end emulation loop:
+
+- Generate one shared probe set per pilot.
+- Render owned UAD Audio Units through parameterized states.
+- Render candidate Faust assemblages through matching control states.
+- Compare UAD and Faust WAVs with time-domain error, correlation, spectral fingerprints, harmonic fingerprints, and loudness deltas.
+- Write per-target `assembly-spec.json` files that name the current best candidate state and the largest residuals to fix next.
+
+The two default pilots are intentionally different: `uad-1176-rev-a` exercises vintage compression/nonlinear dynamics through `press-deck`, while `uad-pultec-eqp-1a` exercises passive EQ/analog coloration through `atlas-curve`. Together they prove that the harness is not hard-coded to the 1176 case.
+
+Every UAD render is also compared against its dry probe input. If the reference output is effectively pass-through, the pilot keeps the artifact and parameter snapshot but excludes those comparisons from candidate scoring. This prevents an unengaged host, authorization issue, or bypassed plugin from producing false emulation wins.
+
+See `docs/uad-emulation-pilot-results.md` for the first 1176 Rev A plus Pultec EQP-1A run and the host-engagement issue it exposed.
+
 ## Primitive Coverage
 
 The probe corpus covers universal health checks, dynamics, nonlinear character, tape transport, reverb/space, phase alignment, and musical program material. UAD-derived additions include tape, vintage compression, passive EQ, preamp/console, amp/cab/mic chains, modulation, mechanical room/reverb, microphone modeling, and the newly extracted `phase.all-pass-alignment-network` primitive.

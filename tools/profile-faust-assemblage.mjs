@@ -35,10 +35,33 @@ function parseArgs(argv) {
 const args = parseArgs(process.argv.slice(2));
 const appKey = String(args.app ?? "limiter-lab");
 const outputDir = path.resolve(root, String(args.out ?? args.output ?? `generated/profiling/faust/${appKey}`));
+
+/**
+ * @param {string | boolean | undefined} value
+ * @returns {Record<string, number>}
+ */
+function parseControlOverrides(value) {
+  if (!value || value === true) {
+    return {};
+  }
+  /** @type {Record<string, number>} */
+  const overrides = {};
+  for (const entry of String(value).split(",")) {
+    const [name, rawValue] = entry.split("=");
+    if (!name || rawValue == null) {
+      continue;
+    }
+    overrides[name.trim()] = Number(rawValue);
+  }
+  return overrides;
+}
+
 const report = await profileFaustAssemblage({
   appKey,
+  controlOverrides: parseControlOverrides(args.control),
   outputDir,
   root,
+  signalIds: typeof args.signal === "string" ? args.signal.split(",").map((entry) => entry.trim()).filter(Boolean) : undefined,
   signalLimit: args["signal-limit"] ? Number(args["signal-limit"]) : undefined,
   tailSeconds: args.tail ? Number(args.tail) : undefined
 });
