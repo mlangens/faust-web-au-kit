@@ -641,6 +641,7 @@ body[data-layout-profile="single-panel-grid"] .surface-grid {
 .surface-card--field,
 .surface-card--regions,
 .surface-card--transfer,
+.surface-card--fet76,
 .surface-card--linked-strip,
 .surface-card--timeline,
 .surface-card--routing,
@@ -658,6 +659,7 @@ body[data-layout-profile="single-panel-grid"] .surface-grid {
 .surface-card__body--field,
 .surface-card__body--regions,
 .surface-card__body--transfer,
+.surface-card__body--fet76,
 .surface-card__body--linked-strip,
 .surface-card__body--timeline,
 .surface-card__body--routing,
@@ -741,6 +743,205 @@ body[data-layout-profile="single-panel-grid"] .surface-grid {
 .trace-readout-row span {
   color: var(--muted);
   font-size: 0.76rem;
+}
+
+.fet76-faceplate {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.85fr) minmax(260px, 1.25fr) minmax(150px, 0.85fr);
+  gap: 18px;
+  align-items: stretch;
+  min-height: 360px;
+  padding: 22px;
+  border: 1px solid rgba(38, 29, 19, 0.24);
+  border-radius: 28px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    inset 0 -26px 60px rgba(57, 36, 18, 0.16),
+    0 24px 70px rgba(43, 31, 20, 0.12);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 236, 184, 0.40), transparent 38%),
+    linear-gradient(120deg, rgba(77, 49, 24, 0.12), transparent 32%, rgba(255, 255, 255, 0.28) 56%, rgba(39, 27, 18, 0.12)),
+    #d4b676;
+}
+
+.fet76-knob-bank,
+.fet76-center {
+  display: grid;
+  gap: 16px;
+  align-content: center;
+}
+
+.fet76-center {
+  grid-template-rows: 1fr auto auto auto;
+}
+
+.fet76-knob-wrap {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 14px 10px;
+  border-radius: 22px;
+  background: rgba(48, 34, 23, 0.10);
+}
+
+.fet76-knob-wrap strong {
+  color: rgba(39, 27, 18, 0.88);
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.fet76-knob-wrap span:not(.fet76-knob__pointer) {
+  color: rgba(39, 27, 18, 0.72);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.fet76-knob {
+  --knob-angle: 0deg;
+  position: relative;
+  width: 86px;
+  height: 86px;
+  border: 0;
+  border-radius: 999px;
+  cursor: ns-resize;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.24), transparent 22%),
+    radial-gradient(circle at center, #262320 0 48%, #151311 49% 68%, #050505 69%);
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 255, 255, 0.07),
+    inset 0 -12px 20px rgba(0, 0, 0, 0.36),
+    0 12px 22px rgba(36, 24, 15, 0.28);
+  transform: rotate(var(--knob-angle));
+}
+
+.fet76-knob::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: inherit;
+  background:
+    conic-gradient(from -132deg, transparent 0 8%, var(--knob-accent, var(--accent)) 8% 50%, transparent 50% 100%);
+  opacity: 0.45;
+  z-index: -1;
+}
+
+.fet76-knob__pointer {
+  position: absolute;
+  left: 50%;
+  top: 9px;
+  width: 4px;
+  height: 24px;
+  border-radius: 999px;
+  background: #f6d78d;
+  transform: translateX(-50%);
+  box-shadow: 0 0 12px rgba(246, 215, 141, 0.52);
+}
+
+.fet76-vu {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 154px;
+  overflow: hidden;
+  border: 1px solid rgba(45, 28, 16, 0.24);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 50% 110%, rgba(57, 33, 12, 0.36), transparent 36%),
+    linear-gradient(180deg, #fff3c7, #d9b568);
+  box-shadow: inset 0 0 28px rgba(88, 55, 20, 0.22);
+}
+
+.fet76-vu__scale {
+  position: absolute;
+  top: 22px;
+  color: rgba(55, 37, 22, 0.70);
+  font-size: 0.88rem;
+  letter-spacing: 0.38em;
+}
+
+.fet76-vu__needle {
+  --needle-angle: -42deg;
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  width: 3px;
+  height: 108px;
+  border-radius: 999px;
+  background: #7d1c13;
+  transform: translateX(-50%) rotate(var(--needle-angle));
+  transform-origin: 50% 100%;
+  box-shadow: 0 0 10px rgba(125, 28, 19, 0.26);
+  transition: transform 180ms ease;
+}
+
+.fet76-vu__readout {
+  position: absolute;
+  bottom: 16px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: rgba(55, 37, 22, 0.82);
+  background: rgba(255, 245, 214, 0.54);
+  font-size: 0.75rem;
+}
+
+.fet76-ratio-bank {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 18px;
+  background: rgba(38, 29, 20, 0.14);
+}
+
+.fet76-ratio-bank > span {
+  grid-column: 1 / -1;
+  color: rgba(39, 27, 18, 0.76);
+  font-size: 0.74rem;
+  letter-spacing: 0.2em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.fet76-ratio-button,
+.fet76-meter-mode,
+.fet76-power-lamp {
+  border: 1px solid rgba(38, 29, 20, 0.26);
+  border-radius: 12px;
+  color: rgba(246, 226, 184, 0.92);
+  background: linear-gradient(180deg, #38312b, #15120f);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 8px 16px rgba(42, 27, 15, 0.20);
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  min-height: 36px;
+}
+
+.fet76-ratio-button.is-active {
+  color: #1c130d;
+  background: linear-gradient(180deg, #ffd989, #c58b38);
+}
+
+.fet76-meter-mode,
+.fet76-power-lamp {
+  width: 100%;
+  min-height: 42px;
+}
+
+.fet76-power-lamp {
+  color: rgba(255, 215, 158, 0.84);
+}
+
+.fet76-power-lamp.is-on {
+  color: #28170e;
+  background:
+    radial-gradient(circle at 50% 35%, #fff4b8, #f1a23a 52%, #8a3218 100%);
+}
+
+.fet76-trim-panel {
+  margin-top: 0;
 }
 
 .field-canvas {
@@ -1941,6 +2142,7 @@ body[data-preview-error="true"] .preview-status {
   .surface-card--field,
   .surface-card--regions,
   .surface-card--transfer,
+  .surface-card--fet76,
   .surface-card--linked-strip,
   .surface-card--timeline,
   .surface-card--routing,
@@ -1959,6 +2161,20 @@ body[data-preview-error="true"] .preview-status {
 
   .control-section__grid,
   .control-section__grid[data-section-kind="fader-bank"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fet76-faceplate {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    padding: 16px;
+  }
+
+  .fet76-center {
+    order: -1;
+  }
+
+  .fet76-knob-bank {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 

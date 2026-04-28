@@ -33,3 +33,15 @@ The Pultec pilot moves `eq.passive-vintage-program-eq` from manual-observed to a
 - Add a FET compressor primitive submodel for ratio-button transfer, tone-burst recovery, and level-dependent harmonic emphasis.
 - Add a passive EQ phase/group-delay primitive path so Pultec-style program EQs can be fitted as coupled topology rather than independent shelves.
 - Fix or constrain invalid `atlas-curve` non-default candidate states before using them as fit candidates.
+
+## FET-76 Follow-Up Pass
+
+The 1176 pilot now has a dedicated framework candidate app, `fet-76`, and a new `compression.fet-76-gain-cell` primitive. The fitting run:
+
+```sh
+npm run profile:emulation-pilots -- --target uad-1176-rev-a --signal-limit 4 --state-limit 3 --candidate-limit 4 --out generated/profiling/fet76-uadx-proof
+```
+
+resolved `uaudio_ua_1176_rev_a` as a native UADx Audio Unit, rendered 12 engaged references with 0 pass-through captures, and produced 48 valid Faust comparisons. The best FET-76 state scored `1.972647`; residuals now point at transient-click and driven tone-burst recovery as the next primitive-fitting targets.
+
+See `docs/fet-76-primitive-fitting.md` for the product proof, package commands, and the framework bug fix that makes Faust WASM candidate control overrides reliable.

@@ -18,6 +18,7 @@ test("audio primitive library keeps every mapped primitive resolvable", () => {
 
   assert.ok(primitiveIds.has("eq.parametric-band"));
   assert.ok(primitiveIds.has("compression.feedforward-sidechain"));
+  assert.ok(primitiveIds.has("compression.fet-76-gain-cell"));
   assert.ok(primitiveIds.has("saturation.memoryless-waveshaper"));
   assert.ok(primitiveIds.has("phase.all-pass-alignment-network"));
 
@@ -38,6 +39,7 @@ test("suite products resolve EQ, compression, and saturation primitive assemblag
   const library = loadPrimitiveLibrary();
   const atlasIds = resolveProjectPrimitiveIds(loadProjectRuntime(["--app", "atlas-curve"]), library);
   const pressIds = resolveProjectPrimitiveIds(loadProjectRuntime(["--app", "press-deck"]), library);
+  const fet76Ids = resolveProjectPrimitiveIds(loadProjectRuntime(["--app", "fet-76"]), library);
   const emberIds = resolveProjectPrimitiveIds(loadProjectRuntime(["--app", "ember-drive"]), library);
   const limiterIds = resolveProjectPrimitiveIds(loadProjectRuntime(["--app", "limiter-lab"]), library);
 
@@ -52,6 +54,12 @@ test("suite products resolve EQ, compression, and saturation primitive assemblag
     "compression.detector-ballistics",
     "compression.vintage-compressor-model",
     "analog.preamp-console-stage"
+  ]);
+  assert.deepEqual(fet76Ids, [
+    "compression.fet-76-gain-cell",
+    "compression.vintage-compressor-model",
+    "analog.preamp-console-stage",
+    "saturation.virtual-analog-stage"
   ]);
   assert.deepEqual(
     emberIds,

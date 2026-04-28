@@ -591,6 +591,19 @@
       ],
       "layoutProfile": "hero-display-with-footer"
     },
+    "fet-76-profiled-compressor": {
+      "extends": "character-compressor",
+      "group": "mix",
+      "accentPaletteId": "amber-slate",
+      "surfacePresetIds": [
+        "fet-76-faceplate",
+        "transfer-curve",
+        "history-trace",
+        "meter-stack",
+        "output-popover"
+      ],
+      "layoutProfile": "hardware-faceplate"
+    },
     "mastering-limiter": {
       "group": "mastering",
       "accentPaletteId": "amber-slate",

@@ -27,6 +27,11 @@
       "manifest": "apps/press-deck/project.json"
     },
     {
+      "key": "fet-76",
+      "name": "FET-76",
+      "manifest": "apps/fet-76/project.json"
+    },
+    {
       "key": "atlas-curve",
       "name": "Atlas Curve",
       "manifest": "apps/atlas-curve/project.json"

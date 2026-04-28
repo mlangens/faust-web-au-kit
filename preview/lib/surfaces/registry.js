@@ -8,6 +8,7 @@ import {
   buildTransferSurface
 } from "./graph-and-meter.js";
 import {
+  buildFet76FaceplateSurface,
   buildKeyboardSurface,
   buildModuleSurface,
   buildModulationDockSurface,
@@ -18,6 +19,11 @@ import {
 } from "./detail.js";
 
 const SURFACE_BUILDERS = [
+  {
+    id: "fet-76-faceplate",
+    matches: (model) => model.kind === "fet-76-faceplate" && Array.isArray(model.config.knobs),
+    build: buildFet76FaceplateSurface
+  },
   {
     id: "transfer-curve",
     matches: (model) => Array.isArray(model.config.curveControls) && model.config.curveControls.length,

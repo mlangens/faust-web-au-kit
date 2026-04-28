@@ -1525,6 +1525,112 @@
         "Pair dynamics envelope loss with harmonic/color residual loss."
       ]
     },
+    "compression.fet-76-gain-cell": {
+      "family": "compression",
+      "title": "FET 76 Gain Cell",
+      "description": "A profiled 1176-style FET compressor submodel with fixed-threshold input drive, reverse fast attack/release controls, ratio-button transfer behavior, and level-dependent harmonic memory.",
+      "dspIntent": "Fit the 1176 family as input-driven detector/gain-cell/color behavior rather than a generic threshold/ratio compressor skin.",
+      "faustLibraries": [
+        "compressors.lib",
+        "envelopes.lib",
+        "filters.lib",
+        "wdmodels.lib"
+      ],
+      "maturity": {
+        "stage": "sonically-verified",
+        "implementation": "fet-76-faust-proof",
+        "sonicVerification": "headless-uadx-1176-fit-2026-04-28",
+        "evidence": [
+          "uad-plugin-manuals",
+          "uadx-1176-rev-a-headless-profile",
+          "fet-76-profiled-clone",
+          "generated/profiling/fet76-uadx-proof"
+        ]
+      },
+      "fitFindings": [
+        "Extracted from the UADx 1176 Rev A pilot residuals that singled out tone-burst timing and harmonic-memory behavior.",
+        "Uses input drive against a fixed threshold, ratio-button topology including all-buttons mode, reverse-numbered ultrafast attack and program release, and gain-reduction-dependent saturation.",
+        "Exposes Bias and Sidechain HP as explicit fitting controls so future agentic runs can separate detector mismatch from color mismatch.",
+        "The first FET-76 proof rendered 12 engaged UADx references and 48 valid Faust comparisons; the best baseline state scored 1.972647 across stepped-sine, tone-burst, program-bed, and transient probes."
+      ],
+      "controlRoles": [
+        {
+          "role": "input-drive",
+          "surface": "large input knob"
+        },
+        {
+          "role": "output-makeup",
+          "surface": "large output knob"
+        },
+        {
+          "role": "ratio-button-bank",
+          "surface": "interlocked push buttons"
+        },
+        {
+          "role": "reverse-attack-release",
+          "surface": "small timing knobs"
+        },
+        {
+          "role": "bias-and-sidechain-fit",
+          "surface": "profile trim panel"
+        }
+      ],
+      "surfaceRoles": [
+        "fet-76-faceplate",
+        "transfer-curve",
+        "history-trace",
+        "meter-stack"
+      ],
+      "analysisProbes": [
+        "tone-burst recovery",
+        "stepped-sine level sweep",
+        "two-tone IMD",
+        "transient click train",
+        "program-dependent bed",
+        "level-matched harmonic residual"
+      ],
+      "measurementProfiles": [
+        {
+          "probe": "tone-burst train",
+          "target": "attack overshoot and release recovery",
+          "metrics": [
+            "normalized error",
+            "harmonic distance",
+            "gain-reduction envelope"
+          ]
+        },
+        {
+          "probe": "stepped sine level sweep",
+          "target": "fixed-threshold input-drive transfer",
+          "metrics": [
+            "spectral distance",
+            "rms delta",
+            "ratio region curvature"
+          ]
+        },
+        {
+          "probe": "two-tone IMD",
+          "target": "FET color and intermodulation memory",
+          "metrics": [
+            "harmonic distance",
+            "intermodulation residual",
+            "correlation"
+          ]
+        }
+      ],
+      "uiExtractionSignals": [
+        "input/output knob pair",
+        "4/8/12/20/all ratio button bank",
+        "attack/release knobs numbered fastest at the high end",
+        "VU gain-reduction meter with meter-mode switches",
+        "power switch"
+      ],
+      "agentDesignNotes": [
+        "Fit Input and Output as calibration controls before judging ratio or timing.",
+        "Use tone-burst residuals to tune attack/release and harmonic memory together.",
+        "Keep all-buttons behavior as a distinct topology, not as ratio 20 with more drive."
+      ]
+    },
     "eq.passive-vintage-program-eq": {
       "family": "equalization",
       "title": "Passive Vintage Program EQ",
@@ -2004,6 +2110,12 @@
       "compression.vintage-compressor-model",
       "analog.preamp-console-stage"
     ],
+    "fet-76-profiled-compressor": [
+      "compression.fet-76-gain-cell",
+      "compression.vintage-compressor-model",
+      "analog.preamp-console-stage",
+      "saturation.virtual-analog-stage"
+    ],
     "mastering-limiter": [
       "compression.feedforward-sidechain",
       "compression.detector-ballistics",
@@ -2074,7 +2186,8 @@
     ],
     "dynamics": [
       "compression.feedforward-sidechain",
-      "compression.detector-ballistics"
+      "compression.detector-ballistics",
+      "compression.vintage-compressor-model"
     ],
     "mastering": [
       "compression.feedforward-sidechain",
@@ -2147,6 +2260,12 @@
       "compression.detector-ballistics",
       "compression.vintage-compressor-model",
       "analog.preamp-console-stage"
+    ],
+    "fet-76": [
+      "compression.fet-76-gain-cell",
+      "compression.vintage-compressor-model",
+      "analog.preamp-console-stage",
+      "saturation.virtual-analog-stage"
     ],
     "headroom": [
       "compression.feedforward-sidechain",

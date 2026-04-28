@@ -38,8 +38,9 @@ const defaultEmulationPilotTargets = [
     id: "uad-1176-rev-a",
     displayName: "UAD 1176 Rev A vintage compressor pilot",
     pluginFilters: ["UAD UA 1176 Rev A", "1176 Rev A"],
-    candidateApp: "press-deck",
+    candidateApp: "fet-76",
     primitiveIds: [
+      "compression.fet-76-gain-cell",
       "compression.vintage-compressor-model",
       "analog.preamp-console-stage",
       "saturation.virtual-analog-stage"
@@ -88,34 +89,61 @@ const defaultEmulationPilotTargets = [
     candidateStates: [
       {
         id: "default",
-        label: "Press Deck default",
-        controlOverrides: {}
-      },
-      {
-        id: "vintage-fast",
-        label: "Fast vintage compression",
+        label: "FET-76 default profile",
         controlOverrides: {
-          Mode: 1,
-          Character: 1,
-          Ratio: 4,
-          Attack: 12,
-          Release: 90,
-          Threshold: -30,
-          "Input Gain": 6,
+          Power: 1,
+          Input: 5.2,
+          Output: 5.6,
+          Ratio: 1,
+          Attack: 6.2,
+          Release: 5.8,
+          Bias: 4.8,
+          "Sidechain HP": 55,
           Mix: 100
         }
       },
       {
-        id: "parallel",
-        label: "Parallel vintage compression",
+        id: "rev-a-driven-fast",
+        label: "Rev A driven-fast fit",
         controlOverrides: {
-          Mode: 1,
-          Character: 2,
+          Power: 1,
+          Input: 8.2,
+          Output: 4.8,
+          Ratio: 0,
+          Attack: 6.8,
+          Release: 6.2,
+          Bias: 6.4,
+          "Sidechain HP": 55,
+          Mix: 100
+        }
+      },
+      {
+        id: "all-buttons-color",
+        label: "All-buttons color fit",
+        controlOverrides: {
+          Power: 1,
+          Input: 7.6,
+          Output: 4.6,
           Ratio: 4,
-          Attack: 35,
-          Release: 180,
-          Threshold: -24,
-          "Input Gain": 3,
+          Attack: 7,
+          Release: 6.6,
+          Bias: 7.2,
+          "Sidechain HP": 45,
+          Mix: 100
+        }
+      },
+      {
+        id: "parallel-gentle",
+        label: "Parallel gentle fit",
+        controlOverrides: {
+          Power: 1,
+          Input: 5.9,
+          Output: 6.1,
+          Ratio: 0,
+          Attack: 4.3,
+          Release: 4.9,
+          Bias: 4.9,
+          "Sidechain HP": 70,
           Mix: 75
         }
       }

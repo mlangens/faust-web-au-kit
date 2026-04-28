@@ -78,9 +78,11 @@ while IFS=$'\t' read -r app_key app_name artifact_stem build_dir _dist_dir _gene
 done < <(
   node "$ROOT_DIR/tools/list-suite-runtimes.mjs" "${WORKSPACE_ARGS[@]}" --suite "$RESOLVED_SUITE_ID" --format tsv
 )
+xattr -cr "$STAGE_DIR" 2>/dev/null || true
+find "$STAGE_DIR" -name '._*' -delete 2>/dev/null || true
 
 rm -f "$PKG_PATH"
-pkgbuild \
+COPYFILE_DISABLE=1 pkgbuild \
   --root "$STAGE_DIR" \
   --identifier "$INSTALLER_PACKAGE_ID" \
   --version "$SUITE_VERSION" \

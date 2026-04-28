@@ -395,6 +395,11 @@ test("workspace manifest exposes the app suite through stable monorepo conventio
         schemaPath: "/generated/apps/ember-drive/ui_schema.json"
       },
       {
+        key: "fet-76",
+        previewPath: "/?app=fet-76",
+        schemaPath: "/generated/apps/fet-76/ui_schema.json"
+      },
+      {
         key: "headroom",
         previewPath: "/?app=headroom",
         schemaPath: "/generated/apps/headroom/ui_schema.json"

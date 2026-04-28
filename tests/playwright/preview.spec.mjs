@@ -8,6 +8,7 @@ import { loadGeneratedProject, loadGeneratedWorkspace } from "../support/generat
 const atlasCurve = loadGeneratedProject("atlas-curve");
 const contourForge = loadGeneratedProject("contour-forge");
 const emberDrive = loadGeneratedProject("ember-drive");
+const fet76 = loadGeneratedProject("fet-76");
 const limiter = loadGeneratedProject();
 const headroom = loadGeneratedProject("headroom");
 const latchLine = loadGeneratedProject("latch-line");
@@ -89,7 +90,7 @@ async function expectPreviewRouteLoaded(page, fixture, controlPattern) {
   if (fixture.schema.ui?.catalog?.referenceProduct) {
     await expect(page.locator("body")).toHaveAttribute("data-reference-product", fixture.schema.ui.catalog.referenceProduct);
   }
-  await expect(page.getByRole("heading", { name: fixture.schema.project.name })).toBeVisible();
+  await expect(page.getByRole("heading", { name: fixture.schema.project.name, exact: true })).toBeVisible();
   await expect(page.locator('#previewNav a.is-active')).toHaveText(fixture.schema.project.name);
   await expect(page.locator("#controls .control-card")).toHaveCount(controlSummary.visibleControls.length);
   await expect(page.locator("#meters .meter-card")).toHaveCount(fixture.schema.meters.length);
@@ -166,6 +167,12 @@ const routeSmokeCases = [
     route: "/?app=press-deck",
     fixture: pressDeck,
     controlPattern: /Threshold|Ratio|Attack|Release|Knee|Mix/
+  },
+  {
+    title: "fet 76 preview loads the profiled FET compressor clone route",
+    route: "/?app=fet-76",
+    fixture: fet76,
+    controlPattern: /Input|Output|Ratio|Attack|Release|Bias|Sidechain HP/
   },
   {
     title: "headroom preview loads the mastering-limiter scaffold route",
@@ -375,6 +382,31 @@ for (const routeCase of routeSmokeCases) {
     await expectPreviewRouteLoaded(page, routeCase.fixture, routeCase.controlPattern);
   });
 }
+
+test("fet 76 preview renders a hardware-style faceplate surface", async ({ page }) => {
+  await page.goto("/?app=fet-76");
+
+  const faceplate = page.locator('.surface-card[data-surface-id="fet-76-faceplate"]');
+  const ratioButton = faceplate.locator(".fet76-ratio-button").filter({ hasText: "All" });
+  const inputKnob = faceplate.locator('.fet76-knob[data-role="drive"]');
+  const inputValue = faceplate.locator(".fet76-knob-wrap").filter({ hasText: "Input" }).locator("span").last();
+  const ratioValue = page.locator('.surface-card[data-surface-id="fet-76-faceplate"] .surface-metric-row');
+  const initialInput = await inputValue.textContent();
+
+  await expect(page.locator("#surfaces .surface-card")).toHaveCount(4);
+  await expect(faceplate).toBeVisible();
+  await expect(faceplate.locator(".fet76-knob")).toHaveCount(4);
+  await expect(faceplate.locator(".fet76-ratio-button")).toHaveCount(5);
+  await expect(faceplate.locator(".fet76-vu__needle")).toBeVisible();
+  await expect(page.locator('.control-card[data-control-id="Ratio"]')).toHaveCount(0);
+
+  await ratioButton.click();
+  await expect(ratioButton).toHaveClass(/is-active/);
+  await expect(ratioValue).toContainText("Ratio: All");
+
+  await dragLocatorBy(page, inputKnob, 0, -62);
+  await expect(inputValue).not.toHaveText(initialInput ?? "");
+});
 
 test("atlas curve preview renders the shared graph editor surface", async ({ page }) => {
   await page.goto("/?app=atlas-curve");

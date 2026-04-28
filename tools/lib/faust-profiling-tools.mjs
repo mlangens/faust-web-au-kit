@@ -104,6 +104,113 @@ function controlMatchKeys(control, index) {
 }
 
 /**
+ * @param {JsonValue} value
+ * @returns {JsonValue}
+ */
+function cloneJsonValue(value) {
+  if (Array.isArray(value)) {
+    return value.map(cloneJsonValue);
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, entry === undefined ? null : cloneJsonValue(entry)]));
+  }
+  return value;
+}
+
+/**
+ * @param {import("../../types/framework").FaustUiItem[] | undefined} items
+ * @param {Map<string, number>} indexByKey
+ */
+function collectControlIndexes(items, indexByKey) {
+  for (const item of items ?? []) {
+    if (item.items) {
+      collectControlIndexes(item.items, indexByKey);
+      continue;
+    }
+    const index = Number(item.index);
+    if (!Number.isFinite(index)) {
+      continue;
+    }
+    for (const key of controlMatchKeys(/** @type {import("../../types/framework").FaustControlItem} */ (item), index)) {
+      if (!indexByKey.has(key)) {
+        indexByKey.set(key, index);
+      }
+    }
+  }
+}
+
+/**
+ * @param {string} wastPath
+ * @returns {JsonValue | null}
+ */
+function readEmbeddedWastJson(wastPath) {
+  if (!fs.existsSync(wastPath)) {
+    return null;
+  }
+  const wast = fs.readFileSync(wastPath, "utf8");
+  const match = /\(data\s+\(i32\.const\s+0\)\s+"((?:\\.|[^"\\])*)"/su.exec(wast);
+  if (!match?.[1]) {
+    return null;
+  }
+  const decoded = JSON.parse(`"${match[1]}"`);
+  return JSON.parse(decoded);
+}
+
+/**
+ * @param {string} uiJsonPath
+ * @returns {string}
+ */
+function siblingWastPath(uiJsonPath) {
+  return uiJsonPath.replace(/\.ui\.json$/u, ".wast");
+}
+
+/**
+ * Faust JSON emitted via `faust -json` can omit the WASM zone indexes that
+ * `setParamValue` expects. The WAST target embeds the same UI JSON with those
+ * indexes, so merge them back before rendering profiled candidates.
+ *
+ * @param {JsonValue} uiJson
+ * @param {string} uiJsonPath
+ * @returns {JsonValue}
+ */
+function applyFaustWasmControlIndexes(uiJson, uiJsonPath) {
+  const embedded = readEmbeddedWastJson(siblingWastPath(uiJsonPath));
+  if (!embedded || typeof embedded !== "object" || Array.isArray(embedded)) {
+    return uiJson;
+  }
+
+  /** @type {Map<string, number>} */
+  const indexByKey = new Map();
+  collectControlIndexes(/** @type {{ ui?: import("../../types/framework").FaustUiItem[] }} */ (embedded).ui, indexByKey);
+  if (!indexByKey.size) {
+    return uiJson;
+  }
+
+  const nextUiJson = cloneJsonValue(uiJson);
+  /**
+   * @param {import("../../types/framework").FaustUiItem[] | undefined} items
+   */
+  const applyIndexes = (items) => {
+    for (const item of items ?? []) {
+      if (item.items) {
+        applyIndexes(item.items);
+        continue;
+      }
+      if (Number.isFinite(Number(item.index))) {
+        continue;
+      }
+      const keys = controlMatchKeys(/** @type {import("../../types/framework").FaustControlItem} */ (item), -1);
+      const index = keys.map((key) => indexByKey.get(key)).find((value) => Number.isFinite(Number(value)));
+      if (Number.isFinite(Number(index))) {
+        item.index = Number(index);
+      }
+    }
+  };
+  applyIndexes(/** @type {{ ui?: import("../../types/framework").FaustUiItem[] }} */ (nextUiJson).ui);
+  return nextUiJson;
+}
+
+/**
  * @param {{
  *   setParamValue?: Function,
  *   dspOffset: number,
@@ -170,7 +277,9 @@ async function renderFaustWasm(options) {
   const imports = createWasmEnv(WebAssembly.Module.imports(module));
   const instance = await WebAssembly.instantiate(module, imports);
   const exports = /** @type {{ memory: WebAssembly.Memory, init: Function, compute: Function, setParamValue?: Function }} */ (instance.exports);
-  const uiJson = readJsonFileSync(options.uiJsonPath);
+  const uiJson = /** @type {import("../../types/framework").FaustUiExport} */ (
+    applyFaustWasmControlIndexes(readJsonFileSync(options.uiJsonPath), options.uiJsonPath)
+  );
   const sampleRate = options.input.sampleRate;
   const channels = Math.max(1, options.input.channels);
   const blockSize = Math.max(1, options.blockSize);
@@ -320,6 +429,7 @@ async function profileFaustAssemblage(options) {
 }
 
 export {
+  applyFaustWasmControlIndexes,
   applyFaustControlOverrides,
   profileFaustAssemblage,
   renderFaustWasm

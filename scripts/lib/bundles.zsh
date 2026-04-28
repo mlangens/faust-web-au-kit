@@ -42,7 +42,14 @@ stage_bundle() {
   local destination_path="$2"
 
   mkdir -p "$(dirname "$destination_path")"
-  cp -R "$source_path" "$destination_path"
+  rm -rf "$destination_path"
+  if command -v ditto >/dev/null 2>&1; then
+    ditto --noextattr --noqtn "$source_path" "$destination_path"
+  else
+    COPYFILE_DISABLE=1 cp -R "$source_path" "$destination_path"
+  fi
+  xattr -cr "$destination_path" 2>/dev/null || true
+  find "$destination_path" -name '._*' -delete 2>/dev/null || true
 }
 
 append_bundle_relative_paths() {

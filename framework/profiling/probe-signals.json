@@ -466,6 +466,11 @@
     "compression.detector-ballistics": [
       "dynamics.behavior"
     ],
+    "compression.fet-76-gain-cell": [
+      "dynamics.behavior",
+      "nonlinear.character",
+      "musical.program"
+    ],
     "compression.feedforward-sidechain": [
       "dynamics.behavior",
       "musical.program"

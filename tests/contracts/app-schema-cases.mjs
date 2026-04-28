@@ -25,6 +25,19 @@ const appSchemaCases = [
     }
   },
   {
+    appKey: "fet-76",
+    name: "FET-76",
+    kind: "effect",
+    controlLabelsAny: ["Input", "Output", "Ratio", "Attack", "Release", "Bias", "Sidechain HP"],
+    surfacePresetIds: ["fet-76-faceplate", "transfer-curve", "history-trace", "meter-stack", "output-popover"],
+    assertions(schema) {
+      assert.equal(schema.ui.preview?.surfaces?.["fet-76-faceplate"]?.knobs?.length, 4);
+      assert.equal(schema.ui.preview?.surfaces?.["fet-76-faceplate"]?.ratioButtons?.length, 5);
+      assert.deepEqual(schema.ui.display?.enumLabels?.Ratio, ["4", "8", "12", "20", "All"]);
+      assert.ok(schema.ui.primitiveIds.includes("compression.fet-76-gain-cell"));
+    }
+  },
+  {
     appKey: "atlas-curve",
     name: "Atlas Curve",
     kind: "effect",

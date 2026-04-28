@@ -412,6 +412,7 @@ test("surface registry keeps all shared preview builders available", () => {
   assert.deepEqual(
     SURFACE_BUILDERS.map((entry) => entry.id),
     [
+      "fet-76-faceplate",
       "transfer-curve",
       "modulation-dock",
       "timeline-editor",

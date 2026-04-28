@@ -83,7 +83,7 @@ build_nopayload_package() {
   local scripts_dir="$4"
 
   rm -f "$output_path"
-  pkgbuild \
+  COPYFILE_DISABLE=1 pkgbuild \
     --nopayload \
     --scripts "$scripts_dir" \
     --identifier "$package_id" \

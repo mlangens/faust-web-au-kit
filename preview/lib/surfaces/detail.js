@@ -779,6 +779,202 @@ function buildKeyboardSurface(model, schema, state) {
   return { node: card, update };
 }
 
+function buildFet76FaceplateSurface(model, schema, state) {
+  const knobs = Array.isArray(model.config.knobs) ? model.config.knobs : [];
+  const ratioButtons = Array.isArray(model.config.ratioButtons) ? model.config.ratioButtons : [];
+  if (!knobs.length || !ratioButtons.length) {
+    return buildSummarySurface(model);
+  }
+
+  const { card, badges, body } = createSurfaceScaffold(
+    model,
+    "surface-card surface-card--fet76",
+    "surface-card__body surface-card__body--fet76"
+  );
+
+  const badgeRow = document.createElement("div");
+  badgeRow.className = "surface-metric-row";
+
+  const faceplate = document.createElement("div");
+  faceplate.className = "fet76-faceplate";
+  faceplate.dataset.canvasHint = "Drag knobs, press ratio buttons, and use the VU meter as the primary compressor surface.";
+
+  const leftBank = document.createElement("div");
+  leftBank.className = "fet76-knob-bank";
+  const rightBank = document.createElement("div");
+  rightBank.className = "fet76-knob-bank";
+  const center = document.createElement("div");
+  center.className = "fet76-center";
+
+  const meter = document.createElement("div");
+  meter.className = "fet76-vu";
+  const meterScale = document.createElement("div");
+  meterScale.className = "fet76-vu__scale";
+  meterScale.textContent = "VU";
+  const needle = document.createElement("div");
+  needle.className = "fet76-vu__needle";
+  const meterReadout = document.createElement("strong");
+  meterReadout.className = "fet76-vu__readout";
+  meter.append(meterScale, needle, meterReadout);
+
+  const ratioBank = document.createElement("div");
+  ratioBank.className = "fet76-ratio-bank";
+  const ratioLabel = document.createElement("span");
+  ratioLabel.textContent = "Ratio";
+  ratioBank.append(ratioLabel);
+  const ratioViews = ratioButtons.map((entry) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "fet76-ratio-button";
+    button.textContent = entry.label || humanizeId(entry.value);
+    button.addEventListener("click", () => {
+      setSurfaceControlValue(card, schema, state, "Ratio", Number(entry.value ?? 0));
+    });
+    ratioBank.append(button);
+    return { entry, button };
+  });
+
+  const meterMode = document.createElement("button");
+  meterMode.type = "button";
+  meterMode.className = "fet76-meter-mode";
+  meterMode.addEventListener("click", () => {
+    const control = resolveControl(schema, model.config.meter?.modeControl || "Meter");
+    if (!control) {
+      return;
+    }
+    const current = Number(readControlValue(schema, state, control.label, control.init ?? 0));
+    const min = Number(control.min ?? 0);
+    const max = Number(control.max ?? 3);
+    const next = current >= max ? min : current + 1;
+    setSurfaceControlValue(card, schema, state, control.label, next);
+  });
+
+  const powerLamp = document.createElement("button");
+  powerLamp.type = "button";
+  powerLamp.className = "fet76-power-lamp";
+  powerLamp.addEventListener("click", () => {
+    const power = resolveControl(schema, "Power");
+    if (!power) {
+      return;
+    }
+    const current = Number(readControlValue(schema, state, "Power", power.init ?? 0));
+    setSurfaceControlValue(card, schema, state, "Power", current >= 0.5 ? 0 : 1);
+  });
+
+  center.append(meter, ratioBank, meterMode, powerLamp);
+
+  const knobViews = knobs.map((entry, index) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "fet76-knob-wrap";
+    wrapper.style.setProperty("--knob-accent", resolveToneColor(entry.tone));
+
+    const knob = document.createElement("button");
+    knob.type = "button";
+    knob.className = "fet76-knob";
+    knob.dataset.role = entry.role || entry.control || "knob";
+
+    const pointer = document.createElement("span");
+    pointer.className = "fet76-knob__pointer";
+    knob.append(pointer);
+
+    const label = document.createElement("strong");
+    label.textContent = entry.label || humanizeId(entry.control);
+    const value = document.createElement("span");
+
+    wrapper.append(knob, label, value);
+    (index < 2 ? leftBank : rightBank).append(wrapper);
+
+    const interactions = createSurfaceInteractionController(knob);
+    let dragStart = 0.5;
+    const startKnobDrag = (event) => {
+      const control = resolveControl(schema, entry.control);
+      if (!control) {
+        return;
+      }
+      const current = Number(readControlValue(schema, state, entry.control, control.init ?? 0));
+      dragStart = normalizeControlValue(control, current);
+      interactions.startDrag(event, {
+        captureTarget: knob,
+        onMove: ({ point, startPoint }) => {
+          const nextNormalized = clamp(
+            dragStart + (startPoint.y - point.y) * 1.28 + (point.x - startPoint.x) * 0.32,
+            0,
+            1
+          );
+          const nextValue = denormalizePointAxisValue(control, {
+            min: control.min,
+            max: control.max,
+            scale: control.scale
+          }, nextNormalized);
+          setSurfaceControlValue(card, schema, state, entry.control, nextValue);
+        }
+      });
+    };
+
+    knob.addEventListener("pointerdown", startKnobDrag);
+    knob.addEventListener("mousedown", startKnobDrag);
+    return { entry, knob, value };
+  });
+
+  const trimPanel = document.createElement("section");
+  trimPanel.className = "surface-section-card fet76-trim-panel";
+  const trimTitle = document.createElement("h4");
+  trimTitle.textContent = "Fit trims";
+  const trimList = document.createElement("div");
+  trimList.className = "surface-value-list";
+  const trimViews = (Array.isArray(model.config.trimItems) ? model.config.trimItems : []).map((item) => {
+    const row = document.createElement("div");
+    row.className = "surface-value-row";
+    const label = document.createElement("span");
+    label.textContent = item.label || humanizeId(item.control || item.id || "item");
+    const value = document.createElement("strong");
+    row.append(label, value);
+    enhanceSurfaceReadoutRow(row, card, schema, state, item);
+    trimList.append(row);
+    return { item, value };
+  });
+  trimPanel.append(trimTitle, trimList);
+
+  faceplate.append(leftBank, center, rightBank);
+  body.append(badgeRow, faceplate, trimPanel);
+
+  const update = () => {
+    populateStandardBadges(badges, model);
+    populateFocusBadges(badgeRow, schema, state, Array.isArray(model.config.focusBadges) ? model.config.focusBadges : []);
+
+    knobViews.forEach(({ entry, knob, value }) => {
+      const control = resolveControl(schema, entry.control);
+      const current = control ? readControlValue(schema, state, entry.control, control.init ?? 0) : 0;
+      const normalized = control ? normalizeControlValue(control, Number(current)) : 0.5;
+      knob.style.setProperty("--knob-angle", `${-132 + normalized * 264}deg`);
+      value.textContent = control ? formatValue(control, current, schema.ui) : "";
+    });
+
+    const ratioControl = resolveControl(schema, "Ratio");
+    const ratioValue = Number(readControlValue(schema, state, "Ratio", ratioControl?.init ?? 0));
+    ratioViews.forEach(({ entry, button }) => {
+      button.classList.toggle("is-active", Number(entry.value ?? 0) === ratioValue);
+    });
+
+    const measured = measureMeterValue(schema, state, model.config.meter?.meterId || "gainReduction", 0);
+    const percent = meterPercent(measured.value, measured.meter);
+    needle.style.setProperty("--needle-angle", `${-42 + percent * 84}deg`);
+    meterReadout.textContent = formatMeterValue(measured.value, measured.meter);
+    meterMode.textContent = controlValueText(schema, state, model.config.meter?.modeControl || "Meter") || "GR";
+
+    const powerControl = resolveControl(schema, "Power");
+    const powerOn = Number(readControlValue(schema, state, "Power", powerControl?.init ?? 0)) >= 0.5;
+    powerLamp.classList.toggle("is-on", powerOn);
+    powerLamp.textContent = powerOn ? "Power On" : "Power Off";
+
+    trimViews.forEach(({ item, value }) => {
+      value.textContent = item.control ? controlValueText(schema, state, item.control) : "";
+    });
+  };
+
+  return { node: card, update };
+}
+
 function buildValueSurface(model, schema, state) {
   const items = Array.isArray(model.config.items) ? model.config.items : [];
   if (!items.length) {
@@ -832,6 +1028,7 @@ function buildValueSurface(model, schema, state) {
 }
 
 export {
+  buildFet76FaceplateSurface,
   buildKeyboardSurface,
   buildModuleSurface,
   buildModulationDockSurface,

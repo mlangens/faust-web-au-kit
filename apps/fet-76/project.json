@@ -1,0 +1,593 @@
+{
+  "name": "fet-76",
+  "version": "0.1.0",
+  "owner": "mlangens",
+  "companyName": "Max Langensiepen",
+  "companyTag": "Mlng",
+  "productName": "FET-76",
+  "artifactStem": "FET76",
+  "bundleId": "io.github.mlangens.faust-web-au-kit.fet-76",
+  "description": "1176-style FET compressor proof built from profiled primitives, fast gain-cell timing, and vintage faceplate controls.",
+  "license": "MIT",
+  "plugin": {
+    "kind": "effect",
+    "inputs": 2,
+    "outputs": 2,
+    "midiInput": false,
+    "latencySeconds": 0.0,
+    "gui": {
+      "native": true,
+      "webPreview": true,
+      "resizable": true
+    }
+  },
+  "targets": {
+    "native": [
+      "auv2",
+      "clap",
+      "vst3",
+      "standalone"
+    ],
+    "active": []
+  },
+  "oversampling": {
+    "factor": 4
+  },
+  "faust": {
+    "source": "./dsp/main.dsp",
+    "className": "FET76DSP"
+  },
+  "ui": {
+    "family": "northline-core",
+    "variant": "fet-76-profiled-compressor",
+    "catalog": {
+      "productId": "fet-76",
+      "prototypeRole": "profiled-uadx-1176-proof",
+      "referenceProduct": "1176-style FET compressor",
+      "featureAnchors": [
+        "fixed-threshold input drive",
+        "4/8/12/20/all-buttons ratio behavior",
+        "ultrafast FET attack and program release",
+        "gain-reduction VU meter",
+        "level-dependent harmonic color"
+      ],
+      "primitiveIds": [
+        "compression.fet-76-gain-cell",
+        "compression.vintage-compressor-model",
+        "analog.preamp-console-stage",
+        "saturation.virtual-analog-stage"
+      ]
+    },
+    "accentPaletteId": "amber-slate",
+    "surfacePresetIds": [
+      "fet-76-faceplate",
+      "transfer-curve",
+      "history-trace",
+      "meter-stack",
+      "output-popover"
+    ],
+    "surfacePresets": {
+      "fet-76-faceplate": {
+        "kind": "fet-76-faceplate",
+        "supports": [
+          "input-output-transformer-drive",
+          "ratio-button-bank",
+          "vu-gain-reduction-meter",
+          "attack-release-reversed-knobs"
+        ]
+      }
+    },
+    "layoutProfile": "hardware-faceplate",
+    "shell": {
+      "hero": {
+        "status": "Profiled FET compressor proof: the controls are arranged around a 1176-style faceplate while the DSP follows measured UADx 1176 residuals."
+      },
+      "sections": {
+        "surfaces": {
+          "title": "FET Faceplate",
+          "description": "The primary surface moves input, output, ratio, timing, bias, mix, meter mode, and power onto a hardware-style panel instead of slider-first controls."
+        },
+        "controls": {
+          "title": "Trim Dock",
+          "description": "Only secondary trims remain in the dock; the faceplate owns the 1176-style operating controls."
+        },
+        "meters": {
+          "title": "VU and Level Checks",
+          "description": "Input, output, and gain reduction are exposed for profiling, preview, and native validation."
+        }
+      }
+    },
+    "display": {
+      "enumLabels": {
+        "Ratio": [
+          "4",
+          "8",
+          "12",
+          "20",
+          "All"
+        ],
+        "Meter": [
+          "+4",
+          "+8",
+          "GR",
+          "Off"
+        ]
+      },
+      "controls": {
+        "Power": {
+          "enumLabels": [
+            "Off",
+            "On"
+          ],
+          "onLabel": "On",
+          "offLabel": "Off"
+        }
+      }
+    },
+    "preview": {
+      "controls": {
+        "layout": "sectioned",
+        "sections": [
+          {
+            "id": "faceplate-owned",
+            "title": "Faceplate-Owned Controls",
+            "description": "These controls are intentionally operated from the vintage panel surface.",
+            "kind": "toggle-bank",
+            "items": [
+              {
+                "control": "Input",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Output",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Ratio",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Attack",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Release",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Meter",
+                "surfaceOnly": true
+              },
+              {
+                "control": "Power",
+                "surfaceOnly": true
+              }
+            ]
+          },
+          {
+            "id": "profile-fit-trims",
+            "title": "Profile Fit Trims",
+            "description": "Secondary fit controls stay visible for emulation experiments and regression tuning.",
+            "kind": "dial-grid",
+            "columns": 3,
+            "items": [
+              {
+                "control": "Bias"
+              },
+              {
+                "control": "Sidechain HP"
+              },
+              {
+                "control": "Mix"
+              }
+            ]
+          }
+        ],
+        "supplementalTitle": "Additional Controls",
+        "supplementalDescription": "Unexpected Faust controls remain available here during fitting."
+      },
+      "surfaces": {
+        "fet-76-faceplate": {
+          "title": "FET-76 faceplate",
+          "description": "A vintage FET compressor panel inspired by 1176 workflows: input drives fixed-threshold compression, ratio buttons select gain-cell behavior, and the VU needle follows gain reduction.",
+          "focusBadges": [
+            {
+              "label": "Ratio",
+              "control": "Ratio",
+              "tone": "accent"
+            },
+            {
+              "label": "Meter",
+              "control": "Meter",
+              "tone": "muted"
+            },
+            {
+              "label": "Power",
+              "control": "Power",
+              "tone": "positive"
+            }
+          ],
+          "knobs": [
+            {
+              "control": "Input",
+              "label": "Input",
+              "role": "drive",
+              "tone": "warning"
+            },
+            {
+              "control": "Output",
+              "label": "Output",
+              "role": "makeup",
+              "tone": "positive"
+            },
+            {
+              "control": "Attack",
+              "label": "Attack",
+              "role": "fast-attack",
+              "tone": "accent"
+            },
+            {
+              "control": "Release",
+              "label": "Release",
+              "role": "program-release",
+              "tone": "info"
+            }
+          ],
+          "ratioButtons": [
+            {
+              "label": "4",
+              "value": 0
+            },
+            {
+              "label": "8",
+              "value": 1
+            },
+            {
+              "label": "12",
+              "value": 2
+            },
+            {
+              "label": "20",
+              "value": 3
+            },
+            {
+              "label": "All",
+              "value": 4
+            }
+          ],
+          "meter": {
+            "label": "Gain Reduction",
+            "meterId": "gainReduction",
+            "modeControl": "Meter"
+          },
+          "trimItems": [
+            {
+              "label": "Bias",
+              "control": "Bias"
+            },
+            {
+              "label": "Sidechain HP",
+              "control": "Sidechain HP"
+            },
+            {
+              "label": "Mix",
+              "control": "Mix"
+            },
+            {
+              "label": "Power",
+              "control": "Power"
+            }
+          ]
+        },
+        "transfer-curve": {
+          "title": "FET transfer curve",
+          "description": "The shared transfer editor frames the fixed-threshold input-drive behavior as a gain-cell curve rather than a threshold slider.",
+          "focusBadges": [
+            {
+              "label": "Ratio",
+              "control": "Ratio",
+              "tone": "accent"
+            },
+            {
+              "label": "Bias",
+              "control": "Bias",
+              "tone": "muted"
+            }
+          ],
+          "curveControls": [
+            {
+              "label": "Input",
+              "control": "Input",
+              "role": "input",
+              "tone": "warning"
+            },
+            {
+              "label": "Bias",
+              "control": "Bias",
+              "role": "drive",
+              "tone": "accent"
+            },
+            {
+              "label": "Output",
+              "control": "Output",
+              "role": "ceiling",
+              "tone": "positive"
+            }
+          ],
+          "timingItems": [
+            {
+              "label": "Attack",
+              "control": "Attack"
+            },
+            {
+              "label": "Release",
+              "control": "Release"
+            }
+          ],
+          "detailItems": [
+            {
+              "label": "Ratio",
+              "control": "Ratio"
+            },
+            {
+              "label": "Mix",
+              "control": "Mix"
+            },
+            {
+              "label": "Sidechain HP",
+              "control": "Sidechain HP"
+            }
+          ],
+          "monitor": {
+            "label": "Gain Reduction",
+            "meterId": "gainReduction"
+          },
+          "meters": [
+            {
+              "label": "Input",
+              "meterId": "inputLevel"
+            },
+            {
+              "label": "Output",
+              "meterId": "outputLevel"
+            }
+          ]
+        },
+        "history-trace": {
+          "title": "Gain-cell history",
+          "description": "Input drive, FET gain reduction, and output level are tracked as the fitting target for UADx comparison.",
+          "focusBadges": [
+            {
+              "label": "Attack",
+              "control": "Attack",
+              "tone": "accent"
+            },
+            {
+              "label": "Release",
+              "control": "Release",
+              "tone": "muted"
+            }
+          ],
+          "series": [
+            {
+              "id": "input",
+              "label": "Input",
+              "meterId": "inputLevel",
+              "tone": "warning"
+            },
+            {
+              "id": "reduction",
+              "label": "Reduction",
+              "meterId": "gainReduction",
+              "tone": "info",
+              "variant": "gr"
+            },
+            {
+              "id": "output",
+              "label": "Output",
+              "meterId": "outputLevel",
+              "tone": "positive"
+            }
+          ]
+        },
+        "output-popover": {
+          "title": "Profile fit controls",
+          "description": "Secondary controls used by the fitting pass without compromising the main 1176-style workflow.",
+          "items": [
+            {
+              "label": "Bias",
+              "control": "Bias"
+            },
+            {
+              "label": "Sidechain HP",
+              "control": "Sidechain HP"
+            },
+            {
+              "label": "Mix",
+              "control": "Mix"
+            },
+            {
+              "label": "Power",
+              "control": "Power"
+            }
+          ]
+        }
+      }
+    },
+    "statusText": "1176-style FET compressor clone proof with input/output drive, ratio buttons, reverse fast attack/release controls, VU gain reduction, and profiled harmonic-memory fitting.",
+    "controlOrder": [
+      "Input",
+      "Output",
+      "Ratio",
+      "Attack",
+      "Release",
+      "Bias",
+      "Sidechain HP",
+      "Mix",
+      "Meter",
+      "Power"
+    ],
+    "meters": [
+      {
+        "id": "inputLevel",
+        "label": "Input Level",
+        "max": 84,
+        "mode": "peak",
+        "style": "vu-side",
+        "ballistics": "medium"
+      },
+      {
+        "id": "gainReduction",
+        "label": "Gain Reduction",
+        "max": 30,
+        "mode": "gr",
+        "style": "vu",
+        "ballistics": "fast-rise-slow-fall"
+      },
+      {
+        "id": "outputLevel",
+        "label": "Output Level",
+        "max": 84,
+        "mode": "peak",
+        "style": "vu-side",
+        "ballistics": "medium"
+      }
+    ]
+  },
+  "au": {
+    "type": "aufx",
+    "subtype": "Ft76",
+    "manufacturer": "Mlng",
+    "tags": [
+      "Dynamics",
+      "Effects"
+    ]
+  },
+  "clap": {
+    "id": "io.github.mlangens.faust-web-au-kit.fet-76",
+    "description": "1176-style FET compressor proof with profiled primitive fitting.",
+    "features": [
+      "audio-effect",
+      "compressor",
+      "mixing",
+      "stereo"
+    ]
+  },
+  "vst3": {
+    "categories": [
+      "Fx",
+      "Dynamics",
+      "Stereo"
+    ],
+    "componentTuid": [
+      "Mlng",
+      "Comp",
+      "Ft76",
+      0
+    ],
+    "controllerTuid": [
+      "Mlng",
+      "Edit",
+      "Ft76",
+      0
+    ]
+  },
+  "standalone": {
+    "bundleId": "io.github.mlangens.faust-web-au-kit.fet-76.app"
+  },
+  "sonicStages": [
+    {
+      "id": "fet-input-drive-adds-compression-color",
+      "title": "FET input drive adds compression and color",
+      "description": "Driving the fixed-threshold FET input should lower peaks and increase harmonic content relative to a conservative baseline.",
+      "fixture": {
+        "kind": "tone-burst-train",
+        "seconds": 1.4,
+        "amplitude": 0.48
+      },
+      "renders": [
+        {
+          "id": "baseline",
+          "parameters": {
+            "Input": 3.2,
+            "Output": 6.0,
+            "Ratio": 0,
+            "Attack": 3.5,
+            "Release": 3.5,
+            "Power": 1
+          }
+        },
+        {
+          "id": "feature",
+          "parameters": {
+            "Input": 8.2,
+            "Output": 3.7,
+            "Ratio": 4,
+            "Attack": 6.7,
+            "Release": 6.1,
+            "Bias": 6.5,
+            "Power": 1
+          }
+        }
+      ],
+      "assertions": [
+        {
+          "render": "feature",
+          "metric": "nanSamples",
+          "eq": 0
+        },
+        {
+          "render": "feature",
+          "metric": "peakDb",
+          "reference": "baseline",
+          "maxDelta": 3.0
+        }
+      ],
+      "tags": [
+        "feature",
+        "compressor",
+        "fet-76"
+      ]
+    }
+  ],
+  "benchmark": {
+    "sampleRate": 48000,
+    "blockSize": 256,
+    "seconds": 6,
+    "initialControls": [
+      {
+        "label": "Power",
+        "value": 1
+      },
+      {
+        "label": "Input",
+        "value": 6.4
+      },
+      {
+        "label": "Output",
+        "value": 5.4
+      },
+      {
+        "label": "Ratio",
+        "value": 1
+      },
+      {
+        "label": "Attack",
+        "value": 6.0
+      },
+      {
+        "label": "Release",
+        "value": 5.6
+      }
+    ],
+    "nativeTargets": [
+      "c",
+      "cpp",
+      "wasm"
+    ],
+    "exportOnlyTargets": [
+      "cmajor",
+      "rust"
+    ]
+  }
+}

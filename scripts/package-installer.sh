@@ -54,9 +54,11 @@ stage_bundle "$FWAK_BUILD_DIR/${FWAK_ARTIFACT_STEM}.component" "$STAGE_DIR/Libra
 stage_bundle "$FWAK_BUILD_DIR/${FWAK_ARTIFACT_STEM}.vst3" "$STAGE_DIR/Library/Audio/Plug-Ins/VST3/${FWAK_ARTIFACT_STEM}.vst3"
 stage_bundle "$FWAK_BUILD_DIR/${FWAK_ARTIFACT_STEM}.clap" "$STAGE_DIR/Library/Audio/Plug-Ins/CLAP/${FWAK_ARTIFACT_STEM}.clap"
 stage_bundle "$FWAK_BUILD_DIR/${FWAK_ARTIFACT_STEM}.app" "$STAGE_DIR/Applications/${FWAK_ARTIFACT_STEM}.app"
+xattr -cr "$STAGE_DIR" 2>/dev/null || true
+find "$STAGE_DIR" -name '._*' -delete 2>/dev/null || true
 
 rm -f "$PKG_PATH"
-pkgbuild \
+COPYFILE_DISABLE=1 pkgbuild \
   --root "$STAGE_DIR" \
   --identifier "$FWAK_PACKAGE_ID" \
   --version "$FWAK_PROJECT_VERSION" \
