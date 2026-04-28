@@ -351,6 +351,9 @@ export interface UadPluginInventoryEntry extends JsonObject {
   format: string;
   displayName: string;
   normalizedName: string;
+  productKey?: string;
+  runtimeKind?: "uadx-native" | "uad-dsp" | "unknown" | string;
+  nativeRuntime?: boolean;
   path: string;
   primitiveIds?: string[];
 }

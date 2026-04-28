@@ -3,8 +3,11 @@ import test from "node:test";
 
 import {
   buildUadProfilePlan,
+  classifyUadRuntime,
+  compareUadProfilingPreference,
   inferPrimitiveIdsForPluginName,
-  normalizePluginName
+  normalizePluginName,
+  uadProductKey
 } from "../../tools/lib/uad-plugin-profiler-tools.mjs";
 
 test("UAD plugin name inference maps owned vintage plugins to sonic primitives", () => {
@@ -48,4 +51,34 @@ test("UAD profile plan assigns primitive-specific probe signals and renderabilit
   assert.ok(studer?.primitiveIds?.includes("tape.magnetic-recorder-stage"));
   assert.ok(studer?.signalIds?.includes("steady-sine-wow-flutter"));
   assert.equal(studer?.renderableByBuiltInAuHost, false);
+});
+
+test("UAD profiling preference treats UADx native plugins as first-choice references", () => {
+  assert.equal(classifyUadRuntime("uaudio_ua_1176_rev_a", "/Library/Audio/Plug-Ins/Components/uaudio_ua_1176_rev_a.component"), "uadx-native");
+  assert.equal(classifyUadRuntime("UAD UA 1176 Rev A", "/Library/Audio/Plug-Ins/Components/UAD UA 1176 Rev A.component"), "uad-dsp");
+  assert.equal(uadProductKey("Universal Audio (UADx): UADx 1176 Rev A Compressor"), "1176 rev a");
+  assert.equal(uadProductKey("uaudio_ua_1176_rev_a.component"), "1176 rev a");
+
+  const sorted = [
+    {
+      id: "au:uad-dsp",
+      format: "au",
+      displayName: "UAD UA 1176 Rev A",
+      normalizedName: "ua 1176 rev a",
+      productKey: "1176 rev a",
+      runtimeKind: "uad-dsp",
+      path: "/Library/Audio/Plug-Ins/Components/UAD UA 1176 Rev A.component"
+    },
+    {
+      id: "au:uadx",
+      format: "au",
+      displayName: "uaudio_ua_1176_rev_a",
+      normalizedName: "ua 1176 rev a",
+      productKey: "1176 rev a",
+      runtimeKind: "uadx-native",
+      path: "/Library/Audio/Plug-Ins/Components/uaudio_ua_1176_rev_a.component"
+    }
+  ].sort(compareUadProfilingPreference);
+
+  assert.equal(sorted[0]?.id, "au:uadx");
 });

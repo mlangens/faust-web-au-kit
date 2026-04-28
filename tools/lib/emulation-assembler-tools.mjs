@@ -12,10 +12,12 @@ import { loadProjectRuntime } from "./project-tools.mjs";
 import { createProbeSignalSet, loadProbeSignalCorpus, probeSignalDefinition, readWavAsFloat32, writeFloat32Wav } from "./probe-signal-tools.mjs";
 import { analyzeWavFile, compareWavFiles, writeAnalysisReport } from "./sonic-analysis-tools.mjs";
 import {
+  compareUadProfilingPreference,
   compileAuProfileHost,
   discoverInstalledUadPlugins,
   inferPrimitiveIdsForPluginName,
-  queryAuHostParameters
+  queryAuHostParameters,
+  uadProductKey
 } from "./uad-plugin-profiler-tools.mjs";
 
 /**
@@ -358,6 +360,14 @@ function scoreSonicComparison(comparisonReport) {
 }
 
 /**
+ * @param {{ referenceEngaged?: boolean, metrics?: { score?: number } }} comparison
+ * @returns {boolean}
+ */
+function isValidScoredComparison(comparison) {
+  return comparison.referenceEngaged !== false && Number.isFinite(Number(comparison.metrics?.score));
+}
+
+/**
  * @param {Array<{ candidateStateId: string, signalId: string, referenceEngaged?: boolean, metrics: { score: number } }>} comparisons
  * @returns {Array<{ candidateStateId: string, averageScore: number, signalCount: number }>}
  */
@@ -365,13 +375,10 @@ function summarizeCandidateScores(comparisons) {
   /** @type {Map<string, { sum: number, count: number }>} */
   const scores = new Map();
   for (const comparison of comparisons) {
-    if (comparison.referenceEngaged === false) {
+    if (!isValidScoredComparison(comparison)) {
       continue;
     }
     const score = Number(comparison.metrics.score);
-    if (!Number.isFinite(score)) {
-      continue;
-    }
     const existing = scores.get(comparison.candidateStateId) ?? { sum: 0, count: 0 };
     existing.sum += score;
     existing.count += 1;
@@ -400,9 +407,14 @@ function selectBestCandidateState(scores) {
  * @returns {UadPluginInventoryEntry | null}
  */
 function selectInstalledAuPlugin(inventory, target) {
-  const auEntries = inventory.filter((entry) => entry.format === "au");
+  const auEntries = inventory.filter((entry) => entry.format === "au").sort(compareUadProfilingPreference);
   for (const filter of target.pluginFilters ?? []) {
     const normalizedFilter = normalizeKey(filter);
+    const filterProductKey = uadProductKey(filter);
+    const productMatch = auEntries.find((entry) => uadProductKey(entry.displayName) === filterProductKey);
+    if (productMatch) {
+      return productMatch;
+    }
     const exact = auEntries.find((entry) => normalizeKey(entry.displayName) === normalizedFilter);
     if (exact) {
       return exact;
@@ -559,6 +571,7 @@ function buildPilotAssemblySpec(target, context) {
     candidateScores: context.candidateScores,
     residuals: context.comparisons
       .filter((comparison) => comparison.candidateStateId === context.bestCandidate?.candidateStateId)
+      .filter(isValidScoredComparison)
       .sort((left, right) => metric(right, "score") - metric(left, "score"))
       .slice(0, 8)
       .map((comparison) => ({
@@ -812,7 +825,8 @@ async function runEmulationPilots(options) {
       candidateStateCount: candidateStates.length,
       comparisonCount: comparisons.length,
       renderMethod: options.renderMethod ?? "callback",
-      validComparisonCount: comparisons.filter((comparison) => comparison.referenceEngaged !== false).length,
+      validComparisonCount: comparisons.filter(isValidScoredComparison).length,
+      invalidComparisonCount: comparisons.filter((comparison) => !isValidScoredComparison(comparison)).length,
       referenceEngagedCount: [...referenceEngagementByStateSignal.values()].filter(Boolean).length,
       referencePassThroughCount: [...referenceEngagementByStateSignal.values()].filter((value) => !value).length,
       bestCandidate,

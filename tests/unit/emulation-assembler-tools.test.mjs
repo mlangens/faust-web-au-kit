@@ -45,7 +45,8 @@ test("candidate scoring prefers lower sonic residuals", () => {
     { candidateStateId: "fit", signalId: "tone", metrics: { score: 0.7 } },
     { candidateStateId: "fit", signalId: "program", metrics: { score: 0.9 } },
     { candidateStateId: "rough", signalId: "program", metrics: { score: 1.5 } },
-    { candidateStateId: "invalid-pass-through", signalId: "program", referenceEngaged: false, metrics: { score: 0 } }
+    { candidateStateId: "invalid-pass-through", signalId: "program", referenceEngaged: false, metrics: { score: 0 } },
+    { candidateStateId: "invalid-nan", signalId: "program", metrics: { score: Number.NaN } }
   ];
   const scores = summarizeCandidateScores(comparisons);
   const best = selectBestCandidateState(scores);
@@ -54,6 +55,7 @@ test("candidate scoring prefers lower sonic residuals", () => {
   assert.equal(best?.signalCount, 2);
   assert.equal(best?.averageScore, 0.8);
   assert.equal(scores.some((entry) => entry.candidateStateId === "invalid-pass-through"), false);
+  assert.equal(scores.some((entry) => entry.candidateStateId === "invalid-nan"), false);
 });
 
 test("sonic comparison score includes spectral, harmonic, loudness, and correlation residuals", () => {
@@ -80,7 +82,7 @@ test("sonic comparison score includes spectral, harmonic, loudness, and correlat
   assert.equal(score.rmsDeltaDb, 2);
 });
 
-test("installed AU selection prefers exact pilot filter matches", () => {
+test("installed AU selection prefers native UADx AU references for exact pilot matches", () => {
   const target = defaultEmulationPilotTargets.find((entry) => entry.id === "uad-pultec-eqp-1a");
   const selected = selectInstalledAuPlugin(
     [
@@ -96,11 +98,22 @@ test("installed AU selection prefers exact pilot filter matches", () => {
         format: "au",
         displayName: "UAD Pultec EQP-1A",
         normalizedName: "pultec eqp 1a",
+        productKey: "pultec eqp 1a",
+        runtimeKind: "uad-dsp",
         path: "/Library/Audio/Plug-Ins/Components/UAD Pultec EQP-1A.component"
+      },
+      {
+        id: "au:pultec-uadx",
+        format: "au",
+        displayName: "uaudio_pultec_eqp-1a",
+        normalizedName: "pultec eqp 1a",
+        productKey: "pultec eqp 1a",
+        runtimeKind: "uadx-native",
+        path: "/Library/Audio/Plug-Ins/Components/uaudio_pultec_eqp-1a.component"
       }
     ],
     target
   );
 
-  assert.equal(selected?.id, "au:pultec");
+  assert.equal(selected?.id, "au:pultec-uadx");
 });

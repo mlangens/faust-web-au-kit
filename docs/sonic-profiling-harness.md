@@ -35,6 +35,7 @@ npm run profile:uad -- --plugin "1176" --render --render-limit 1 --signal-limit 
 ```
 
 The built-in host currently targets Audio Units. VST3 rendering should use an external command backend until the framework has a native VST3 host.
+When both generations are installed, UADx native plugins are preferred over hardware-backed `!UAD` plugins. The native bundles usually appear as `uaudio_*` on disk and as `Universal Audio (UADx): ...` in the AU registry, and they do not require powered-on UAD hardware for profiling.
 The built-in host stays headless: it links AudioToolbox/AudioUnit/Foundation only, never AppKit/Cocoa/WebKit. Use `--render-method callback|process|process-multiple` to run render-method diagnostics; `callback` is the default profiling route.
 
 To verify that local AU DSP is actually engaging before running expensive profiling:
@@ -43,7 +44,7 @@ To verify that local AU DSP is actually engaging before running expensive profil
 npm run check:au-dsp-engagement
 ```
 
-This compiles the built-in AU host, audits the binary for forbidden UI framework linkage, validates fixtures with `auval` when available, renders known Apple and UAD fixtures through `callback`, `process`, and `process-multiple` methods, and writes `generated/profiling/au-dsp-engagement/au-dsp-engagement-report.json`. The Apple fixture and headless binary audit are required to pass; UAD fixtures are diagnostic until UAD-specific hosting requirements are resolved.
+This compiles the built-in AU host, audits the binary for forbidden UI framework linkage, validates fixtures with `auval` when available, renders known Apple and UADx fixtures through `callback`, `process`, and `process-multiple` methods, and writes `generated/profiling/au-dsp-engagement/au-dsp-engagement-report.json`. The Apple fixture and headless binary audit are required to pass; installed UADx fixtures are required to engage when present. Hardware-backed `!UAD` fixtures remain diagnostic.
 
 ## Parameter Control
 
@@ -100,7 +101,7 @@ The pilot accepts `--render-method callback|process|process-multiple` for host-m
 The GUI stage is optional diagnostics only and is not required for profiling. It is gated with `--allow-gui` so it cannot accidentally open a plugin editor during profiling. To instantiate a screenshotable AU editor surface when investigating bypass or authorization state:
 
 ```sh
-npm run stage:au-plugin -- --allow-gui --name "Universal Audio: UAD UA 1176 Rev A" --exact --seconds 10
+npm run stage:au-plugin -- --allow-gui --name "Universal Audio (UADx): UADx 1176 Rev A Compressor" --exact --seconds 10
 ```
 
 Use `--detach` to leave the staged editor open for Codex/Computer Use inspection. If an authorization or vendor login prompt appears, pause profiling and resolve that prompt before trusting sonic captures.

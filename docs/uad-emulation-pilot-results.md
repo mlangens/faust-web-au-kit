@@ -1,29 +1,35 @@
-# UAD Emulation Pilot Results
+# UADx Emulation Pilot Results
 
 Run command:
 
 ```sh
-npm run profile:emulation-pilots -- --target uad-1176-rev-a --target uad-pultec-eqp-1a --signal-limit 6 --state-limit 3 --candidate-limit 3 --out generated/profiling/emulation-pilots
+npm run profile:emulation-pilots -- --target uad-1176-rev-a --target uad-pultec-eqp-1a --signal-limit 4 --state-limit 3 --candidate-limit 3 --out generated/profiling/uadx-emulation-pilots
 ```
 
 ## Pilot Coverage
 
-The pilot exercised two installed UAD Audio Units:
+The pilot now prefers native UADx Audio Units over hardware-backed `!UAD` plugins when a matching product is installed:
 
-- `UAD UA 1176 Rev A` against the `press-deck` Faust candidate.
-- `UAD Pultec EQP-1A` against the `atlas-curve` Faust candidate.
+- `uaudio_ua_1176_rev_a` resolved to `Universal Audio (UADx): UADx 1176 Rev A Compressor` and was compared against `press-deck`.
+- `uaudio_pultec_eqp-1a` resolved to `Universal Audio (UADx): UADx Pultec EQP-1A EQ` and was compared against `atlas-curve`.
 
-Each target rendered 6 probe signals across 3 UAD parameter states and 3 Faust candidate states, producing 54 UAD-vs-Faust comparison artifacts per target. The runner also wrote 36 dry-input engagement checks across both targets.
+Both targets rendered 4 probe signals across 3 UADx parameter states. Every UADx reference render passed the dry-input engagement check.
 
-## Result
+## Results
 
-Both UAD targets exposed parameter maps and accepted parameter overrides, but every rendered UAD output was sample-identical to the dry probe input over the input duration:
+- `uad-1176-rev-a`: 12 engaged reference renders, 0 pass-through reference renders, 36 valid comparisons. Current best candidate is `press-deck/default` with average score `1.875353`.
+- `uad-pultec-eqp-1a`: 12 engaged reference renders, 0 pass-through reference renders, 12 valid comparisons, 24 invalid candidate comparisons filtered out. Current best candidate is `atlas-curve/default` with average score `2.676867`.
 
-- `uad-1176-rev-a`: 18 pass-through reference renders, 0 engaged reference renders, 0 valid fit comparisons.
-- `uad-pultec-eqp-1a`: 18 pass-through reference renders, 0 engaged reference renders, 0 valid fit comparisons.
+The Pultec invalid comparisons came from non-default `atlas-curve` candidate states producing non-finite output analysis. Those comparisons are now excluded from scoring so they cannot masquerade as primitive fit evidence.
 
-Because the reference renders did not engage, the assembler intentionally selected no Faust candidate state. This is the correct behavior: pass-through UAD captures must not be treated as successful emulation evidence.
+## Primitive Derivation
+
+The 1176 pilot moves `compression.vintage-compressor-model` from manual-observed to audio-profiled. The largest residual is the driven-fast tone-burst case: score `2.682641`, spectral distance `40.525 dB`, harmonic distance `76.444 dB`, and RMS delta `0.264 dB`. This points to a missing FET-specific gain-cell timing and harmonic-memory model rather than a simple threshold/ratio mismatch.
+
+The Pultec pilot moves `eq.passive-vintage-program-eq` from manual-observed to audio-profiled. The largest residuals are phase-null probes, with low-bloom score `5.238929` and RMS delta `135.623 dB`. This points to missing phase/group-delay topology and passive boost/attenuation coupling even when broad magnitude response residuals are comparatively smaller.
 
 ## Follow-Up
 
-The next host-level task is to make the stage environment engage proprietary AU DSP reliably. Likely avenues are validating authorization/bypass state, testing an `AudioUnitProcessMultiple` render path, and comparing the built-in host against a known-working DAW or pluginval-style host render for the same probes.
+- Add a FET compressor primitive submodel for ratio-button transfer, tone-burst recovery, and level-dependent harmonic emphasis.
+- Add a passive EQ phase/group-delay primitive path so Pultec-style program EQs can be fitted as coupled topology rather than independent shelves.
+- Fix or constrain invalid `atlas-curve` non-default candidate states before using them as fit candidates.

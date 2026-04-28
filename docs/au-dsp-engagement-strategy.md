@@ -17,19 +17,19 @@ The profiler now separates three questions that were previously tangled together
 
 The same check confirms the current UAD state:
 
-- `Universal Audio: UAD UA 1176 Rev A` exposes parameters and accepts overrides.
-- `Universal Audio: UAD Moog Multimode Filter` exposes parameters and accepts overrides.
-- UAD callback renders are dry pass-through in this host.
-- UAD direct `AudioUnitProcess` and `AudioUnitProcessMultiple` return `-4`.
+- `Universal Audio (UADx): UADx 1176 Rev A Compressor` exposes parameters, accepts overrides, and engages in callback rendering.
+- `Universal Audio (UADx): UADx Pultec EQP-1A EQ` exposes parameters, accepts overrides, and engages in callback rendering.
+- Hardware-backed `!UAD` plugins can validate with `auval` while still rendering dry when UAD hardware is unavailable or powered off, so profiling prefers the native `UADx` path whenever a matching product exists.
+- UADx and `!UAD` direct `AudioUnitProcess` / `AudioUnitProcessMultiple` calls return `-4`; callback rendering remains the supported path.
 - No macOS or UAD authorization prompt appeared during the diagnostic run.
 
 The GUI stage can instantiate plugin editor views only when explicitly allowed:
 
 ```sh
-npm run stage:au-plugin -- --allow-gui --name "Universal Audio: UAD UA 1176 Rev A" --exact --seconds 10
+npm run stage:au-plugin -- --allow-gui --name "Universal Audio (UADx): UADx 1176 Rev A Compressor" --exact --seconds 10
 ```
 
-The first smoke loaded the UAD 1176 Rev A Cocoa view without surfacing an authorization prompt. This gives Codex a screenshotable surface for verifying bypass, authorization, and parameter state only when visual diagnostics are intentionally requested.
+The first smoke loaded the UAD 1176 Rev A Cocoa view without surfacing an authorization prompt. Prefer the native UADx editor for future visual diagnostics when a matching UADx product exists.
 
 ## Framework Behavior
 
@@ -39,13 +39,12 @@ The emulation pilot now resolves the actual host component name from the paramet
 
 Every reference render is compared against the dry input. Pass-through captures are retained as artifacts but excluded from Faust candidate scoring.
 
-The headless host now sets minimal tempo/transport host callbacks and explicitly forces `kAudioUnitProperty_BypassEffect` off before rendering. UAD still returns dry output in callback mode, so the remaining gap is not simply missing host callbacks or bypass state.
+The headless host now sets minimal tempo/transport host callbacks and explicitly forces `kAudioUnitProperty_BypassEffect` off before rendering. Native UADx plugins engage through this path; hardware-backed `!UAD` plugins are retained as diagnostics but no longer drive primitive profiling when a matching UADx reference is installed.
 
 ## Next Execution Targets
 
-The remaining work is not primitive fitting yet. It is host engagement:
+The remaining work has moved from host engagement to primitive fitting:
 
-- Reproduce the `auval`-style headless render lifecycle that validates UAD plugins without opening editor windows.
-- Validate the same UAD plugins inside a known-working headless external host through the existing `profile:uad -- --render-command` seam.
-- Capture and parse UAD logs around failed engagement to distinguish authorization, bypass, and unsupported-host lifecycle cases.
-- Once any UAD fixture engages, promote one UAD fixture to a required regression in `check:au-dsp-engagement`.
+- Extend native UADx pilots across more product families and signal classes.
+- Improve primitive fitting for the largest measured residuals, starting with 1176 tone-burst harmonic/timing behavior and Pultec phase/group-delay behavior.
+- Keep hardware-backed `!UAD` captures separate until powered hardware can prove non-dry output.

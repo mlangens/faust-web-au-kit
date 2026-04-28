@@ -1451,14 +1451,20 @@
         "wdmodels.lib"
       ],
       "maturity": {
-        "stage": "observed",
-        "implementation": "metadata-and-corpus-model",
-        "sonicVerification": "planned",
+        "stage": "profiled",
+        "implementation": "uadx-audio-fit-baseline",
+        "sonicVerification": "headless-uadx-pilot-2026-04-28",
         "evidence": [
           "uad-plugin-manuals",
-          "dmg-trackcomp-2"
+          "dmg-trackcomp-2",
+          "uadx-1176-rev-a-headless-profile"
         ]
       },
+      "fitFindings": [
+        "UADx 1176 Rev A engaged on 12/12 reference renders with no dry pass-through captures.",
+        "Tone-burst residuals dominate the current Faust fit: driven-fast state measured about 40.5 dB spectral distance and 76.4 dB harmonic distance versus the best Press Deck candidate.",
+        "The primitive needs explicit FET gain-cell timing, ratio-button transfer behavior, and level-dependent harmonic emphasis rather than only generic compressor controls."
+      ],
       "controlRoles": [
         {
           "role": "model",
@@ -1529,13 +1535,19 @@
         "wdmodels.lib"
       ],
       "maturity": {
-        "stage": "observed",
-        "implementation": "metadata-and-corpus-model",
-        "sonicVerification": "planned",
+        "stage": "profiled",
+        "implementation": "uadx-audio-fit-baseline",
+        "sonicVerification": "headless-uadx-pilot-2026-04-28",
         "evidence": [
-          "uad-plugin-manuals"
+          "uad-plugin-manuals",
+          "uadx-pultec-eqp-1a-headless-profile"
         ]
       },
+      "fitFindings": [
+        "UADx Pultec EQP-1A engaged on 12/12 reference renders with no dry pass-through captures.",
+        "Phase-null probes dominate residual error, indicating the primitive needs phase/group-delay modeling in addition to magnitude-curve matching.",
+        "Boost/attenuation interaction should be represented as a coupled passive topology plus makeup amplifier stage, not independent shelf and bell controls."
+      ],
       "controlRoles": [
         {
           "role": "stepped-frequency",

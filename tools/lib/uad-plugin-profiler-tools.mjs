@@ -108,6 +108,81 @@ function normalizePluginName(value) {
 }
 
 /**
+ * Collapse bundle names, AU registry names, and marketing names into a product key.
+ * This lets the profiler match `uaudio_ua_1176_rev_a.component` to the exact
+ * `Universal Audio (UADx): UADx 1176 Rev A Compressor` Audio Unit.
+ *
+ * @param {string} value
+ * @returns {string}
+ */
+function uadProductKey(value) {
+  return String(value ?? "")
+    .replace(/\.(?:component|vst3)$/iu, "")
+    .replace(/^universal audio\s*(?:\(uadx\))?\s*:\s*/iu, "")
+    .replace(/^uad\s+/iu, "")
+    .replace(/^uadx\s+/iu, "")
+    .replace(/^uaudio[_\s-]+/iu, "")
+    .replace(/[_-]+/gu, " ")
+    .replace(/\b(?:compressor|limiter|equalizer|eq|synth|plugin|plug in)\b/giu, "")
+    .replace(/^ua\s+(?=\d)/iu, "")
+    .replace(/\s+/gu, " ")
+    .trim()
+    .toLowerCase();
+}
+
+/**
+ * @param {string} displayName
+ * @param {string} pluginPath
+ * @returns {"uadx-native" | "uad-dsp" | "unknown"}
+ */
+function classifyUadRuntime(displayName, pluginPath = "") {
+  const value = `${displayName} ${pluginPath}`;
+  if (/\bUADx\b/u.test(value) || /(?:^|[/\\])uaudio_/iu.test(pluginPath) || /^uaudio[_\s-]/iu.test(displayName)) {
+    return "uadx-native";
+  }
+  if (/\bUAD\b/u.test(value) || /universal audio/iu.test(value)) {
+    return "uad-dsp";
+  }
+  return "unknown";
+}
+
+/**
+ * @param {UadPluginInventoryEntry | JsonObject} entry
+ * @returns {number}
+ */
+function uadRuntimePriority(entry) {
+  const runtimeKind = String(entry.runtimeKind ?? classifyUadRuntime(String(entry.displayName ?? entry.name ?? ""), String(entry.path ?? "")));
+  if (runtimeKind === "uadx-native") {
+    return 0;
+  }
+  if (runtimeKind === "uad-dsp") {
+    return 2;
+  }
+  return 1;
+}
+
+/**
+ * @param {UadPluginInventoryEntry | JsonObject} entry
+ * @returns {number}
+ */
+function uadFormatPriority(entry) {
+  return String(entry.format ?? "") === "au" ? 0 : 1;
+}
+
+/**
+ * @param {UadPluginInventoryEntry} left
+ * @param {UadPluginInventoryEntry} right
+ * @returns {number}
+ */
+function compareUadProfilingPreference(left, right) {
+  return String(left.productKey ?? "").localeCompare(String(right.productKey ?? ""))
+    || uadRuntimePriority(left) - uadRuntimePriority(right)
+    || uadFormatPriority(left) - uadFormatPriority(right)
+    || left.displayName.localeCompare(right.displayName)
+    || left.format.localeCompare(right.format);
+}
+
+/**
  * @param {string} value
  * @returns {string}
  */
@@ -178,11 +253,15 @@ function discoverInstalledUadPlugins(options = {}) {
       }
       const displayName = basename.replace(/\.(?:component|vst3)$/iu, "");
       const normalizedName = normalizePluginName(displayName);
+      const runtimeKind = classifyUadRuntime(displayName, pluginPath);
       entries.push({
         id: `${format}:${normalizedName.replace(/[^a-z0-9]+/gu, "-").replace(/^-|-$/gu, "")}`,
         format,
         displayName,
         normalizedName,
+        productKey: uadProductKey(displayName),
+        runtimeKind,
+        nativeRuntime: runtimeKind === "uadx-native",
         path: pluginPath,
         primitiveIds: inferPrimitiveIdsForPluginName(displayName).primitiveIds
       });
@@ -199,7 +278,7 @@ function discoverInstalledUadPlugins(options = {}) {
     }
   }
 
-  return entries.sort((left, right) => left.displayName.localeCompare(right.displayName) || left.format.localeCompare(right.format));
+  return entries.sort(compareUadProfilingPreference);
 }
 
 /**
@@ -332,6 +411,59 @@ function auHostParameterArgs(overrides) {
 }
 
 /**
+ * @param {JsonObject} component
+ * @returns {"uadx-native" | "uad-dsp" | "unknown"}
+ */
+function classifyAuHostComponentRuntime(component) {
+  if (String(component.manufacturer ?? "") === "UADx") {
+    return "uadx-native";
+  }
+  if (String(component.manufacturer ?? "") === "!UAD") {
+    return "uad-dsp";
+  }
+  return classifyUadRuntime(String(component.name ?? ""), "");
+}
+
+/**
+ * @param {JsonObject} component
+ * @param {UadPluginProfilePlanEntry} plugin
+ * @returns {number}
+ */
+function scoreAuHostComponent(component, plugin) {
+  const componentKey = uadProductKey(String(component.name ?? ""));
+  const pluginKey = uadProductKey(plugin.displayName);
+  let score = 0;
+  if (componentKey === pluginKey) {
+    score += 100;
+  } else if (componentKey.includes(pluginKey) || pluginKey.includes(componentKey)) {
+    score += 40;
+  }
+  if (String(component.type ?? "") === "aufx") {
+    score += 5;
+  }
+  score -= uadRuntimePriority({ ...component, runtimeKind: classifyAuHostComponentRuntime(component) }) * 20;
+  return score;
+}
+
+/**
+ * @param {string} auHostPath
+ * @param {UadPluginProfilePlanEntry} plugin
+ * @returns {JsonObject | null}
+ */
+function resolveAuHostComponent(auHostPath, plugin) {
+  const inventory = listAuHostComponents(auHostPath);
+  const components = Array.isArray(inventory.components) ? /** @type {JsonObject[]} */ (inventory.components) : [];
+  const pluginKey = uadProductKey(plugin.displayName);
+  const candidates = components
+    .filter((component) => {
+      const componentKey = uadProductKey(String(component.name ?? ""));
+      return componentKey === pluginKey || componentKey.includes(pluginKey) || pluginKey.includes(componentKey);
+    })
+    .sort((left, right) => scoreAuHostComponent(right, plugin) - scoreAuHostComponent(left, plugin));
+  return candidates[0] ?? null;
+}
+
+/**
  * UAD components can print logger banners to stdout before the host emits JSON.
  * Find the framework-owned payload without assuming stdout is JSON-only.
  *
@@ -357,13 +489,15 @@ function parseAuHostJsonPayload(text) {
  * @returns {JsonObject}
  */
 function queryAuHostParameters(auHostPath, plugin, parameterOverrides, options = {}) {
+  const resolvedComponent = options.exact ? null : resolveAuHostComponent(auHostPath, plugin);
+  const componentName = String(resolvedComponent?.name ?? plugin.displayName);
   const result = spawnSync(
     auHostPath,
     [
       "--parameters",
       "--name",
-      plugin.displayName,
-      ...(options.exact ? ["--exact"] : []),
+      componentName,
+      ...(options.exact || resolvedComponent ? ["--exact"] : []),
       ...auHostParameterArgs(parameterOverrides)
     ],
     { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }
@@ -623,7 +757,9 @@ function createUadPluginProfile(options) {
 
 export {
   buildUadProfilePlan,
+  classifyUadRuntime,
   compileAuProfileHost,
+  compareUadProfilingPreference,
   createUadPluginProfile,
   discoverInstalledUadPlugins,
   inferPrimitiveIdsForPluginName,
@@ -631,5 +767,7 @@ export {
   normalizePluginName,
   parseAuHostJsonPayload,
   queryAuHostParameters,
+  resolveAuHostComponent,
+  uadProductKey,
   primitiveRules
 };

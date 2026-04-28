@@ -279,12 +279,22 @@ const fixtures = [
     set: ["Cutoff Frequency=300", "Resonance=20"]
   },
   {
-    id: "uad-1176-rev-a",
+    id: "uadx-1176-rev-a",
     required: false,
-    component: "Universal Audio: UAD UA 1176 Rev A",
+    requiredWhenFound: true,
+    component: "Universal Audio (UADx): UADx 1176 Rev A Compressor",
     exact: true,
     inputPath: steppedPath,
     set: ["Input=0.45", "Output=0.55", "Ratio=4", "Attack=0.8", "Release=0.8", "Power=1"]
+  },
+  {
+    id: "uadx-pultec-eqp-1a",
+    required: false,
+    requiredWhenFound: true,
+    component: "Universal Audio (UADx): UADx Pultec EQP-1A EQ",
+    exact: true,
+    inputPath: logSweepPath,
+    set: ["LF Boost=0.35", "LF Atten=0.2", "Low Freq=1", "Power=1"]
   },
   {
     id: "uad-moog-filter",
@@ -297,8 +307,10 @@ const fixtures = [
 ];
 
 const results = fixtures.map((fixture) => {
+  const installed = findComponentIdentity(auHostComponents, fixture) !== null;
   const fixtureResult = {
     ...fixture,
+    installed,
     auval: shouldRunAuval
       ? runAuvalValidation(fixture, auHostComponents, outputDir)
       : { ok: false, skipped: true, reason: args["skip-auval"] === true ? "Skipped by --skip-auval." : "auval was not found on PATH." },
@@ -317,7 +329,7 @@ const results = fixtures.map((fixture) => {
 
 /** @type {Array<Record<string, unknown>>} */
 const requiredFailures = results.filter((fixture) => {
-  if (!fixture.required) {
+  if (!fixture.required && !(fixture.requiredWhenFound === true && fixture.installed === true)) {
     return false;
   }
   return !fixture.results.some((result) => /** @type {Record<string, unknown>} */ (result.metrics ?? {}).engaged === true);
