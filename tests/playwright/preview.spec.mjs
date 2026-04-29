@@ -13,6 +13,7 @@ const limiter = loadGeneratedProject();
 const headroom = loadGeneratedProject("headroom");
 const latchLine = loadGeneratedProject("latch-line");
 const mirrorField = loadGeneratedProject("mirror-field");
+const omniplugin = loadGeneratedProject("omniplugin");
 const pocketCut = loadGeneratedProject("pocket-cut");
 const pressDeck = loadGeneratedProject("press-deck");
 const pulsePad = loadGeneratedProject("pulse-pad");
@@ -197,6 +198,12 @@ const routeSmokeCases = [
     route: "/?app=split-stack",
     fixture: splitStack,
     controlPattern: /Low Crossover|High Crossover|Low Threshold|Mid Threshold|High Threshold/
+  },
+  {
+    title: "omniplugin preview loads the realtime primitive slot route",
+    route: "/?app=omniplugin",
+    fixture: omniplugin,
+    controlPattern: /Slot 1 Type|Slot 2 Amount|Macro Intent|Macro Guard/
   }
 ];
 

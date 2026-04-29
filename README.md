@@ -75,10 +75,13 @@ Default app commands target `limiter-lab` unless another app is selected.
 npm run export
 npm run export:all
 npm run export:pulse-pad
+npm run export:omniplugin
 npm run benchmark
 npm run benchmark:pulse-pad
+npm run benchmark:omniplugin
 npm run build:au
 npm run build:au -- --app pulse-pad
+npm run build:au -- --app omniplugin
 npm run build:native
 npm run install:local
 npm run install:clone-suite
@@ -101,12 +104,18 @@ What they do:
   Exports every registered app in the workspace.
 - `npm run export:pulse-pad`
   Exports generated artifacts for `pulse-pad`.
+- `npm run export:omniplugin`
+  Exports the fixed-slot Omniplugin schema and Faust targets.
 - `npm run benchmark`
   Rebuilds the default app’s generated targets and writes `generated/apps/limiter-lab/benchmark-results.json`.
 - `npm run benchmark:pulse-pad`
   Rebuilds the `pulse-pad` benchmark snapshot.
+- `npm run benchmark:omniplugin`
+  Rebuilds the Omniplugin benchmark snapshot when the local C++ benchmark toolchain is available.
 - `npm run build:au`
   Builds the default app’s AUv2 bundle into `build/apps/limiter-lab/`.
+- `npm run build:au -- --app omniplugin`
+  Builds the installable Omniplugin AUv2 prototype.
 - `npm run build:native`
   Builds AUv2, CLAP, VST3, and standalone outputs for the selected app.
 - `npm run install:local`
@@ -133,6 +142,18 @@ What they do:
   Starts the shared preview server. Use `/` for the default app or `/?app=<app-key>` for any other registered app.
 
 The app-scoped scripts also honor `FWAK_APP=<app-key>` if you prefer selecting an app through the environment. The suite scripts accept `--suite <catalog-id>` and default the clone path to `northline-suite`.
+
+## Omniplugin
+
+`apps/omniplugin` is the first installable omniplugin prototype. It keeps the DAW-facing parameter list fixed: four primitive slots expose `Type`, `Amount`, `Tone`, and `Mix`, while `Macro Intent`, `Macro Motion`, and `Macro Guard` provide stable automation targets for larger sound-building moves. Slot types currently map to bypass, tone, dynamics, saturation, space, and guard roles. This is intentionally slot-based so future manual or local-model suggestions can populate the chain without dynamically changing AU/VST/CLAP parameters during a session.
+
+Build it with:
+
+```sh
+npm run export:omniplugin
+npm run build:au -- --app omniplugin
+npm run package:installer -- --app omniplugin
+```
 
 ## Testing
 

@@ -420,6 +420,11 @@ test("workspace manifest exposes the app suite through stable monorepo conventio
         schemaPath: "/generated/apps/mirror-field/ui_schema.json"
       },
       {
+        key: "omniplugin",
+        previewPath: "/?app=omniplugin",
+        schemaPath: "/generated/apps/omniplugin/ui_schema.json"
+      },
+      {
         key: "pocket-cut",
         previewPath: "/?app=pocket-cut",
         schemaPath: "/generated/apps/pocket-cut/ui_schema.json"

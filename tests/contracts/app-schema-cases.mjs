@@ -227,6 +227,25 @@ const appSchemaCases = [
         ["Monitor", "Mix", "Output", "Bypass"]
       );
     }
+  },
+  {
+    appKey: "omniplugin",
+    name: "Omniplugin",
+    kind: "effect",
+    controlLabelsAny: ["Slot 1 Type", "Slot 2 Amount", "Macro Intent", "Macro Guard"],
+    surfacePresetIds: ["section-grid", "meter-stack", "output-popover"],
+    assertions(schema) {
+      assert.equal(schema.ui.preview?.surfaces?.["section-grid"]?.sections?.length, 4);
+      assert.deepEqual(
+        schema.ui.preview?.surfaces?.["section-grid"]?.sections?.map((section) => section.id),
+        ["slot-1", "slot-2", "slot-3", "slot-4"]
+      );
+      assert.deepEqual(
+        schema.ui.display?.enumLabels?.["Slot 1 Type"],
+        ["Bypass", "Tone", "Dynamics", "Saturation", "Space", "Guard"]
+      );
+      assert.ok(schema.ui.primitiveIds.includes("metering.analysis-suite"));
+    }
   }
 ];
 

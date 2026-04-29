@@ -95,6 +95,11 @@
       "key": "split-stack",
       "name": "Split Stack",
       "manifest": "apps/split-stack/project.json"
+    },
+    {
+      "key": "omniplugin",
+      "name": "Omniplugin",
+      "manifest": "apps/omniplugin/project.json"
     }
   ]
 }

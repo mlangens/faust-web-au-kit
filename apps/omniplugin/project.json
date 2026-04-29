@@ -1,0 +1,520 @@
+{
+  "name": "omniplugin",
+  "version": "0.1.0",
+  "owner": "mlangens",
+  "companyName": "Max Langensiepen",
+  "companyTag": "Mlng",
+  "productName": "Omniplugin",
+  "artifactStem": "Omniplugin",
+  "bundleId": "io.github.mlangens.faust-web-au-kit.omniplugin",
+  "description": "Slot-based omniplugin prototype for realtime DAW sound-building from fixed primitive roles.",
+  "license": "MIT",
+  "plugin": {
+    "kind": "effect",
+    "inputs": 2,
+    "outputs": 2,
+    "midiInput": false,
+    "latencySeconds": 0.0,
+    "gui": {
+      "native": true,
+      "webPreview": true,
+      "resizable": true
+    }
+  },
+  "targets": {
+    "native": [
+      "auv2",
+      "clap",
+      "vst3",
+      "standalone"
+    ],
+    "active": []
+  },
+  "oversampling": {
+    "factor": 1
+  },
+  "faust": {
+    "source": "./dsp/main.dsp",
+    "className": "OmnipluginDSP"
+  },
+  "ui": {
+    "family": "northline-core",
+    "familyVersion": 1,
+    "variant": "routable-filter",
+    "primitiveIds": [
+      "eq.parametric-band",
+      "eq.dynamic-band",
+      "compression.feedforward-sidechain",
+      "compression.detector-ballistics",
+      "saturation.memoryless-waveshaper",
+      "spatial.channel-toolkit",
+      "compression.true-peak-limiter",
+      "metering.analysis-suite"
+    ],
+    "catalog": {
+      "productId": "omniplugin",
+      "prototypeRole": "realtime-primitive-builder",
+      "category": "omniplugin",
+      "primitiveIds": [
+        "eq.parametric-band",
+        "eq.dynamic-band",
+        "compression.feedforward-sidechain",
+        "compression.detector-ballistics",
+        "saturation.memoryless-waveshaper",
+        "spatial.channel-toolkit",
+        "compression.true-peak-limiter",
+        "metering.analysis-suite"
+      ]
+    },
+    "overrides": {
+      "surfacePresetIds": [
+        "section-grid",
+        "meter-stack",
+        "output-popover"
+      ],
+      "layoutProfile": "modules-plus-dock"
+    },
+    "shell": {
+      "hero": {
+        "title": "Omniplugin",
+        "description": "Realtime-safe primitive slots for building different sounds in a DAW without changing the plugin parameter list.",
+      "status": "Four fixed primitive slots, macro-safe automation, and an explicit path for local AI suggestions to populate the chain."
+      },
+      "sections": {
+        "controls": {
+          "title": "Primitive Slots",
+          "description": "Each slot exposes type, amount, tone, and mix so DAW automation remains stable while the chain changes character."
+        },
+        "meters": {
+          "title": "Assembly Meters",
+          "description": "Input, primitive motion, guard activity, and output are exposed as the first realtime omniplugin telemetry contract."
+        },
+        "surfaces": {
+          "title": "Chain Builder",
+          "description": "The first installable pass uses fixed slots as the native bridge for future manual and Qwen-suggested assemblies."
+        }
+      }
+    },
+    "display": {
+      "enumLabels": {
+        "Slot 1 Type": [
+          "Bypass",
+          "Tone",
+          "Dynamics",
+          "Saturation",
+          "Space",
+          "Guard"
+        ],
+        "Slot 2 Type": [
+          "Bypass",
+          "Tone",
+          "Dynamics",
+          "Saturation",
+          "Space",
+          "Guard"
+        ],
+        "Slot 3 Type": [
+          "Bypass",
+          "Tone",
+          "Dynamics",
+          "Saturation",
+          "Space",
+          "Guard"
+        ],
+        "Slot 4 Type": [
+          "Bypass",
+          "Tone",
+          "Dynamics",
+          "Saturation",
+          "Space",
+          "Guard"
+        ]
+      },
+      "controls": {
+        "Bypass": {
+          "onLabel": "Bypassed",
+          "offLabel": "Live"
+        }
+      }
+    },
+    "preview": {
+      "controls": {
+        "layout": "sectioned",
+        "sections": [
+          {
+            "id": "macro-assembly",
+            "title": "Assembly Macros",
+            "description": "Macros are stable DAW automation targets that steer the selected primitive roles without rebuilding the graph.",
+            "kind": "dial-grid",
+            "columns": 3,
+            "items": [
+              {
+                "control": "Macro Intent"
+              },
+              {
+                "control": "Macro Motion"
+              },
+              {
+                "control": "Macro Guard"
+              }
+            ]
+          },
+          {
+            "id": "slot-types",
+            "title": "Slot Types",
+            "description": "Slot type selectors are the realtime-safe topology bridge for suggested or manual chain assembly.",
+            "kind": "segmented-strip",
+            "items": [
+              {
+                "control": "Slot 1 Type"
+              },
+              {
+                "control": "Slot 2 Type"
+              },
+              {
+                "control": "Slot 3 Type"
+              },
+              {
+                "control": "Slot 4 Type"
+              }
+            ]
+          },
+          {
+            "id": "slot-amounts",
+            "title": "Slot Amounts",
+            "description": "Amount controls are the main sound-building lane for live DAW use.",
+            "kind": "fader-bank",
+            "columns": 4,
+            "items": [
+              {
+                "control": "Slot 1 Amount"
+              },
+              {
+                "control": "Slot 2 Amount"
+              },
+              {
+                "control": "Slot 3 Amount"
+              },
+              {
+                "control": "Slot 4 Amount"
+              }
+            ]
+          },
+          {
+            "id": "slot-tone-mix",
+            "title": "Tone + Mix",
+            "description": "Per-slot tone and wet mix remain available without changing the graph shape.",
+            "kind": "mixed-grid",
+            "columns": 4,
+            "items": [
+              {
+                "control": "Slot 1 Tone"
+              },
+              {
+                "control": "Slot 1 Mix"
+              },
+              {
+                "control": "Slot 2 Tone"
+              },
+              {
+                "control": "Slot 2 Mix"
+              },
+              {
+                "control": "Slot 3 Tone"
+              },
+              {
+                "control": "Slot 3 Mix"
+              },
+              {
+                "control": "Slot 4 Tone"
+              },
+              {
+                "control": "Slot 4 Mix"
+              }
+            ]
+          },
+          {
+            "id": "output-utility",
+            "title": "Output Utility",
+            "description": "Output trim and bypass stay stable for DAW sessions.",
+            "kind": "toggle-bank",
+            "items": [
+              {
+                "control": "Output Trim"
+              },
+              {
+                "control": "Bypass"
+              }
+            ]
+          }
+        ],
+        "supplementalTitle": "Future Suggestion Bindings",
+        "supplementalDescription": "Qwen can populate the same fixed slot controls later; the realtime plugin never needs dynamic parameter creation."
+      },
+      "surfaces": {
+        "section-grid": {
+          "title": "Primitive chain slots",
+          "description": "A fixed four-slot chain gives the DAW a stable automation contract while still allowing different primitive assemblies.",
+          "sections": [
+            {
+              "id": "slot-1",
+              "label": "Slot 1",
+              "items": [
+                {
+                  "label": "Type",
+                  "control": "Slot 1 Type"
+                },
+                {
+                  "label": "Amount",
+                  "control": "Slot 1 Amount"
+                },
+                {
+                  "label": "Tone",
+                  "control": "Slot 1 Tone"
+                },
+                {
+                  "label": "Mix",
+                  "control": "Slot 1 Mix"
+                }
+              ]
+            },
+            {
+              "id": "slot-2",
+              "label": "Slot 2",
+              "items": [
+                {
+                  "label": "Type",
+                  "control": "Slot 2 Type"
+                },
+                {
+                  "label": "Amount",
+                  "control": "Slot 2 Amount"
+                },
+                {
+                  "label": "Tone",
+                  "control": "Slot 2 Tone"
+                },
+                {
+                  "label": "Mix",
+                  "control": "Slot 2 Mix"
+                }
+              ]
+            },
+            {
+              "id": "slot-3",
+              "label": "Slot 3",
+              "items": [
+                {
+                  "label": "Type",
+                  "control": "Slot 3 Type"
+                },
+                {
+                  "label": "Amount",
+                  "control": "Slot 3 Amount"
+                },
+                {
+                  "label": "Tone",
+                  "control": "Slot 3 Tone"
+                },
+                {
+                  "label": "Mix",
+                  "control": "Slot 3 Mix"
+                }
+              ]
+            },
+            {
+              "id": "slot-4",
+              "label": "Slot 4",
+              "items": [
+                {
+                  "label": "Type",
+                  "control": "Slot 4 Type"
+                },
+                {
+                  "label": "Amount",
+                  "control": "Slot 4 Amount"
+                },
+                {
+                  "label": "Tone",
+                  "control": "Slot 4 Tone"
+                },
+                {
+                  "label": "Mix",
+                  "control": "Slot 4 Mix"
+                }
+              ]
+            }
+          ]
+        },
+        "output-popover": {
+          "title": "Output tools",
+          "description": "Macro and output controls stay stable across suggested assemblies.",
+          "items": [
+            {
+              "label": "Intent",
+              "control": "Macro Intent"
+            },
+            {
+              "label": "Motion",
+              "control": "Macro Motion"
+            },
+            {
+              "label": "Guard",
+              "control": "Macro Guard"
+            },
+            {
+              "label": "Output",
+              "control": "Output Trim"
+            },
+            {
+              "label": "Bypass",
+              "control": "Bypass"
+            }
+          ]
+        }
+      }
+    },
+    "meters": [
+      {
+        "id": "inputPeak",
+        "label": "Input Peak",
+        "mode": "peak",
+        "source": "Input Peak"
+      },
+      {
+        "id": "primitiveMotion",
+        "label": "Primitive Motion",
+        "mode": "peak",
+        "source": "Primitive Motion",
+        "unit": "%"
+      },
+      {
+        "id": "guardPeak",
+        "label": "Guard Peak",
+        "mode": "peak",
+        "source": "Guard Peak"
+      },
+      {
+        "id": "outputPeak",
+        "label": "Output Peak",
+        "mode": "peak",
+        "source": "Output Peak"
+      }
+    ],
+    "statusText": "Realtime-safe primitive-slot omniplugin prototype."
+  },
+  "benchmark": {
+    "sampleRate": 48000,
+    "blockSize": 128,
+    "seconds": 4,
+    "nativeTargets": [
+      "scalar"
+    ],
+    "exportOnlyTargets": [
+      "wasm",
+      "c"
+    ],
+    "initialControls": [
+      {
+        "label": "Macro Intent",
+        "value": 64
+      },
+      {
+        "label": "Macro Motion",
+        "value": 42
+      },
+      {
+        "label": "Macro Guard",
+        "value": 66
+      }
+    ]
+  },
+  "au": {
+    "type": "aufx",
+    "subtype": "HrmB",
+    "manufacturer": "Mlng",
+    "tags": [
+      "Effects",
+      "Dynamics",
+      "Filter"
+    ]
+  },
+  "clap": {
+    "id": "io.github.mlangens.faust-web-au-kit.omniplugin",
+    "description": "Slot-based primitive omniplugin prototype for realtime DAW sound-building.",
+    "features": [
+      "audio-effect",
+      "stereo",
+      "utility",
+      "mixing"
+    ]
+  },
+  "vst3": {
+    "categories": [
+      "Fx",
+      "Tools",
+      "Stereo"
+    ],
+    "componentTuid": [
+      "Mlng",
+      "Comp",
+      "HrmB",
+      0
+    ],
+    "controllerTuid": [
+      "Mlng",
+      "Edit",
+      "HrmB",
+      0
+    ]
+  },
+  "standalone": {
+    "bundleId": "io.github.mlangens.faust-web-au-kit.omniplugin.app"
+  },
+  "sonicStages": [
+    {
+      "id": "primitive-slots-change-tone",
+      "title": "Primitive slots change tone and density",
+      "description": "The fixed graph must audibly change when slot amount and macro intent move, proving this is not only a UI shell.",
+      "fixture": {
+        "kind": "drum-loop",
+        "seconds": 2,
+        "sampleRate": 48000
+      },
+      "renders": [
+        {
+          "id": "neutral",
+          "parameters": {
+            "Slot 1 Amount": 8,
+            "Slot 2 Amount": 8,
+            "Slot 3 Amount": 0,
+            "Macro Intent": 20
+          }
+        },
+        {
+          "id": "built",
+          "parameters": {
+            "Slot 1 Amount": 70,
+            "Slot 2 Amount": 62,
+            "Slot 3 Amount": 55,
+            "Macro Intent": 72,
+            "Macro Guard": 66
+          }
+        }
+      ],
+      "assertions": [
+        {
+          "render": "built",
+          "metric": "spectralCentroidHz",
+          "minDelta": 5,
+          "reference": "neutral"
+        }
+      ],
+      "tags": [
+        "omniplugin",
+        "primitive-slots",
+        "realtime"
+      ]
+    }
+  ]
+}
