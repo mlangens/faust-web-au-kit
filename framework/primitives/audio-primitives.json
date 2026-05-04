@@ -151,6 +151,33 @@
         "Validate with bypass nulls, gain staging, latency accumulation, and per-slot sonic probes."
       ]
     },
+    "restoration": {
+      "title": "Restoration and Source Repair",
+      "auditFinding": "Restoration plugins expose spectral repair, source separation, denoise, de-click, de-hum, and dialogue isolation primitives that need confidence and artifact metrics.",
+      "sophisticationPath": [
+        "Start with analysis-first modules that separate detection from repair amount.",
+        "Add artifact guards, source-class confidence, ambience preservation, and audition modes.",
+        "Validate with noisy speech, clicks, hum, clipped transients, source-separation residuals, and dry/wet artifact checks."
+      ]
+    },
+    "mastering": {
+      "title": "Mastering Chains and Spectral Balance",
+      "auditFinding": "Modern mastering plugins combine EQ, dynamics, clipping, imaging, spectral balance, and assistant-style macro control into one ordered chain.",
+      "sophisticationPath": [
+        "Start with explicit module order and gain staging.",
+        "Add spectral-balance targets, low-end focus, stereo imaging, dynamic EQ, limiter/clipping, and loudness-aware macros.",
+        "Validate with pink-noise tilt, program loudness, true-peak stress, stereo correlation, and module bypass nulls."
+      ]
+    },
+    "utility": {
+      "title": "Utility and Reference Correction",
+      "auditFinding": "Room correction, monitoring, network routing, and reference plugins are framework primitives because they affect staging and agent evaluation.",
+      "sophisticationPath": [
+        "Start with transparent routing, calibration, target curves, and bypass-safe monitoring roles.",
+        "Add room/headphone correction models, reference capture, and external-stream validation.",
+        "Validate with null checks, calibration sweeps, latency reporting, and monitor-target consistency."
+      ]
+    },
     "phase": {
       "title": "Phase Alignment",
       "auditFinding": "Mic, cabinet, console, and parallel-processing workflows often need all-pass rotation and phase-alignment primitives rather than simple polarity flips.",
@@ -3528,6 +3555,895 @@
       "agentDesignNotes": [
         "Use this primitive when agentic assembly needs stable DAW automation despite changing internal chains.",
         "Keep rack state declarative so generated chains can be diffed, serialized, and regression-tested."
+      ]
+    },
+    "restoration.spectral-repair-module": {
+      "family": "restoration",
+      "title": "Spectral Repair Module",
+      "description": "A restoration primitive for de-click, de-clip, de-hum, denoise, de-reverb, breath, plosive, and artifact repair processors.",
+      "dspIntent": "Separate detection confidence from repair amount so agentic profiles can preserve source tone while reducing a targeted defect.",
+      "faustLibraries": [
+        "analyzers.lib",
+        "filters.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "local-au-restoration-profile",
+        "sonicVerification": "local-au-harvest-2026-05-04",
+        "evidence": [
+          "au-local-plugin-harvest",
+          "generated/profiling/au-remainder-product-functional-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "artifact-detection",
+          "surface": "confidence trace"
+        },
+        {
+          "role": "repair-amount",
+          "surface": "amount control"
+        },
+        {
+          "role": "artifact-class",
+          "surface": "module selector"
+        },
+        {
+          "role": "audition-difference",
+          "surface": "listen mode"
+        }
+      ],
+      "surfaceRoles": [
+        "spectral-repair-view",
+        "artifact-confidence-meter",
+        "difference-listen"
+      ],
+      "analysisProbes": [
+        "click residual",
+        "hum rejection",
+        "speech artifact preservation",
+        "dry/wet artifact delta"
+      ],
+      "agentDesignNotes": [
+        "Treat repair as a targeted detector plus reconstruction path, not as broadband EQ.",
+        "Always profile artifacts and source preservation together."
+      ]
+    },
+    "restoration.source-separation-focus": {
+      "family": "restoration",
+      "title": "Source Separation Focus",
+      "description": "A source-separation primitive for dialogue isolation, music rebalance, stem extraction, and foreground/background emphasis.",
+      "dspIntent": "Represent separation as class confidence, leakage, artifact, and blend controls rather than a single vocal/music knob.",
+      "faustLibraries": [
+        "analyzers.lib",
+        "filters.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "local-au-source-separation-profile",
+        "sonicVerification": "local-au-harvest-2026-05-04",
+        "evidence": [
+          "au-local-plugin-harvest",
+          "generated/profiling/au-remainder-product-functional-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "target-source",
+          "surface": "source selector"
+        },
+        {
+          "role": "separation-amount",
+          "surface": "focus control"
+        },
+        {
+          "role": "artifact-guard",
+          "surface": "quality guard"
+        },
+        {
+          "role": "residual-listen",
+          "surface": "difference monitor"
+        }
+      ],
+      "surfaceRoles": [
+        "source-focus-meter",
+        "residual-listen",
+        "artifact-meter"
+      ],
+      "analysisProbes": [
+        "vocal-like phrase isolation",
+        "program source leakage",
+        "spectral artifact residual",
+        "loudness preservation"
+      ],
+      "agentDesignNotes": [
+        "Do not treat source separation as ordinary dynamics; leakage and artifacts are first-class metrics.",
+        "Use residual monitoring before promoting a separation primitive to a clone target."
+      ]
+    },
+    "mastering.integrated-mastering-chain": {
+      "family": "mastering",
+      "title": "Integrated Mastering Chain",
+      "description": "A mastering-suite primitive for ordered EQ, dynamics, exciter, imaging, clipping/limiting, metering, and assistant-style macros.",
+      "dspIntent": "Represent mastering products as declarative module chains with explicit gain staging and loudness-aware validation.",
+      "faustLibraries": [
+        "filters.lib",
+        "compressors.lib",
+        "analyzers.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "local-au-mastering-chain-profile",
+        "sonicVerification": "local-au-harvest-2026-05-04",
+        "evidence": [
+          "au-local-plugin-harvest",
+          "generated/profiling/au-remainder-product-functional-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "module-order",
+          "surface": "mastering module lane"
+        },
+        {
+          "role": "macro-intensity",
+          "surface": "assistant macro"
+        },
+        {
+          "role": "loudness-target",
+          "surface": "target meter"
+        },
+        {
+          "role": "true-peak-guard",
+          "surface": "ceiling guard"
+        }
+      ],
+      "surfaceRoles": [
+        "module-rack",
+        "loudness-meter",
+        "spectrum-overlay"
+      ],
+      "analysisProbes": [
+        "program loudness shift",
+        "pink-noise spectral tilt",
+        "true-peak stress",
+        "module bypass null"
+      ],
+      "agentDesignNotes": [
+        "Use this primitive when the product identity is a chain, not one DSP block.",
+        "Keep every module's contribution measurable so generated mastering chains do not hide loudness cheats."
+      ]
+    },
+    "mastering.spectral-balance-shaper": {
+      "family": "mastering",
+      "title": "Spectral Balance Shaper",
+      "description": "A mastering primitive for tonal balance, low-end focus, dynamic spectral smoothing, masking reduction, and target-curve matching.",
+      "dspIntent": "Model broad spectral correction as target-aware dynamic shaping rather than static EQ alone.",
+      "faustLibraries": [
+        "filters.lib",
+        "filterbanks.lib",
+        "analyzers.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "local-au-spectral-balance-profile",
+        "sonicVerification": "local-au-harvest-2026-05-04",
+        "evidence": [
+          "au-local-plugin-harvest",
+          "generated/profiling/au-remainder-product-functional-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "target-curve",
+          "surface": "target overlay"
+        },
+        {
+          "role": "dynamic-amount",
+          "surface": "spectral intensity control"
+        },
+        {
+          "role": "low-end-focus",
+          "surface": "low-band focus handle"
+        },
+        {
+          "role": "masking-reduction",
+          "surface": "masking meter"
+        }
+      ],
+      "surfaceRoles": [
+        "spectrum-overlay",
+        "target-curve",
+        "masking-meter"
+      ],
+      "analysisProbes": [
+        "pink-noise tilt",
+        "program spectral residual",
+        "low-end focus",
+        "dynamic band movement"
+      ],
+      "agentDesignNotes": [
+        "Fit target curve behavior separately from static EQ shape.",
+        "Use program material to verify dynamic smoothing does not over-flatten musical contrast."
+      ]
+    },
+    "spatial.stereo-image-matrix": {
+      "family": "spatial",
+      "title": "Stereo Image Matrix",
+      "description": "A stereo-image primitive for M/S width, channel balance, center extraction, double-MS, widening, panning, and mono-compatibility guards.",
+      "dspIntent": "Represent imaging as an explicit matrix with correlation and fold-down constraints.",
+      "faustLibraries": [
+        "spats.lib",
+        "basics.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "local-au-stereo-image-profile",
+        "sonicVerification": "local-au-harvest-2026-05-04",
+        "evidence": [
+          "au-local-plugin-harvest",
+          "generated/profiling/au-remainder-product-functional-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "width",
+          "surface": "stereo field"
+        },
+        {
+          "role": "mid-side-balance",
+          "surface": "M/S matrix"
+        },
+        {
+          "role": "center-extraction",
+          "surface": "center lane"
+        },
+        {
+          "role": "mono-guard",
+          "surface": "correlation meter"
+        }
+      ],
+      "surfaceRoles": [
+        "stereo-field",
+        "correlation-meter",
+        "matrix-router"
+      ],
+      "analysisProbes": [
+        "left/right isolation",
+        "phase-null sweep",
+        "mono fold-down",
+        "stereo correlation"
+      ],
+      "agentDesignNotes": [
+        "Treat every imaging move as a matrix transform that must survive mono checks.",
+        "Use channel-isolation probes before trusting musical-width impressions."
+      ]
+    },
+    "compression.transient-shaper": {
+      "family": "compression",
+      "title": "Transient Shaper",
+      "description": "A dynamics primitive for attack, sustain, impact, drum-level riding, and transient density shaping without relying on thresholded compression alone.",
+      "dspIntent": "Model transient shaping as onset detection plus separate attack/sustain envelopes.",
+      "faustLibraries": [
+        "envelopes.lib",
+        "compressors.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "local-au-transient-profile",
+        "sonicVerification": "local-au-harvest-2026-05-04",
+        "evidence": [
+          "au-local-plugin-harvest",
+          "generated/profiling/au-remainder-product-functional-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "attack",
+          "surface": "transient handle"
+        },
+        {
+          "role": "sustain",
+          "surface": "tail handle"
+        },
+        {
+          "role": "onset-sensitivity",
+          "surface": "detector trim"
+        },
+        {
+          "role": "mix",
+          "surface": "parallel blend"
+        }
+      ],
+      "surfaceRoles": [
+        "transient-history",
+        "onset-meter",
+        "parallel-mix"
+      ],
+      "analysisProbes": [
+        "transient click train",
+        "drum loop crest factor",
+        "sustain envelope",
+        "overshoot"
+      ],
+      "agentDesignNotes": [
+        "Fit onset detection before tuning attack and sustain gain.",
+        "Use drum-like probes because sine sweeps do not expose transient feel."
+      ]
+    },
+    "compression.gate-expander": {
+      "family": "compression",
+      "title": "Gate Expander",
+      "description": "A dynamics primitive for gates, expanders, hysteresis, range, hold, chatter prevention, and detector filtering.",
+      "dspIntent": "Represent gating as stateful open/close logic with hysteresis rather than a compressor ratio inversion.",
+      "faustLibraries": [
+        "compressors.lib",
+        "envelopes.lib",
+        "filters.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "local-au-gate-expander-profile",
+        "sonicVerification": "local-au-harvest-2026-05-04",
+        "evidence": [
+          "au-local-plugin-harvest",
+          "generated/profiling/au-remainder-product-functional-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "threshold",
+          "surface": "transfer curve"
+        },
+        {
+          "role": "range",
+          "surface": "attenuation floor"
+        },
+        {
+          "role": "hold-release",
+          "surface": "timing lane"
+        },
+        {
+          "role": "hysteresis",
+          "surface": "chatter guard"
+        }
+      ],
+      "surfaceRoles": [
+        "transfer-curve",
+        "gain-history",
+        "sidechain-editor"
+      ],
+      "analysisProbes": [
+        "gated-noise chatter",
+        "tone-burst release",
+        "program room floor",
+        "detector threshold"
+      ],
+      "agentDesignNotes": [
+        "Use hysteresis and hold as explicit fit controls to prevent chattery generated gates.",
+        "Separate sidechain filtering from the processed-band path."
+      ]
+    },
+    "saturation.clip-limiter-stage": {
+      "family": "saturation",
+      "title": "Clip Limiter Stage",
+      "description": "A clipping and limiting primitive for soft/hard clip ceilings, oversampling, true-peak guarding, and loudness-oriented peak control.",
+      "dspIntent": "Model clipping as a bounded nonlinear ceiling with alias and true-peak accountability.",
+      "faustLibraries": [
+        "compressors.lib",
+        "wdmodels.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "local-au-clip-limiter-profile",
+        "sonicVerification": "local-au-harvest-2026-05-04",
+        "evidence": [
+          "au-local-plugin-harvest",
+          "generated/profiling/au-remainder-product-functional-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "ceiling",
+          "surface": "ceiling handle"
+        },
+        {
+          "role": "clip-shape",
+          "surface": "transfer curve"
+        },
+        {
+          "role": "oversampling",
+          "surface": "quality selector"
+        },
+        {
+          "role": "true-peak-guard",
+          "surface": "peak meter"
+        }
+      ],
+      "surfaceRoles": [
+        "transfer-curve",
+        "true-peak-meter",
+        "alias-meter"
+      ],
+      "analysisProbes": [
+        "alias stress",
+        "stepped-sine transfer",
+        "transient peak capture",
+        "program loudness"
+      ],
+      "agentDesignNotes": [
+        "Always pair clip fitting with alias and true-peak metrics.",
+        "Expose ceiling and shape separately so loudness and color remain controllable."
+      ]
+    },
+    "modulation.ensemble-chorus": {
+      "family": "modulation",
+      "title": "Ensemble Chorus",
+      "description": "A chorus, ensemble, flanger, and phaser-family primitive for multi-voice delay modulation, stereo spread, feedback, and analog BBD-style color.",
+      "dspIntent": "Represent ensemble motion as multiple modulated delay voices with decorrelation and feedback constraints.",
+      "faustLibraries": [
+        "delays.lib",
+        "oscillators.lib",
+        "filters.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "local-au-ensemble-profile",
+        "sonicVerification": "local-au-harvest-2026-05-04",
+        "evidence": [
+          "au-local-plugin-harvest",
+          "generated/profiling/au-remainder-product-functional-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "rate-depth",
+          "surface": "motion lane"
+        },
+        {
+          "role": "voice-count",
+          "surface": "voice selector"
+        },
+        {
+          "role": "feedback",
+          "surface": "resonance control"
+        },
+        {
+          "role": "stereo-spread",
+          "surface": "stereo field"
+        }
+      ],
+      "surfaceRoles": [
+        "modulation-lane",
+        "stereo-field",
+        "sideband-meter"
+      ],
+      "analysisProbes": [
+        "steady-tone sidebands",
+        "stereo correlation",
+        "phase sweep",
+        "noise floor"
+      ],
+      "agentDesignNotes": [
+        "Fit modulation sidebands and stereo decorrelation together.",
+        "Keep feedback constrained because flanger-style settings can become resonant quickly."
+      ]
+    },
+    "space.algorithmic-reverb-suite": {
+      "family": "space",
+      "title": "Algorithmic Reverb Suite",
+      "description": "A broad algorithmic reverb primitive for room, hall, plate, shimmer, ambience, diffusion, modulation, and tone-program families.",
+      "dspIntent": "Represent reverbs as program topology plus decay/diffusion/damping controls rather than a single size-decay macro.",
+      "faustLibraries": [
+        "reverbs.lib",
+        "delays.lib",
+        "filters.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "local-au-algorithmic-reverb-profile",
+        "sonicVerification": "local-au-harvest-2026-05-04",
+        "evidence": [
+          "au-local-plugin-harvest",
+          "generated/profiling/au-remainder-product-functional-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "program",
+          "surface": "algorithm selector"
+        },
+        {
+          "role": "decay",
+          "surface": "decay contour"
+        },
+        {
+          "role": "diffusion",
+          "surface": "density control"
+        },
+        {
+          "role": "damping",
+          "surface": "tone strip"
+        }
+      ],
+      "surfaceRoles": [
+        "decay-field",
+        "program-bank",
+        "stereo-meter"
+      ],
+      "analysisProbes": [
+        "impulse diffusion",
+        "gated-noise decay",
+        "tail modulation",
+        "stereo decorrelation"
+      ],
+      "agentDesignNotes": [
+        "Fit early density, late decay, and modulation separately.",
+        "Use program identity as a topology preset, not as a product clone label."
+      ]
+    },
+    "utility.room-correction-reference": {
+      "family": "utility",
+      "title": "Room Correction Reference",
+      "description": "A reference-monitoring primitive for room/headphone correction, target curves, calibration, latency, and safe bypass comparison.",
+      "dspIntent": "Keep monitoring correction explicit so profiling and agent evaluation can distinguish creative DSP from playback calibration.",
+      "faustLibraries": [
+        "filters.lib",
+        "analyzers.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "local-au-room-correction-profile",
+        "sonicVerification": "local-au-harvest-2026-05-04",
+        "evidence": [
+          "au-local-plugin-harvest",
+          "generated/profiling/au-remainder-product-functional-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "target-curve",
+          "surface": "correction curve"
+        },
+        {
+          "role": "calibration-profile",
+          "surface": "profile selector"
+        },
+        {
+          "role": "bypass-compare",
+          "surface": "monitor bypass"
+        },
+        {
+          "role": "latency",
+          "surface": "latency readout"
+        }
+      ],
+      "surfaceRoles": [
+        "correction-curve",
+        "calibration-panel",
+        "bypass-compare"
+      ],
+      "analysisProbes": [
+        "calibrated sweep",
+        "null comparison",
+        "latency report",
+        "target curve residual"
+      ],
+      "agentDesignNotes": [
+        "Mark correction primitives as monitoring context unless the user explicitly wants exported DSP.",
+        "Never let room correction contaminate reference plugin profiling without a clear bypass state."
+      ]
+    },
+    "utility.signal-source-codec-stage": {
+      "family": "utility",
+      "title": "Signal Source and Codec Stage",
+      "description": "A utility primitive for test-tone generation, beep generators, codec round trips, and signal-source plugins used during staging.",
+      "dspIntent": "Model utility processors that may generate, encode, decode, or replace signal instead of simply transforming input audio.",
+      "faustLibraries": [
+        "basics.lib",
+        "oscillators.lib",
+        "analyzers.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "local-au-signal-source-profile",
+        "sonicVerification": "local-au-harvest-2026-05-04",
+        "evidence": [
+          "au-local-plugin-harvest",
+          "generated/profiling/au-remainder-product-functional-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "source-shape",
+          "surface": "signal selector"
+        },
+        {
+          "role": "reference-level",
+          "surface": "calibration control"
+        },
+        {
+          "role": "codec-or-transport-model",
+          "surface": "round-trip selector"
+        },
+        {
+          "role": "latency-and-null",
+          "surface": "diagnostic meter"
+        }
+      ],
+      "surfaceRoles": [
+        "signal-generator-panel",
+        "codec-roundtrip-meter",
+        "diagnostic-null-view"
+      ],
+      "analysisProbes": [
+        "silence-source-generation",
+        "codec round-trip residual",
+        "latency and phase report",
+        "level calibration"
+      ],
+      "agentDesignNotes": [
+        "Classify source-generating plugins separately from dry-through processors before using engagement checks.",
+        "Use this primitive in staging hosts and test harnesses when a plugin intentionally emits or codec-transforms signal."
+      ]
+    },
+    "routing.plugin-host-shell": {
+      "family": "routing",
+      "title": "Plugin Host Shell",
+      "description": "A host-shell primitive for loading, measuring, wrapping, or streaming other processors inside a stable plugin container.",
+      "dspIntent": "Represent meta-plugin behavior as host routing, latency, bypass, and analysis contracts rather than as a sound source.",
+      "faustLibraries": [
+        "basics.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "local-au-plugin-host-profile",
+        "sonicVerification": "local-au-harvest-2026-05-04",
+        "evidence": [
+          "au-local-plugin-harvest",
+          "generated/profiling/au-remainder-product-functional-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "hosted-plugin-slot",
+          "surface": "plugin slot"
+        },
+        {
+          "role": "latency-compensation",
+          "surface": "latency readout"
+        },
+        {
+          "role": "bypass-routing",
+          "surface": "bypass matrix"
+        },
+        {
+          "role": "analysis-output",
+          "surface": "analysis view"
+        }
+      ],
+      "surfaceRoles": [
+        "module-rack",
+        "latency-meter",
+        "routing-matrix"
+      ],
+      "analysisProbes": [
+        "bypass null",
+        "latency accumulation",
+        "hosted-plugin engagement",
+        "routing integrity"
+      ],
+      "agentDesignNotes": [
+        "Use host-shell primitives to stage or measure other plugins, not as evidence of a unique sonic transform by themselves.",
+        "Require explicit hosted state before treating output as primitive evidence."
+      ]
+    },
+    "pitch.vocal-time-alignment": {
+      "family": "pitch",
+      "title": "Vocal Time Alignment",
+      "description": "A pitch/time utility primitive for vocal alignment, melodic correction handoff, timing transfer, and phrase-matching workflows.",
+      "dspIntent": "Represent alignment as analysis, time-warp, and confidence metadata rather than as a normal insert effect.",
+      "faustLibraries": [
+        "analyzers.lib",
+        "delays.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "local-au-vocal-alignment-profile",
+        "sonicVerification": "local-au-harvest-2026-05-04",
+        "evidence": [
+          "au-local-plugin-harvest",
+          "generated/profiling/au-remainder-product-functional-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "guide-track",
+          "surface": "guide lane"
+        },
+        {
+          "role": "alignment-strength",
+          "surface": "tightness control"
+        },
+        {
+          "role": "confidence",
+          "surface": "alignment confidence"
+        },
+        {
+          "role": "time-warp",
+          "surface": "warp lane"
+        }
+      ],
+      "surfaceRoles": [
+        "alignment-lane",
+        "confidence-meter",
+        "phrase-view"
+      ],
+      "analysisProbes": [
+        "vocal-like phrase timing",
+        "latency",
+        "pitch preservation",
+        "artifact residual"
+      ],
+      "agentDesignNotes": [
+        "Do not expect vocal alignment tools to transform arbitrary insert probes meaningfully without guide/capture state.",
+        "Keep alignment state explicit before using this primitive in an assemblage."
+      ]
+    },
+    "analog.external-hardware-bridge": {
+      "family": "analog",
+      "title": "External Hardware Bridge",
+      "description": "A bridge primitive for processors that depend on attached analog/DSP hardware, insert routing, calibration, latency, and hardware engagement.",
+      "dspIntent": "Make hardware dependency explicit so dry renders or unavailable devices are treated as staging failures rather than sonic evidence.",
+      "faustLibraries": [
+        "basics.lib"
+      ],
+      "maturity": {
+        "stage": "observed",
+        "implementation": "local-au-hardware-bridge-inventory",
+        "sonicVerification": "pending-functional-hardware-loopback",
+        "evidence": [
+          "au-local-plugin-harvest",
+          "generated/profiling/au-remainder-product-functional-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "hardware-engagement",
+          "surface": "device status"
+        },
+        {
+          "role": "calibration",
+          "surface": "calibration panel"
+        },
+        {
+          "role": "latency-compensation",
+          "surface": "latency readout"
+        },
+        {
+          "role": "bypass-safe-routing",
+          "surface": "routing guard"
+        }
+      ],
+      "surfaceRoles": [
+        "device-status",
+        "calibration-panel",
+        "latency-meter"
+      ],
+      "analysisProbes": [
+        "engagement dry-vs-render",
+        "latency",
+        "noise floor",
+        "calibrated level sweep"
+      ],
+      "agentDesignNotes": [
+        "Require engagement checks before accepting hardware-bridge output as evidence.",
+        "Use this primitive to explain why a plugin may instantiate but fail sonic profiling without attached hardware."
+      ]
+    },
+    "instrument.sample-playback-workstation": {
+      "family": "instrument",
+      "title": "Sample Playback Workstation",
+      "description": "An instrument primitive for sample libraries, drum engines, key-switching, velocity layers, scripted articulation, and playback mixing.",
+      "dspIntent": "Represent sample instruments as event-driven sources that require MIDI and preset state, not audio insert processors.",
+      "faustLibraries": [
+        "soundfiles.lib",
+        "envelopes.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "local-au-sample-instrument-profile",
+        "sonicVerification": "local-au-harvest-2026-05-04",
+        "evidence": [
+          "au-local-plugin-harvest",
+          "generated/profiling/au-remainder-product-functional-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "preset-or-library",
+          "surface": "library browser"
+        },
+        {
+          "role": "midi-event-input",
+          "surface": "keyboard/drum lane"
+        },
+        {
+          "role": "articulation",
+          "surface": "articulation selector"
+        },
+        {
+          "role": "mix",
+          "surface": "instrument mixer"
+        }
+      ],
+      "surfaceRoles": [
+        "keyboard-strip",
+        "module-rack",
+        "mixer"
+      ],
+      "analysisProbes": [
+        "note-on envelope",
+        "velocity response",
+        "voice allocation",
+        "preset state capture"
+      ],
+      "agentDesignNotes": [
+        "Do not use audio-in/audio-out engagement scans alone for instrument primitives.",
+        "Future profiling needs MIDI fixture generation and preset-state capture."
+      ]
+    },
+    "instrument.virtual-analog-workstation": {
+      "family": "instrument",
+      "title": "Virtual Analog Workstation",
+      "description": "An instrument primitive for modeled synth collections with oscillators, filters, envelopes, modulation, macros, and performance state.",
+      "dspIntent": "Represent virtual instruments as source graphs driven by MIDI and preset state, with oscillator/filter/modulation roles exposed.",
+      "faustLibraries": [
+        "oscillators.lib",
+        "filters.lib",
+        "envelopes.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "local-au-virtual-instrument-profile",
+        "sonicVerification": "local-au-harvest-2026-05-04",
+        "evidence": [
+          "au-local-plugin-harvest",
+          "generated/profiling/au-remainder-product-functional-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "oscillator-model",
+          "surface": "oscillator module"
+        },
+        {
+          "role": "filter-model",
+          "surface": "filter canvas"
+        },
+        {
+          "role": "modulation-routing",
+          "surface": "mod matrix"
+        },
+        {
+          "role": "performance-macro",
+          "surface": "macro panel"
+        }
+      ],
+      "surfaceRoles": [
+        "module-rack",
+        "filter-canvas",
+        "modulation-dock"
+      ],
+      "analysisProbes": [
+        "note-on spectrum",
+        "filter sweep",
+        "modulation sidebands",
+        "voice drift"
+      ],
+      "agentDesignNotes": [
+        "Profile these with MIDI and preset fixtures, not insert-style dry probes.",
+        "Reuse oscillator/filter/modulation roles in Omniplugin only when an explicit source mode exists."
       ]
     }
   },

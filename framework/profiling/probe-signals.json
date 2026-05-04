@@ -709,6 +709,83 @@
       "universal.baseline",
       "dynamics.behavior",
       "musical.program"
+    ],
+    "restoration.spectral-repair-module": [
+      "universal.baseline",
+      "musical.program"
+    ],
+    "restoration.source-separation-focus": [
+      "universal.baseline",
+      "musical.program"
+    ],
+    "mastering.integrated-mastering-chain": [
+      "universal.baseline",
+      "dynamics.behavior",
+      "nonlinear.character",
+      "musical.program"
+    ],
+    "mastering.spectral-balance-shaper": [
+      "universal.baseline",
+      "dynamics.behavior",
+      "musical.program"
+    ],
+    "spatial.stereo-image-matrix": [
+      "phase.alignment",
+      "universal.baseline",
+      "musical.program"
+    ],
+    "compression.transient-shaper": [
+      "dynamics.behavior",
+      "musical.program"
+    ],
+    "compression.gate-expander": [
+      "dynamics.behavior",
+      "universal.baseline",
+      "musical.program"
+    ],
+    "saturation.clip-limiter-stage": [
+      "nonlinear.character",
+      "dynamics.behavior"
+    ],
+    "modulation.ensemble-chorus": [
+      "phase.alignment",
+      "tape.transport",
+      "musical.program"
+    ],
+    "space.algorithmic-reverb-suite": [
+      "space.decay",
+      "phase.alignment",
+      "musical.program"
+    ],
+    "utility.room-correction-reference": [
+      "universal.baseline",
+      "phase.alignment"
+    ],
+    "utility.signal-source-codec-stage": [
+      "universal.baseline",
+      "nonlinear.character",
+      "phase.alignment"
+    ],
+    "routing.plugin-host-shell": [
+      "universal.baseline",
+      "phase.alignment"
+    ],
+    "pitch.vocal-time-alignment": [
+      "universal.baseline",
+      "musical.program"
+    ],
+    "analog.external-hardware-bridge": [
+      "universal.baseline",
+      "nonlinear.character",
+      "phase.alignment"
+    ],
+    "instrument.sample-playback-workstation": [
+      "musical.program",
+      "universal.baseline"
+    ],
+    "instrument.virtual-analog-workstation": [
+      "universal.baseline",
+      "musical.program"
     ]
   }
 }

@@ -47,6 +47,7 @@
     "benchmark:omniplugin": "node ./tools/run-benchmarks.mjs --app omniplugin",
     "generate:probe-signals": "node ./tools/generate-probe-signals.mjs",
     "check:au-dsp-engagement": "node ./tools/check-au-dsp-engagement.mjs",
+    "profile:au": "node ./tools/profile-au-plugins.mjs",
     "profile:emulation-pilots": "node ./tools/run-emulation-pilots.mjs",
     "profile:faust": "node ./tools/profile-faust-assemblage.mjs",
     "profile:soundtoys": "node ./tools/profile-soundtoys-plugins.mjs",

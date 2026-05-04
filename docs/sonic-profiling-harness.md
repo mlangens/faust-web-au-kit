@@ -64,6 +64,20 @@ It also writes `engagement-summary.json` and per-render dry comparison reports. 
 The Soundtoys harvest expands creative primitive coverage for style-morphing echo, retro digital buffers, granular reverse echo, formant voice transform, micro-pitch widening, rhythmic pan/tremolo, resonant filter motion, phaser networks, character saturation, crush/pump dynamics, modulated plate reverb, and serial effect racks. See `docs/soundtoys-primitive-harvest.md`.
 The first local run captured 21/21 AU products and 126/126 default-state probe renders. The components instantiated successfully but did not expose generic AU parameters to the headless host, so deeper Soundtoys fitting needs preset/state loading or a host automation path that can see vendor parameters.
 
+## Generic AU Profiling
+
+Use:
+
+```sh
+npm run profile:au -- --exclude-manufacturer UADx,!UAD,SToy,Mlng --type aufx,aumf --prefer-products --render --signal log-sweep-fullband,musical-drum-bass-loop --out generated/profiling/au-remainder-product-functional-render
+```
+
+This is the remainder-harvest path for functional Audio Units installed on the machine after dedicated UADx, Soundtoys, and FWAK passes. It inventories the AU registry, collapses mono/stereo/component variants into distinct products with `--prefer-products`, infers framework primitive IDs from product names, renders deterministic probes through the same headless AU host, and writes dry-engagement checks for every capture.
+
+Use `--exclude-plugin`, `--plugin`, `--include-manufacturer`, and `--progress` to isolate problematic vendors or resume long scans without changing the primitive framework. The host uses per-parameter and per-render timeouts with hard process termination so a wedged or unauthorized plugin cannot pin an autonomous harvest.
+
+The first local remainder harvest selected 264 distinct AU products from 381 components, captured 494/528 probe renders, and found 231 products with transformed audio. Silent or hardware-dependent products were preserved in the report but excluded from functional primitive coverage. See `docs/au-remainder-primitive-harvest.md`.
+
 To verify that local AU DSP is actually engaging before running expensive profiling:
 
 ```sh

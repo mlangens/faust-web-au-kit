@@ -99,6 +99,7 @@ test("reference corpus treats outside plugins as primitive evidence and Northlin
   assert.ok(entryIds.has("dmg-pitchfunk"));
   assert.ok(entryIds.has("dmg-track-range"));
   assert.ok(entryIds.has("soundtoys-local-install"));
+  assert.ok(entryIds.has("au-local-plugin-harvest"));
   assert.ok(entries.filter((entry) => entry.referenceType === "outside-plugin").length >= 10);
 });
 
@@ -145,4 +146,18 @@ test("reference corpus resolves evidence for broader non-Northline primitives", 
   assert.ok(evidence.evidenceByPrimitive["analog.preamp-console-stage"].some((entry) => entry.sourcePackId === "uad-plugin-manuals"));
   assert.ok(evidence.evidenceByPrimitive["modulation.vintage-delay-modulation"].some((entry) => entry.id === "uad-plugin-manuals"));
   assert.ok(evidence.evidenceByPrimitive["phase.all-pass-alignment-network"].some((entry) => entry.id === "uad-plugin-manuals"));
+});
+
+test("local AU remainder harvest contributes functional primitive evidence", () => {
+  const evidence = resolvePrimitiveCorpusEvidence([
+    "restoration.spectral-repair-module",
+    "mastering.integrated-mastering-chain",
+    "utility.signal-source-codec-stage",
+    "space.algorithmic-reverb-suite"
+  ]);
+
+  assert.ok(evidence.evidenceByPrimitive["restoration.spectral-repair-module"].some((entry) => entry.id === "au-local-plugin-harvest"));
+  assert.ok(evidence.evidenceByPrimitive["mastering.integrated-mastering-chain"].some((entry) => entry.id === "au-local-plugin-harvest"));
+  assert.ok(evidence.evidenceByPrimitive["utility.signal-source-codec-stage"].some((entry) => entry.id === "au-local-plugin-harvest"));
+  assert.ok(evidence.evidenceByPrimitive["space.algorithmic-reverb-suite"].some((entry) => entry.id === "au-local-plugin-harvest"));
 });
