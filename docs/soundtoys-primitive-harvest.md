@@ -22,6 +22,8 @@ The profiler discovers Audio Units whose registry manufacturer code is `SToy`, m
 
 The generic AU parameter list is empty for these Soundtoys components, so this harvest should be treated as default-state sonic evidence and primitive taxonomy coverage. Parameter-swept fitting will need preset/state loading or a host path that can drive Soundtoys-specific parameter exposure.
 
+The ingestion flow now compares each rendered WAV against its dry probe input and writes `engagement-summary.json`. That summary is the licensing/authorization tripwire: active probes that render as dry passthrough are flagged `likely-no-transform`, and active probes that render silence are flagged `silent-output`. The local Soundtoys run showed transformed audio for all 21 products, not dry passthrough.
+
 ## Installed Corpus
 
 The local AU registry exposed 21 Soundtoys components:

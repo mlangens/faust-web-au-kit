@@ -21,6 +21,8 @@ The command filters to native UADx AU components, collapses duplicate AU/VST pro
 
 The pass also hardened AU component resolution. UADx bundles often use compact names like `uaudio_la3a`, while the AU registry exposes richer names like `Universal Audio (UADx): UADx LA-3A Compressor`. The resolver now uses canonical compact keys plus token overlap, which fixed the first-pass misses for LA-3A, Century, Manley Preamp, Dream/Ruby/Lion/Showtime/Woodrow amps, and Verve Essentials. It also prevents broad prefix matches such as Capitol Compressor accidentally resolving to Capitol Chambers.
 
+The profiling flow now writes dry-vs-render engagement checks for each successful capture. A plugin that instantiates but does not transform active probes is flagged `likely-no-transform`; a plugin that renders silence is flagged `silent-output`. These flags are intended to catch licensing, authorization, bypass, or host-engagement failures before a local profile is treated as primitive evidence.
+
 ## New Primitive Types
 
 - `analog.channel-strip-signal-path`

@@ -25,8 +25,11 @@ This inventories locally installed UAD AU/VST3 plugins, infers primitive IDs fro
 - `uad-plugin-inventory.json`
 - `uad-profile-plan.json`
 - `uad-profile-report.json`
+- `engagement-summary.json`
 - `probes/probe-manifest.json`
 - `input-analysis.json`
+
+Every successful render is compared against its dry probe input. The report records per-render `engagement` metrics and a plugin-level engagement summary so authorization, licensing, bypass, or host failures are flagged as `likely-no-transform` or `silent-output` instead of silently entering the primitive corpus.
 
 To attempt Audio Unit rendering through the built-in headless host:
 
@@ -56,6 +59,7 @@ npm run profile:soundtoys -- --render --signal-limit 6 --out generated/profiling
 ```
 
 This inventories local Soundtoys Audio Units via the `SToy` AU manufacturer code, infers creative-effect primitive IDs, renders probe signals through the headless AU host, and writes `soundtoys-plugin-inventory.json`, `soundtoys-profile-plan.json`, and `soundtoys-profile-report.json`.
+It also writes `engagement-summary.json` and per-render dry comparison reports. This is the licensing sanity check for ingestion: if a plugin instantiates but does not transform active probes, the profile is flagged before it can be treated as valid sonic evidence.
 
 The Soundtoys harvest expands creative primitive coverage for style-morphing echo, retro digital buffers, granular reverse echo, formant voice transform, micro-pitch widening, rhythmic pan/tremolo, resonant filter motion, phaser networks, character saturation, crush/pump dynamics, modulated plate reverb, and serial effect racks. See `docs/soundtoys-primitive-harvest.md`.
 The first local run captured 21/21 AU products and 126/126 default-state probe renders. The components instantiated successfully but did not expose generic AU parameters to the headless host, so deeper Soundtoys fitting needs preset/state loading or a host automation path that can see vendor parameters.

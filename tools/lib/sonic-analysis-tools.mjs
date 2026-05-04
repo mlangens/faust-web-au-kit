@@ -23,6 +23,17 @@ const analysisFrequencies = [
   20000
 ];
 
+const defaultEngagementThresholds = {
+  activeInputRmsDb: -90,
+  activeOutputPeakDb: -100,
+  transformedNormalizedError: 0.02,
+  transformedRmsDeltaDb: 0.25,
+  transformedCorrelationDrop: 0.002,
+  noTransformNormalizedError: 0.002,
+  noTransformRmsDeltaDb: 0.1,
+  noTransformMinCorrelation: 0.9999
+};
+
 /**
  * @typedef {import("../../types/framework").AudioAnalysisReport} AudioAnalysisReport
  * @typedef {import("../../types/framework").JsonObject} JsonObject
@@ -331,6 +342,139 @@ function compareWavFiles(referencePath, candidatePath) {
 }
 
 /**
+ * @param {JsonObject} comparisonReport
+ * @param {{ signalId?: string, thresholds?: Partial<typeof defaultEngagementThresholds> }} [options]
+ * @returns {JsonObject}
+ */
+function assessRenderEngagement(comparisonReport, options = {}) {
+  const thresholds = {
+    ...defaultEngagementThresholds,
+    ...(options.thresholds ?? {})
+  };
+  const comparison = /** @type {JsonObject} */ (comparisonReport.comparison ?? {});
+  const reference = /** @type {JsonObject} */ (comparisonReport.reference ?? {});
+  const candidate = /** @type {JsonObject} */ (comparisonReport.candidate ?? {});
+  const referenceMono = /** @type {JsonObject} */ (reference.mono ?? {});
+  const candidateMono = /** @type {JsonObject} */ (candidate.mono ?? {});
+  const referenceRmsDb = Number(referenceMono.rmsDb ?? -240);
+  const candidateRmsDb = Number(candidateMono.rmsDb ?? -240);
+  const candidatePeakDb = Number(candidateMono.peakDb ?? -240);
+  const normalizedError = Number(comparison.normalizedError ?? 0);
+  const correlation = Number(comparison.correlation ?? 0);
+  const rmsDeltaDb = Math.abs(candidateRmsDb - referenceRmsDb);
+  const frameDelta = Number(comparisonReport.frameDelta ?? 0);
+
+  /** @type {string[]} */
+  const flags = [];
+  let status = "engaged";
+  if (referenceRmsDb <= thresholds.activeInputRmsDb) {
+    status = "input-silent";
+    flags.push("input-silent");
+  } else if (candidatePeakDb <= thresholds.activeOutputPeakDb) {
+    status = "silent-output";
+    flags.push("silent-output");
+  } else {
+    const transformed = normalizedError >= thresholds.transformedNormalizedError
+      || rmsDeltaDb >= thresholds.transformedRmsDeltaDb
+      || Math.abs(1 - correlation) >= thresholds.transformedCorrelationDrop;
+    const unchanged = normalizedError <= thresholds.noTransformNormalizedError
+      && rmsDeltaDb <= thresholds.noTransformRmsDeltaDb
+      && correlation >= thresholds.noTransformMinCorrelation;
+    if (unchanged || !transformed) {
+      status = "no-transform";
+      flags.push("likely-passthrough");
+    }
+  }
+
+  if (frameDelta !== 0) {
+    flags.push("frame-delta");
+  }
+
+  return {
+    signalId: options.signalId,
+    status,
+    engaged: status === "engaged",
+    needsLicensingCheck: status === "no-transform" || status === "silent-output",
+    flags,
+    metrics: {
+      normalizedError: round(normalizedError),
+      correlation: round(correlation),
+      rmsErrorDb: round(Number(comparison.rmsErrorDb ?? -240), 3),
+      rmsDeltaDb: round(rmsDeltaDb, 3),
+      referenceRmsDb: round(referenceRmsDb, 3),
+      candidateRmsDb: round(candidateRmsDb, 3),
+      candidatePeakDb: round(candidatePeakDb, 3),
+      frameDelta
+    }
+  };
+}
+
+/**
+ * @param {JsonObject[]} renderResults
+ * @returns {JsonObject[]}
+ */
+function summarizePluginEngagement(renderResults) {
+  /** @type {Map<string, JsonObject[]>} */
+  const byPlugin = new Map();
+  for (const result of renderResults) {
+    const engagement = /** @type {JsonObject | undefined} */ (result.engagement);
+    if (!engagement || typeof result.pluginId !== "string") {
+      continue;
+    }
+    const list = byPlugin.get(result.pluginId) ?? [];
+    list.push(result);
+    byPlugin.set(result.pluginId, list);
+  }
+
+  /** @type {JsonObject[]} */
+  const summaries = [];
+  for (const [pluginId, results] of byPlugin) {
+    const statuses = results.map((result) => /** @type {JsonObject} */ (result.engagement ?? {}));
+    const comparable = statuses.filter((entry) => entry.status !== "input-silent" && entry.status !== "not-compared");
+    const engagedSignals = statuses.filter((entry) => entry.status === "engaged").length;
+    const noTransformSignals = statuses.filter((entry) => entry.status === "no-transform").length;
+    const silentOutputSignals = statuses.filter((entry) => entry.status === "silent-output").length;
+    const inputSilentSignals = statuses.filter((entry) => entry.status === "input-silent").length;
+    let status = "no-comparable-signals";
+    if (engagedSignals > 0) {
+      status = "engaged";
+    } else if (comparable.length > 0 && silentOutputSignals === comparable.length) {
+      status = "silent-output";
+    } else if (comparable.length > 0 && noTransformSignals === comparable.length) {
+      status = "likely-no-transform";
+    } else if (comparable.length > 0) {
+      status = "inconclusive";
+    }
+    const metrics = comparable
+      .map((entry) => /** @type {JsonObject} */ (entry.metrics ?? {}))
+      .filter((entry) => typeof entry.normalizedError === "number");
+    summaries.push({
+      pluginId,
+      pluginName: String(results[0]?.pluginName ?? ""),
+      status,
+      engaged: status === "engaged",
+      needsLicensingCheck: status === "likely-no-transform" || status === "silent-output",
+      totalSignals: statuses.length,
+      comparedSignals: comparable.length,
+      engagedSignals,
+      noTransformSignals,
+      silentOutputSignals,
+      inputSilentSignals,
+      maxNormalizedError: round(Math.max(0, ...metrics.map((entry) => Number(entry.normalizedError ?? 0)))),
+      minCorrelation: round(Math.min(1, ...metrics.map((entry) => Number(entry.correlation ?? 1)))),
+      maxRmsDeltaDb: round(Math.max(0, ...metrics.map((entry) => Number(entry.rmsDeltaDb ?? 0))), 3),
+      signalStatuses: statuses.map((entry) => ({
+        signalId: entry.signalId,
+        status: entry.status,
+        flags: entry.flags,
+        metrics: entry.metrics
+      }))
+    });
+  }
+  return summaries.sort((left, right) => String(left.pluginId ?? "").localeCompare(String(right.pluginId ?? "")));
+}
+
+/**
  * @param {string} outputPath
  * @param {unknown} report
  * @returns {unknown}
@@ -344,9 +488,11 @@ function writeAnalysisReport(outputPath, report) {
 export {
   analyzeAudioBuffer,
   analyzeWavFile,
+  assessRenderEngagement,
   compareWavFiles,
   goertzelMagnitude,
   linearToDb,
   spectralFingerprint,
+  summarizePluginEngagement,
   writeAnalysisReport
 };

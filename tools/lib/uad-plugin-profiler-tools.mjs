@@ -13,7 +13,13 @@ import {
   probeSignalDefinition,
   resolveProbeSignalIdsForPrimitives
 } from "./probe-signal-tools.mjs";
-import { analyzeWavFile, writeAnalysisReport } from "./sonic-analysis-tools.mjs";
+import {
+  analyzeWavFile,
+  assessRenderEngagement,
+  compareWavFiles,
+  summarizePluginEngagement,
+  writeAnalysisReport
+} from "./sonic-analysis-tools.mjs";
 import { writeFileAtomically } from "./fs-tools.mjs";
 
 /**
@@ -832,10 +838,20 @@ function createUadPluginProfile(options) {
           const definition = probeSignalDefinition(corpus, signalId);
           resultEntry.analysis = analyzeWavFile(outputPath, { signalId, signalDefinition: definition });
           writeAnalysisReport(path.join(pluginDir, `${signalId}.analysis.json`), resultEntry.analysis);
+          const dryComparison = compareWavFiles(inputPath, outputPath);
+          const dryComparisonPath = path.join(pluginDir, `${signalId}.dry-comparison.json`);
+          writeAnalysisReport(dryComparisonPath, dryComparison);
+          resultEntry.dryComparisonPath = dryComparisonPath;
+          resultEntry.engagement = assessRenderEngagement(dryComparison, { signalId });
         }
         renderResults.push(resultEntry);
       }
     }
+  }
+
+  const engagementSummary = summarizePluginEngagement(renderResults);
+  if (engagementSummary.length) {
+    writeAnalysisReport(path.join(outputDir, "engagement-summary.json"), engagementSummary);
   }
 
   /** @type {UadPluginProfileReport} */
@@ -864,6 +880,7 @@ function createUadPluginProfile(options) {
       uiStaging: false,
       renderMethod: options.renderMethod ?? "callback",
       parameterOverrides,
+      engagementSummary,
       results: renderResults
     }
   };
