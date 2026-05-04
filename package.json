@@ -49,6 +49,7 @@
     "check:au-dsp-engagement": "node ./tools/check-au-dsp-engagement.mjs",
     "profile:emulation-pilots": "node ./tools/run-emulation-pilots.mjs",
     "profile:faust": "node ./tools/profile-faust-assemblage.mjs",
+    "profile:soundtoys": "node ./tools/profile-soundtoys-plugins.mjs",
     "profile:uad": "node ./tools/profile-uad-plugins.mjs",
     "stage:au-plugin": "node ./tools/stage-au-plugin.mjs",
     "sonic:smoke": "node ./tools/run-sonic-stages.mjs --app limiter-lab --profile smoke",

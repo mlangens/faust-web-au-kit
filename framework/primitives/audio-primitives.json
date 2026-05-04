@@ -142,6 +142,15 @@
         "Validate with null tests, correlation traces, channel delay probes, and matrix round-trips."
       ]
     },
+    "routing": {
+      "title": "Effect Routing and Rack Topology",
+      "auditFinding": "Creative multi-effect products need serial, parallel, bypass, macro, and state-safe routing primitives so agents can assemble chains without changing host automation contracts.",
+      "sophisticationPath": [
+        "Start with a fixed slot graph, bypasses, per-slot wet/dry, and stable macro controls.",
+        "Add serial/parallel lane choices, feedback-safe routing guards, and preset materialization.",
+        "Validate with bypass nulls, gain staging, latency accumulation, and per-slot sonic probes."
+      ]
+    },
     "phase": {
       "title": "Phase Alignment",
       "auditFinding": "Mic, cabinet, console, and parallel-processing workflows often need all-pass rotation and phase-alignment primitives rather than simple polarity flips.",
@@ -2784,6 +2793,741 @@
       "agentDesignNotes": [
         "Fit acceleration and speed switching as separate behaviors.",
         "Rotary speaker primitives compose naturally with organ/electromechanical instruments."
+      ]
+    },
+    "delay.style-morphing-echo-engine": {
+      "family": "delay",
+      "title": "Style-Morphing Echo Engine",
+      "description": "A creative echo primitive for products that expose delay as a selectable style bank with groove, saturation, diffusion, filtering, and modulation coupled to feedback behavior.",
+      "dspIntent": "Treat echo style as feedback-path topology plus color and modulation, not just a delay-time preset.",
+      "faustLibraries": [
+        "delays.lib",
+        "filters.lib",
+        "oscillators.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "soundtoys-echo-family-profile",
+        "sonicVerification": "soundtoys-local-harvest-2026-05-04",
+        "evidence": [
+          "soundtoys-local-install",
+          "generated/profiling/soundtoys-local-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "echo-style",
+          "surface": "style/program selector"
+        },
+        {
+          "role": "delay-time-groove",
+          "surface": "tap timeline"
+        },
+        {
+          "role": "feedback",
+          "surface": "feedback decay lane"
+        },
+        {
+          "role": "echo-color",
+          "surface": "feedback tone stage"
+        }
+      ],
+      "surfaceRoles": [
+        "delay-timeline",
+        "style-bank",
+        "feedback-lane"
+      ],
+      "analysisProbes": [
+        "impulse repeat spacing",
+        "feedback decay spectrum",
+        "steady-tone modulation sidebands",
+        "program-material smear"
+      ],
+      "agentDesignNotes": [
+        "Fit repeat timing and feedback stability before matching the style color.",
+        "Represent style choices as reusable topology presets rather than opaque product names."
+      ]
+    },
+    "delay.retro-digital-buffer": {
+      "family": "delay",
+      "title": "Retro Digital Buffer",
+      "description": "An early-digital delay and buffer primitive for pitch/time artifacts, hold/freeze behavior, clock color, and lofi repeat degradation.",
+      "dspIntent": "Model buffer read position, pitch shift, sample-rate color, and feedback degradation as one time-domain primitive.",
+      "faustLibraries": [
+        "delays.lib",
+        "filters.lib",
+        "noises.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "soundtoys-retro-buffer-profile",
+        "sonicVerification": "soundtoys-local-harvest-2026-05-04",
+        "evidence": [
+          "soundtoys-local-install",
+          "generated/profiling/soundtoys-local-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "buffer-delay",
+          "surface": "time handle"
+        },
+        {
+          "role": "pitch-or-multiply",
+          "surface": "pitch/time macro"
+        },
+        {
+          "role": "feedback",
+          "surface": "repeat lane"
+        },
+        {
+          "role": "lofi-color",
+          "surface": "digital degradation control"
+        }
+      ],
+      "surfaceRoles": [
+        "buffer-timeline",
+        "feedback-lane",
+        "lofi-meter"
+      ],
+      "analysisProbes": [
+        "impulse repeat spacing",
+        "steady-tone pitch drift",
+        "alias stress",
+        "feedback decay spectrum"
+      ],
+      "agentDesignNotes": [
+        "Use pitch and alias probes to distinguish retro digital delay from tape echo.",
+        "Keep freeze/hold behavior guarded so generated chains remain bounded."
+      ]
+    },
+    "pitch.granular-reverse-echo": {
+      "family": "pitch",
+      "title": "Granular Reverse Echo",
+      "description": "A pitch-shifted reverse-echo primitive for crystalline delay, splice-like grains, reverse envelopes, and feedback pitch climbing.",
+      "dspIntent": "Represent reverse/pitch feedback as a granular delay topology with envelope direction and pitch interval controls.",
+      "faustLibraries": [
+        "delays.lib",
+        "oscillators.lib",
+        "filters.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "soundtoys-crystallizer-profile",
+        "sonicVerification": "soundtoys-local-harvest-2026-05-04",
+        "evidence": [
+          "soundtoys-local-install",
+          "generated/profiling/soundtoys-local-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "pitch-interval",
+          "surface": "interval selector"
+        },
+        {
+          "role": "splice-size",
+          "surface": "grain size control"
+        },
+        {
+          "role": "reverse-envelope",
+          "surface": "envelope direction lane"
+        },
+        {
+          "role": "feedback",
+          "surface": "feedback stability lane"
+        }
+      ],
+      "surfaceRoles": [
+        "pitch-delay-cloud",
+        "feedback-lane",
+        "grain-envelope-view"
+      ],
+      "analysisProbes": [
+        "steady-tone pitch track",
+        "impulse reverse onset",
+        "feedback stability",
+        "modulation sidebands"
+      ],
+      "agentDesignNotes": [
+        "Fit pitch interval and reverse envelope before adding color.",
+        "Use feedback guards because pitch-shifted feedback can explode quickly."
+      ]
+    },
+    "pitch.formant-shift-voice-transform": {
+      "family": "pitch",
+      "title": "Formant Shift Voice Transform",
+      "description": "A monophonic voice-transform primitive for pitch shift, formant displacement, robotization, and vocal-like source preservation.",
+      "dspIntent": "Separate musical pitch movement from formant/timbre movement so agents can fit voice transforms without treating them as simple resampling.",
+      "faustLibraries": [
+        "analyzers.lib",
+        "filters.lib",
+        "oscillators.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "soundtoys-alterboy-profile",
+        "sonicVerification": "soundtoys-local-harvest-2026-05-04",
+        "evidence": [
+          "soundtoys-local-install",
+          "generated/profiling/soundtoys-local-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "pitch-shift",
+          "surface": "pitch lane"
+        },
+        {
+          "role": "formant-shift",
+          "surface": "formant lane"
+        },
+        {
+          "role": "tracking-mode",
+          "surface": "voice mode selector"
+        },
+        {
+          "role": "mix",
+          "surface": "parallel blend"
+        }
+      ],
+      "surfaceRoles": [
+        "pitch-lane",
+        "formant-field",
+        "vocal-tracking-meter"
+      ],
+      "analysisProbes": [
+        "vocal-like formant phrase",
+        "known-tone pitch track",
+        "formant-coloration",
+        "latency"
+      ],
+      "agentDesignNotes": [
+        "Profile formant movement with vocal-like probes rather than sine tones alone.",
+        "Expose tracking confidence so generated voice effects can fail safely."
+      ]
+    },
+    "spatial.micro-pitch-widener": {
+      "family": "spatial",
+      "title": "Micro-Pitch Widener",
+      "description": "A stereo widening primitive built from tiny pitch offsets, delay offsets, modulation, and decorrelated wet paths.",
+      "dspIntent": "Model widening as a pitch-delay matrix with stereo correlation constraints instead of as a generic width multiplier.",
+      "faustLibraries": [
+        "delays.lib",
+        "oscillators.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "soundtoys-microshift-profile",
+        "sonicVerification": "soundtoys-local-harvest-2026-05-04",
+        "evidence": [
+          "soundtoys-local-install",
+          "generated/profiling/soundtoys-local-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "detune-left-right",
+          "surface": "stereo pitch field"
+        },
+        {
+          "role": "delay-offset",
+          "surface": "stereo time field"
+        },
+        {
+          "role": "modulation-depth",
+          "surface": "motion control"
+        },
+        {
+          "role": "mix",
+          "surface": "width blend"
+        }
+      ],
+      "surfaceRoles": [
+        "stereo-field",
+        "correlation-meter",
+        "pitch-delay-matrix"
+      ],
+      "analysisProbes": [
+        "stereo isolation",
+        "steady-tone modulation sidebands",
+        "correlation trace",
+        "mono fold-down null"
+      ],
+      "agentDesignNotes": [
+        "Always validate mono compatibility when widening by micro pitch.",
+        "Keep detune and delay offsets explicit so agents can avoid phasey low-end widening."
+      ]
+    },
+    "modulation.rhythmic-auto-pan": {
+      "family": "modulation",
+      "title": "Rhythmic Auto-Pan",
+      "description": "A tempo-aware panning primitive with drawable motion, swing, envelope response, stepped shapes, and stereo boundary controls.",
+      "dspIntent": "Represent auto-pan as a modulation shape routed to spatial position with rhythmic phase and envelope options.",
+      "faustLibraries": [
+        "oscillators.lib",
+        "spats.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "soundtoys-panman-profile",
+        "sonicVerification": "soundtoys-local-harvest-2026-05-04",
+        "evidence": [
+          "soundtoys-local-install",
+          "generated/profiling/soundtoys-local-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "pan-shape",
+          "surface": "drawable modulation lane"
+        },
+        {
+          "role": "rate-or-sync",
+          "surface": "tempo selector"
+        },
+        {
+          "role": "width",
+          "surface": "stereo field boundary"
+        },
+        {
+          "role": "trigger-or-envelope",
+          "surface": "motion trigger mode"
+        }
+      ],
+      "surfaceRoles": [
+        "modulation-lane",
+        "stereo-field",
+        "tempo-grid"
+      ],
+      "analysisProbes": [
+        "stereo isolation",
+        "steady-tone sidebands",
+        "phase-null sweep",
+        "program material"
+      ],
+      "agentDesignNotes": [
+        "Profile pan motion from channel-isolation probes before adding tone coloration.",
+        "Expose tempo sync separately from shape so generated patches remain automatable."
+      ]
+    },
+    "modulation.rhythmic-amplitude-gate": {
+      "family": "modulation",
+      "title": "Rhythmic Amplitude Gate",
+      "description": "A rhythmic tremolo and amplitude-gating primitive with shape, depth, tempo sync, envelope triggering, and analog-style smoothing.",
+      "dspIntent": "Represent tremolo as a modulation generator plus gain law, not as a static depth/rate pair.",
+      "faustLibraries": [
+        "oscillators.lib",
+        "envelopes.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "soundtoys-tremolator-profile",
+        "sonicVerification": "soundtoys-local-harvest-2026-05-04",
+        "evidence": [
+          "soundtoys-local-install",
+          "generated/profiling/soundtoys-local-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "amplitude-shape",
+          "surface": "drawable modulation lane"
+        },
+        {
+          "role": "depth",
+          "surface": "gain-depth handle"
+        },
+        {
+          "role": "rate-or-sync",
+          "surface": "tempo selector"
+        },
+        {
+          "role": "envelope-trigger",
+          "surface": "trigger mode"
+        }
+      ],
+      "surfaceRoles": [
+        "modulation-lane",
+        "gain-history",
+        "tempo-grid"
+      ],
+      "analysisProbes": [
+        "transient-click timing",
+        "steady-tone sidebands",
+        "program-material gating",
+        "noise-floor recovery"
+      ],
+      "agentDesignNotes": [
+        "Use transient trains to fit rhythmic gating edge shape.",
+        "Keep smoothing and depth visible; hard tremolo can become clicky without envelope control."
+      ]
+    },
+    "modulation.resonant-filter-motion": {
+      "family": "modulation",
+      "title": "Resonant Filter Motion",
+      "description": "A moving-filter primitive for swept resonant filters, tempo/envelope modulation, serial/parallel dual filters, saturation, and analog filter style.",
+      "dspIntent": "Treat filter movement as a modulation-routing problem over filter topology, not as independent cutoff sliders.",
+      "faustLibraries": [
+        "filters.lib",
+        "oscillators.lib",
+        "envelopes.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "soundtoys-filterfreak-profile",
+        "sonicVerification": "soundtoys-local-harvest-2026-05-04",
+        "evidence": [
+          "soundtoys-local-install",
+          "generated/profiling/soundtoys-local-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "filter-topology",
+          "surface": "filter graph"
+        },
+        {
+          "role": "cutoff-motion",
+          "surface": "motion lane"
+        },
+        {
+          "role": "resonance",
+          "surface": "filter handle"
+        },
+        {
+          "role": "drive",
+          "surface": "filter input trim"
+        }
+      ],
+      "surfaceRoles": [
+        "filter-canvas",
+        "modulation-lane",
+        "spectrum-overlay"
+      ],
+      "analysisProbes": [
+        "log sweep response",
+        "phase response",
+        "modulation sidebands",
+        "harmonic growth"
+      ],
+      "agentDesignNotes": [
+        "Fit static filter topology before fitting motion.",
+        "Represent LFO and envelope followers as source nodes so agents can reuse the same primitive in synth and effect contexts."
+      ]
+    },
+    "modulation.all-pass-phaser-network": {
+      "family": "modulation",
+      "title": "All-Pass Phaser Network",
+      "description": "A phaser primitive built from staged all-pass filters, feedback, modulation, resonance, and analog saturation.",
+      "dspIntent": "Separate the moving notch/all-pass network from generic chorus so phase rotation and feedback resonance can be fit directly.",
+      "faustLibraries": [
+        "filters.lib",
+        "oscillators.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "soundtoys-phasemistress-profile",
+        "sonicVerification": "soundtoys-local-harvest-2026-05-04",
+        "evidence": [
+          "soundtoys-local-install",
+          "generated/profiling/soundtoys-local-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "stage-count",
+          "surface": "all-pass stage selector"
+        },
+        {
+          "role": "sweep-motion",
+          "surface": "modulation lane"
+        },
+        {
+          "role": "feedback",
+          "surface": "resonance control"
+        },
+        {
+          "role": "mix",
+          "surface": "wet-dry blend"
+        }
+      ],
+      "surfaceRoles": [
+        "phase-response-view",
+        "modulation-lane",
+        "notch-motion-overlay"
+      ],
+      "analysisProbes": [
+        "phase-null sweep",
+        "group-delay trace",
+        "steady-tone sidebands",
+        "feedback resonance"
+      ],
+      "agentDesignNotes": [
+        "Use phase probes to distinguish phasing from short-delay flanging.",
+        "Keep stage count explicit because it changes notch topology more than a style label does."
+      ]
+    },
+    "saturation.character-model-bank": {
+      "family": "saturation",
+      "title": "Character Model Bank",
+      "description": "A saturation primitive for selectable analog-inspired color models with input/output calibration, tone shaping, punish/crush modes, and model-specific harmonic signatures.",
+      "dspIntent": "Represent character saturation as a bank of named nonlinear transfer curves plus pre/post filtering and gain compensation.",
+      "faustLibraries": [
+        "wdmodels.lib",
+        "filters.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "soundtoys-character-bank-profile",
+        "sonicVerification": "soundtoys-local-harvest-2026-05-04",
+        "evidence": [
+          "soundtoys-local-install",
+          "generated/profiling/soundtoys-local-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "model",
+          "surface": "character selector"
+        },
+        {
+          "role": "drive",
+          "surface": "input drive"
+        },
+        {
+          "role": "tone",
+          "surface": "pre/post tone strip"
+        },
+        {
+          "role": "gain-compensation",
+          "surface": "output trim"
+        }
+      ],
+      "surfaceRoles": [
+        "character-bank",
+        "harmonic-meter",
+        "transfer-curve"
+      ],
+      "analysisProbes": [
+        "stepped-sine harmonic growth",
+        "two-tone IMD",
+        "alias stress",
+        "program-material loudness"
+      ],
+      "agentDesignNotes": [
+        "Fit each model as a separate transfer/tone preset instead of one drive curve.",
+        "Use loudness-normalized comparisons so drive models are not selected merely for being louder."
+      ]
+    },
+    "compression.crush-pump-dynamics": {
+      "family": "compression",
+      "title": "Crush Pump Dynamics",
+      "description": "An aggressive dynamics primitive for smash compression, saturation, pumping release, ambience lift, and dirty transient flattening.",
+      "dspIntent": "Model the interaction between detector timing and nonlinear drive so explosive room compression is not reduced to a compressor followed by a waveshaper.",
+      "faustLibraries": [
+        "compressors.lib",
+        "envelopes.lib",
+        "wdmodels.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "soundtoys-devilloc-profile",
+        "sonicVerification": "soundtoys-local-harvest-2026-05-04",
+        "evidence": [
+          "soundtoys-local-install",
+          "generated/profiling/soundtoys-local-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "crush",
+          "surface": "compression drive"
+        },
+        {
+          "role": "release-pump",
+          "surface": "gain-history lane"
+        },
+        {
+          "role": "darkness-tone",
+          "surface": "tone control"
+        },
+        {
+          "role": "mix",
+          "surface": "parallel blend"
+        }
+      ],
+      "surfaceRoles": [
+        "gain-history",
+        "harmonic-meter",
+        "parallel-mix"
+      ],
+      "analysisProbes": [
+        "tone-burst recovery",
+        "transient peak flattening",
+        "program-bed pumping",
+        "harmonic residual"
+      ],
+      "agentDesignNotes": [
+        "Fit pumping envelope and harmonic growth together.",
+        "Use parallel mix roles because crush effects often become useful through blend rather than full wet operation."
+      ]
+    },
+    "analog.tube-preamp-drive-stage": {
+      "family": "analog",
+      "title": "Tube Preamp Drive Stage",
+      "description": "A compact tube preamp primitive for input/output gain staging, transformer-like color, low-mid thickening, noise, and odd/even harmonic balance.",
+      "dspIntent": "Represent simple tube preamps as calibrated gain stages with tone and noise fingerprints, not just generic saturation.",
+      "faustLibraries": [
+        "wdmodels.lib",
+        "filters.lib",
+        "noises.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "soundtoys-radiator-profile",
+        "sonicVerification": "soundtoys-local-harvest-2026-05-04",
+        "evidence": [
+          "soundtoys-local-install",
+          "generated/profiling/soundtoys-local-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "input-drive",
+          "surface": "input knob"
+        },
+        {
+          "role": "output-trim",
+          "surface": "output knob"
+        },
+        {
+          "role": "tone-color",
+          "surface": "tone strip"
+        },
+        {
+          "role": "noise-hum",
+          "surface": "authenticity trim"
+        }
+      ],
+      "surfaceRoles": [
+        "gain-stage-panel",
+        "harmonic-meter",
+        "noise-floor-meter"
+      ],
+      "analysisProbes": [
+        "gain-staging harmonic sweep",
+        "silence noise floor",
+        "low-frequency phase",
+        "program-material coloration"
+      ],
+      "agentDesignNotes": [
+        "Profile input/output gain staging before estimating tube color.",
+        "Keep noise optional and measurable so emulations can be musical without baking in unwanted hiss."
+      ]
+    },
+    "space.modulated-plate-reverb": {
+      "family": "space",
+      "title": "Modulated Plate Reverb",
+      "description": "A plate reverb primitive with dense decay, modulation, damping, infinite/freeze-style extension, and post-tail tone shaping.",
+      "dspIntent": "Extend plate behavior with motion and tail controls that make creative plate reverbs distinct from static decay models.",
+      "faustLibraries": [
+        "reverbs.lib",
+        "filters.lib",
+        "oscillators.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "soundtoys-little-plate-profile",
+        "sonicVerification": "soundtoys-local-harvest-2026-05-04",
+        "evidence": [
+          "soundtoys-local-install",
+          "generated/profiling/soundtoys-local-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "decay",
+          "surface": "decay contour"
+        },
+        {
+          "role": "modulation",
+          "surface": "tail motion control"
+        },
+        {
+          "role": "damping",
+          "surface": "tone strip"
+        },
+        {
+          "role": "infinite-tail",
+          "surface": "freeze/infinite guard"
+        }
+      ],
+      "surfaceRoles": [
+        "decay-field",
+        "tail-modulation-view",
+        "stereo-meter"
+      ],
+      "analysisProbes": [
+        "gated-noise decay",
+        "impulse density ramp",
+        "tail modulation sidebands",
+        "stereo correlation"
+      ],
+      "agentDesignNotes": [
+        "Fit decay density and modulation separately; both shape the perceived size.",
+        "Guard infinite/freeze behavior so generated patches do not create unbounded tails by accident."
+      ]
+    },
+    "routing.serial-effect-rack": {
+      "family": "routing",
+      "title": "Serial Effect Rack",
+      "description": "A fixed-contract multi-effect rack primitive for slot ordering, per-slot bypass, macro assignment, preset materialization, and safe serial routing.",
+      "dspIntent": "Give agents a stable host automation surface for assembling chains without changing parameter identity at runtime.",
+      "faustLibraries": [
+        "basics.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "soundtoys-effectrack-profile",
+        "sonicVerification": "soundtoys-local-harvest-2026-05-04",
+        "evidence": [
+          "soundtoys-local-install",
+          "generated/profiling/soundtoys-local-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "slot-order",
+          "surface": "rack lane"
+        },
+        {
+          "role": "slot-bypass",
+          "surface": "module bypass"
+        },
+        {
+          "role": "macro-assignment",
+          "surface": "macro dock"
+        },
+        {
+          "role": "gain-staging",
+          "surface": "inter-slot meter"
+        }
+      ],
+      "surfaceRoles": [
+        "module-rack",
+        "macro-dock",
+        "meter-stack"
+      ],
+      "analysisProbes": [
+        "bypass null",
+        "gain-staging sweep",
+        "latency accumulation",
+        "per-slot sonic probes"
+      ],
+      "agentDesignNotes": [
+        "Use this primitive when agentic assembly needs stable DAW automation despite changing internal chains.",
+        "Keep rack state declarative so generated chains can be diffed, serialized, and regression-tested."
       ]
     }
   },

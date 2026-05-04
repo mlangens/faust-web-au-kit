@@ -47,6 +47,19 @@ npm run profile:uad -- --runtime uadx-native --format au --prefer-products --ren
 
 That run captured 65/65 native UADx AU parameter maps and 390/390 headless probe renders. See `docs/uadx-primitive-exhaustion.md` for the primitive expansion summary.
 
+## Soundtoys Profiling
+
+Use:
+
+```sh
+npm run profile:soundtoys -- --render --signal-limit 6 --out generated/profiling/soundtoys-local-render
+```
+
+This inventories local Soundtoys Audio Units via the `SToy` AU manufacturer code, infers creative-effect primitive IDs, renders probe signals through the headless AU host, and writes `soundtoys-plugin-inventory.json`, `soundtoys-profile-plan.json`, and `soundtoys-profile-report.json`.
+
+The Soundtoys harvest expands creative primitive coverage for style-morphing echo, retro digital buffers, granular reverse echo, formant voice transform, micro-pitch widening, rhythmic pan/tremolo, resonant filter motion, phaser networks, character saturation, crush/pump dynamics, modulated plate reverb, and serial effect racks. See `docs/soundtoys-primitive-harvest.md`.
+The first local run captured 21/21 AU products and 126/126 default-state probe renders. The components instantiated successfully but did not expose generic AU parameters to the headless host, so deeper Soundtoys fitting needs preset/state loading or a host automation path that can see vendor parameters.
+
 To verify that local AU DSP is actually engaging before running expensive profiling:
 
 ```sh

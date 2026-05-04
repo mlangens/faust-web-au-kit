@@ -636,6 +636,79 @@
     "space.vintage-digital-reverb": [
       "space.decay",
       "phase.alignment"
+    ],
+    "delay.style-morphing-echo-engine": [
+      "space.decay",
+      "phase.alignment",
+      "tape.transport",
+      "musical.program"
+    ],
+    "delay.retro-digital-buffer": [
+      "space.decay",
+      "phase.alignment",
+      "tape.transport",
+      "nonlinear.character"
+    ],
+    "pitch.granular-reverse-echo": [
+      "space.decay",
+      "phase.alignment",
+      "tape.transport",
+      "musical.program"
+    ],
+    "pitch.formant-shift-voice-transform": [
+      "universal.baseline",
+      "musical.program"
+    ],
+    "spatial.micro-pitch-widener": [
+      "phase.alignment",
+      "universal.baseline",
+      "musical.program"
+    ],
+    "modulation.rhythmic-auto-pan": [
+      "phase.alignment",
+      "universal.baseline",
+      "musical.program"
+    ],
+    "modulation.rhythmic-amplitude-gate": [
+      "dynamics.behavior",
+      "musical.program",
+      "universal.baseline"
+    ],
+    "modulation.resonant-filter-motion": [
+      "universal.baseline",
+      "phase.alignment",
+      "nonlinear.character",
+      "musical.program"
+    ],
+    "modulation.all-pass-phaser-network": [
+      "phase.alignment",
+      "universal.baseline",
+      "musical.program"
+    ],
+    "saturation.character-model-bank": [
+      "nonlinear.character",
+      "phase.alignment",
+      "musical.program"
+    ],
+    "compression.crush-pump-dynamics": [
+      "dynamics.behavior",
+      "nonlinear.character",
+      "musical.program"
+    ],
+    "analog.tube-preamp-drive-stage": [
+      "universal.baseline",
+      "nonlinear.character",
+      "phase.alignment"
+    ],
+    "space.modulated-plate-reverb": [
+      "space.decay",
+      "phase.alignment",
+      "musical.program"
+    ],
+    "routing.serial-effect-rack": [
+      "universal.baseline",
+      "dynamics.behavior",
+      "musical.program"
     ]
   }
 }

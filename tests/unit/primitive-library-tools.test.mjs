@@ -98,6 +98,7 @@ test("reference corpus treats outside plugins as primitive evidence and Northlin
   assert.ok(entryIds.has("dmg-limitless"));
   assert.ok(entryIds.has("dmg-pitchfunk"));
   assert.ok(entryIds.has("dmg-track-range"));
+  assert.ok(entryIds.has("soundtoys-local-install"));
   assert.ok(entries.filter((entry) => entry.referenceType === "outside-plugin").length >= 10);
 });
 
@@ -119,8 +120,11 @@ test("UAD source pack covers the paginated manual section and vintage primitive 
 test("reference corpus resolves evidence for broader non-Northline primitives", () => {
   const evidence = resolvePrimitiveCorpusEvidence([
     "compression.true-peak-limiter",
+    "compression.crush-pump-dynamics",
     "metering.analysis-suite",
+    "modulation.rhythmic-auto-pan",
     "pitch.modulated-feedback-shifter",
+    "routing.serial-effect-rack",
     "spatial.channel-toolkit",
     "tape.magnetic-recorder-stage",
     "analog.preamp-console-stage",
@@ -131,8 +135,11 @@ test("reference corpus resolves evidence for broader non-Northline primitives", 
   assert.equal(evidence.id, "fwak-reference-corpus");
   assert.equal(evidence.sampleSuites.some((entry) => entry.id === "northline-suite"), true);
   assert.ok(evidence.evidenceByPrimitive["compression.true-peak-limiter"].some((entry) => entry.id === "dmg-limitless"));
+  assert.ok(evidence.evidenceByPrimitive["compression.crush-pump-dynamics"].some((entry) => entry.id === "soundtoys-local-install"));
   assert.ok(evidence.evidenceByPrimitive["metering.analysis-suite"].some((entry) => entry.id === "dmg-track-range"));
+  assert.ok(evidence.evidenceByPrimitive["modulation.rhythmic-auto-pan"].some((entry) => entry.id === "soundtoys-local-install"));
   assert.ok(evidence.evidenceByPrimitive["pitch.modulated-feedback-shifter"].some((entry) => entry.id === "dmg-pitchfunk"));
+  assert.ok(evidence.evidenceByPrimitive["routing.serial-effect-rack"].some((entry) => entry.id === "soundtoys-local-install"));
   assert.ok(evidence.evidenceByPrimitive["spatial.channel-toolkit"].some((entry) => entry.id === "dmg-dualism"));
   assert.ok(evidence.evidenceByPrimitive["tape.magnetic-recorder-stage"].some((entry) => entry.id === "uad-plugin-manuals"));
   assert.ok(evidence.evidenceByPrimitive["analog.preamp-console-stage"].some((entry) => entry.sourcePackId === "uad-plugin-manuals"));

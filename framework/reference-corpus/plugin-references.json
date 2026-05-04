@@ -370,6 +370,46 @@
         "headless AU profiling rendered 390/390 probe captures across those products in generated/profiling/uadx-exhaustive-native-render-v2"
       ],
       "extractionNotes": "UAD is treated as a broad outside reference corpus for vintage primitive derivation. Article inventory is stored separately so the top-level corpus stays compact while retaining pagination coverage."
+    },
+    {
+      "id": "soundtoys-local-install",
+      "referenceType": "installed-plugin-collection",
+      "vendor": "Soundtoys",
+      "productName": "Local Soundtoys Audio Units",
+      "role": "creative modulation, saturation, pitch, delay, and rack-topology reference corpus",
+      "extractionStatus": "profiled",
+      "manualUrl": null,
+      "observedPrimitiveIds": [
+        "analog.tube-preamp-drive-stage",
+        "compression.crush-pump-dynamics",
+        "delay.retro-digital-buffer",
+        "delay.style-morphing-echo-engine",
+        "delay.tap-feedback-network",
+        "eq.circuit-model-topology",
+        "eq.passive-vintage-program-eq",
+        "metering.analysis-suite",
+        "modulation.all-pass-phaser-network",
+        "modulation.resonant-filter-motion",
+        "modulation.rhythmic-amplitude-gate",
+        "modulation.rhythmic-auto-pan",
+        "modulation.vintage-delay-modulation",
+        "pitch.formant-shift-voice-transform",
+        "pitch.granular-reverse-echo",
+        "pitch.modulated-feedback-shifter",
+        "routing.serial-effect-rack",
+        "saturation.character-model-bank",
+        "saturation.virtual-analog-stage",
+        "space.modulated-plate-reverb",
+        "space.plate-reverb",
+        "spatial.channel-toolkit",
+        "spatial.micro-pitch-widener"
+      ],
+      "featureSignals": [
+        "local AU registry exposed 21 Soundtoys components with manufacturer code SToy on 2026-05-04",
+        "installed products cluster around creative delay, reverse pitch echo, micro-pitch widening, rhythmic modulation, phaser/filter motion, character saturation, crush compression, plate reverb, and effect rack assembly",
+        "Soundtoys-derived primitives emphasize motion, style banks, macro-safe rack slots, feedback stability, stereo decorrelation, and musical abuse cases"
+      ],
+      "extractionNotes": "Soundtoys is used as a local installed reference corpus for extracting creative-effect primitives. The framework records primitive behavior and profiling coverage without treating product identities as clone targets."
     }
   ],
   "sourcePacks": [
