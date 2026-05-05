@@ -23,6 +23,8 @@ The pass also hardened AU component resolution. UADx bundles often use compact n
 
 The profiling flow now writes dry-vs-render engagement checks for each successful capture. A plugin that instantiates but does not transform active probes is flagged `likely-no-transform`; a plugin that renders silence is flagged `silent-output`. These flags are intended to catch licensing, authorization, bypass, or host-engagement failures before a local profile is treated as primitive evidence.
 
+A later cabinet-focused pass split cabinet behavior out of the broader amp-chain primitive. See `docs/cabinet-primitive-captures.md` for the 42/42 UADx cabinet render pass and the new `cabinet.speaker-mic-simulation` primitive.
+
 ## New Primitive Types
 
 - `analog.channel-strip-signal-path`

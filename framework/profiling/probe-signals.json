@@ -463,6 +463,11 @@
       "space.decay",
       "musical.program"
     ],
+    "cabinet.speaker-mic-simulation": [
+      "universal.baseline",
+      "phase.alignment",
+      "musical.program"
+    ],
     "compression.detector-ballistics": [
       "dynamics.behavior"
     ],

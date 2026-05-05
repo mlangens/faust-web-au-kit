@@ -114,6 +114,7 @@ test("UAD source pack covers the paginated manual section and vintage primitive 
   assert.ok(uadEntry?.observedPrimitiveIds?.includes("tape.magnetic-recorder-stage"));
   assert.ok(uadEntry?.observedPrimitiveIds?.includes("compression.vintage-compressor-model"));
   assert.ok(uadEntry?.observedPrimitiveIds?.includes("amp.cabinet-mic-chain"));
+  assert.ok(uadEntry?.observedPrimitiveIds?.includes("cabinet.speaker-mic-simulation"));
   assert.ok(uadEntry?.observedPrimitiveIds?.includes("space.mechanical-room-reverb"));
   assert.ok(uadEntry?.observedPrimitiveIds?.includes("phase.all-pass-alignment-network"));
 });
@@ -130,7 +131,8 @@ test("reference corpus resolves evidence for broader non-Northline primitives", 
     "tape.magnetic-recorder-stage",
     "analog.preamp-console-stage",
     "modulation.vintage-delay-modulation",
-    "phase.all-pass-alignment-network"
+    "phase.all-pass-alignment-network",
+    "cabinet.speaker-mic-simulation"
   ]);
 
   assert.equal(evidence.id, "fwak-reference-corpus");
@@ -146,6 +148,7 @@ test("reference corpus resolves evidence for broader non-Northline primitives", 
   assert.ok(evidence.evidenceByPrimitive["analog.preamp-console-stage"].some((entry) => entry.sourcePackId === "uad-plugin-manuals"));
   assert.ok(evidence.evidenceByPrimitive["modulation.vintage-delay-modulation"].some((entry) => entry.id === "uad-plugin-manuals"));
   assert.ok(evidence.evidenceByPrimitive["phase.all-pass-alignment-network"].some((entry) => entry.id === "uad-plugin-manuals"));
+  assert.ok(evidence.evidenceByPrimitive["cabinet.speaker-mic-simulation"].some((entry) => entry.id === "uad-plugin-manuals"));
 });
 
 test("local AU remainder harvest contributes functional primitive evidence", () => {
@@ -153,11 +156,13 @@ test("local AU remainder harvest contributes functional primitive evidence", () 
     "restoration.spectral-repair-module",
     "mastering.integrated-mastering-chain",
     "utility.signal-source-codec-stage",
-    "space.algorithmic-reverb-suite"
+    "space.algorithmic-reverb-suite",
+    "cabinet.speaker-mic-simulation"
   ]);
 
   assert.ok(evidence.evidenceByPrimitive["restoration.spectral-repair-module"].some((entry) => entry.id === "au-local-plugin-harvest"));
   assert.ok(evidence.evidenceByPrimitive["mastering.integrated-mastering-chain"].some((entry) => entry.id === "au-local-plugin-harvest"));
   assert.ok(evidence.evidenceByPrimitive["utility.signal-source-codec-stage"].some((entry) => entry.id === "au-local-plugin-harvest"));
   assert.ok(evidence.evidenceByPrimitive["space.algorithmic-reverb-suite"].some((entry) => entry.id === "au-local-plugin-harvest"));
+  assert.ok(evidence.evidenceByPrimitive["cabinet.speaker-mic-simulation"].some((entry) => entry.id === "au-local-plugin-harvest"));
 });

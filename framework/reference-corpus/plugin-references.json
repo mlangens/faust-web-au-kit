@@ -333,6 +333,7 @@
         "amp.cabinet-mic-chain",
         "analog.channel-strip-signal-path",
         "analog.preamp-console-stage",
+        "cabinet.speaker-mic-simulation",
         "compression.detector-ballistics",
         "compression.opto-program-leveler",
         "compression.split-band-focus",
@@ -365,9 +366,10 @@
         "113 plugin manual/help articles across the paginated UAD plug-in manual section",
         "dense vintage compressor, EQ, preamp, tape, reverb, modulation, amp, microphone, and instrument references",
         "manual titles and article bodies indicate model-specific analog character and hardware-inspired workflows",
-        "vintage-derived primitives require sonic probes for harmonic growth, program-dependent dynamics, IR/decay, transport modulation, cabinet/mic chains, phase alignment, and UI screenshot segmentation",
+        "vintage-derived primitives require sonic probes for harmonic growth, program-dependent dynamics, IR/decay, transport modulation, cabinet/speaker/mic simulation, phase alignment, and UI screenshot segmentation",
         "local UADx inventory on 2026-04-28 exposed 65 unique native AU products for profile-derived primitive expansion",
-        "headless AU profiling rendered 390/390 probe captures across those products in generated/profiling/uadx-exhaustive-native-render-v2"
+        "headless AU profiling rendered 390/390 probe captures across those products in generated/profiling/uadx-exhaustive-native-render-v2",
+        "cabinet-focused UADx profiling rendered 42/42 captures across 7 amp, rotary speaker, and keyboard-adjacent products in generated/profiling/cabinet-uadx-render"
       ],
       "extractionNotes": "UAD is treated as a broad outside reference corpus for vintage primitive derivation. Article inventory is stored separately so the top-level corpus stays compact while retaining pagination coverage."
     },
@@ -423,6 +425,7 @@
         "amp.cabinet-mic-chain",
         "analog.channel-strip-signal-path",
         "analog.preamp-console-stage",
+        "cabinet.speaker-mic-simulation",
         "compression.gate-expander",
         "compression.multiband-dynamics",
         "compression.split-band-focus",
@@ -465,6 +468,7 @@
         "264 distinct AU effect products selected from 381 installed AU components after excluding FWAK, UAD/UADx, and Soundtoys dedicated harvests",
         "494/528 headless probe render attempts succeeded with dry-vs-render engagement checks",
         "231/264 selected products produced transformed audio and contributed functional primitive evidence",
+        "cabinet-focused AU profiling rendered 39/48 captures across 12 amp/cabinet candidates and found 10 engaged products in generated/profiling/cabinet-au-render",
         "20 products rendered silent output and were preserved as staging/licensing/hardware findings rather than functional primitive evidence",
         "fallback-only primitive inference was reduced from 88 products in the first inventory pass to 1 product after compact-name inference was hardened",
         "external hardware bridge products instantiated but rendered silence locally, so hardware-dependent primitives remain observed until a loopback pass proves engagement"

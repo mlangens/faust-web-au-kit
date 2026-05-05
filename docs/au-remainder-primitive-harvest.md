@@ -45,7 +45,9 @@ The strongest functional primitive clusters were:
 - 11 `space.reverb-macro-field`
 - 10 `pitch.modulated-feedback-shifter`
 
-The pass added or reinforced restoration, mastering, stereo imaging, utility, codec/source, gate/expander, transient, algorithmic reverb, vocal alignment, and broad vendor-shell profiling behavior beyond the earlier UADx and Soundtoys-focused primitive harvests.
+The pass added or reinforced restoration, mastering, stereo imaging, utility, codec/source, gate/expander, transient, algorithmic reverb, vocal alignment, cabinet simulation, and broad vendor-shell profiling behavior beyond the earlier UADx and Soundtoys-focused primitive harvests.
+
+A later cabinet-focused pass split `cabinet.speaker-mic-simulation` out from the broad amp-chain primitive and rendered focused cabinet probes against AmpCraft, bx_rockrack, Waves GTR/PRS, and UADx amp references. See `docs/cabinet-primitive-captures.md`.
 
 ## Framework Impact
 

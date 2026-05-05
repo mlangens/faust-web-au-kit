@@ -52,6 +52,7 @@ const genericAuPrimitiveRules = [
   { id: "routing.plugin-host-shell", pattern: /\b(metaplugin|plugin ?doctor|listento|receiver|relay|net send|aunet send|connect)\b/u },
   { id: "pitch.vocal-time-alignment", pattern: /\b(vocalign|voc align|vocal align|melodyne|new pitch|pitch|tune|h910|doppler)\b/u },
   { id: "analog.external-hardware-bridge", pattern: /\b(apb|hardware insert|bob|moo x mixer)\b/u },
+  { id: "cabinet.speaker-mic-simulation", pattern: /\b(cab|cabinet|speaker|ampcraft|amp craft|rockrack|gtr amp|gtr tool rack|prs archon|prs dallas|prs v9|dream amp|ruby amp|woodrow amp|lion amp|showtime amp|waterfall rotary)\b/u },
   { id: "instrument.sample-playback-workstation", pattern: /\b(kontakt|sampler|superior drummer|trigger|aria player|smartmusic|sample|piano|organ|strings|voices|mellotron|emulator|synthmaster)\b/u },
   { id: "instrument.virtual-analog-workstation", pattern: /\b(analog lab|arp|buchla|cs[- ]?80|jup|jun|prophet|mini v|modular|sem|solina|sq80|dx7|cz|op[- ]?xa|matrix|moog|synth|reaktor)\b/u },
   { id: "analog.channel-strip-signal-path", pattern: /\b(channel|omni channel|audiotrack|audio track|ssl|api|scheps|vision|strip|console)\b/u },

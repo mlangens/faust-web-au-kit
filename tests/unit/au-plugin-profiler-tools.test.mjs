@@ -23,6 +23,9 @@ test("generic AU inference maps remaining vendor plugins to framework primitives
   assert.ok(inferPrimitiveIdsForAuName("Apple: AURoundTripAAC").primitiveIds.includes("utility.signal-source-codec-stage"));
   assert.ok(inferPrimitiveIdsForAuName("iZotope: Relay").primitiveIds.includes("routing.plugin-host-shell"));
   assert.ok(inferPrimitiveIdsForAuName("Native Instruments: Reaktor 6 MFX").primitiveIds.includes("instrument.virtual-analog-workstation"));
+  assert.ok(inferPrimitiveIdsForAuName("Kazrog: AmpCraft - 1992").primitiveIds.includes("cabinet.speaker-mic-simulation"));
+  assert.ok(inferPrimitiveIdsForAuName("Plugin Alliance: bx_rockrack V3 Player").primitiveIds.includes("cabinet.speaker-mic-simulation"));
+  assert.ok(inferPrimitiveIdsForAuName("Waves: PRS Archon (m->s)").primitiveIds.includes("cabinet.speaker-mic-simulation"));
   assert.ok(inferPrimitiveIdsForAuName("Waves: RCompressor (s)").primitiveIds.includes("compression.vintage-compressor-model"));
   assert.ok(inferPrimitiveIdsForAuName("Waves: Q10 (s)").primitiveIds.includes("eq.circuit-model-topology"));
   assert.ok(inferPrimitiveIdsForAuName("Waves: RVerb (s)").primitiveIds.includes("space.algorithmic-reverb-suite"));

@@ -30,6 +30,8 @@ test("UAD plugin name inference maps owned vintage plugins to sonic primitives",
   assert.ok(inferPrimitiveIdsForPluginName("uaudio_a_type_multiband.component").primitiveIds.includes("saturation.multiband-enhancer-exciter"));
   assert.ok(inferPrimitiveIdsForPluginName("uaudio_minimoog.component").primitiveIds.includes("instrument.morphing-analog-synth"));
   assert.ok(inferPrimitiveIdsForPluginName("uaudio_little_labs_vog.component").primitiveIds.includes("eq.resonant-subharmonic-enhancer"));
+  assert.ok(inferPrimitiveIdsForPluginName("uaudio_dream_amp.component").primitiveIds.includes("cabinet.speaker-mic-simulation"));
+  assert.ok(inferPrimitiveIdsForPluginName("uaudio_waterfall_rotary_speaker.component").primitiveIds.includes("cabinet.speaker-mic-simulation"));
 });
 
 test("UAD profile plan assigns primitive-specific probe signals and renderability", () => {

@@ -113,6 +113,10 @@ const primitiveRules = [
     pattern: /\b(rotary speaker|waterfall rotary|leslie|rotary)\b/u
   },
   {
+    id: "cabinet.speaker-mic-simulation",
+    pattern: /\b(cab|cabinet|speaker|dream amp|ruby amp|woodrow amp|lion amp|showtime amp|waterfall rotary|fender|marshall|friedman|suhr|engl|ampeg|tweed)\b/u
+  },
+  {
     id: "amp.cabinet-mic-chain",
     pattern: /\b(amp|cab|speaker|dream|ruby|woodrow|lion|fender|marshall|friedman|suhr|engl|ampeg|tweed|overdrive|tube screamer|ts808|raw distortion)\b/u
   },

@@ -225,11 +225,20 @@
     },
     "amp": {
       "title": "Amplifier, Cabinet, and Mic Chain",
-      "auditFinding": "Guitar/bass amp references are whole signal chains: preamp, tone stack, power stage, speaker/cabinet, microphone, room, and impedance interactions.",
+      "auditFinding": "Guitar/bass amp references are whole signal chains, so amp should be treated as an assemblage of gain stages, tone stack, power stage, cabinet, speaker, microphone, room, and impedance interactions.",
       "sophisticationPath": [
-        "Start with gain stages, tone stack, cabinet IR, and mic placement roles.",
+        "Start with gain stages, tone stack, and explicit cabinet primitive handoff roles.",
         "Add dynamic power-stage sag, speaker resonance, transformer color, and room/mic blend.",
         "Validate with stepped drive sweeps, chord intermodulation, cabinet impulse response, and touch-response envelopes."
+      ]
+    },
+    "cabinet": {
+      "title": "Speaker Cabinet and Mic Simulation",
+      "auditFinding": "Cabinet simulation is a narrower primitive than an amp: products may use static IR convolution, resonant speaker filters, dynamic cone breakup, mic placement, or room capture without owning the whole amp chain.",
+      "sophisticationPath": [
+        "Start with cabinet response, speaker size/resonance, mic model, mic position, room/air, and phase roles.",
+        "Add topology tags for static IR, dynamic speaker, filterbank approximation, multi-mic blend, and rotary/room-coupled cabinets.",
+        "Validate with impulses, log sweeps, guitar DI chords, phase/null checks, and level-dependent cone-breakup probes."
       ]
     },
     "modulation": {
@@ -1907,8 +1916,8 @@
     "amp.cabinet-mic-chain": {
       "family": "amp",
       "title": "Amp, Cabinet, Speaker, and Mic Chain",
-      "description": "A full instrument amplification chain primitive covering preamp drive, tone stack, power amp, speaker cabinet, mic placement, room, and output gain.",
-      "dspIntent": "Model amp products as cascaded nonlinear and convolutional blocks whose response changes with level and playing dynamics.",
+      "description": "An amp-chain assemblage primitive covering preamp drive, tone stack, power amp, speaker/cabinet handoff, mic placement, room, and output gain.",
+      "dspIntent": "Model amp products as cascaded nonlinear and convolutional blocks while keeping cabinet/speaker/mic simulation available as a separate primitive.",
       "faustLibraries": [
         "filters.lib",
         "wdmodels.lib"
@@ -1932,7 +1941,7 @@
         },
         {
           "role": "cabinet",
-          "surface": "cabinet selector"
+          "surface": "cabinet primitive slot"
         },
         {
           "role": "mic-position",
@@ -1976,8 +1985,100 @@
         "gain/master split"
       ],
       "agentDesignNotes": [
-        "Keep cabinet/mic convolution separate from nonlinear amp stages.",
+        "Use this primitive for whole amp products and pair it with cabinet.speaker-mic-simulation for cabinet-specific fitting.",
         "Profile with program material, not only sine waves."
+      ]
+    },
+    "cabinet.speaker-mic-simulation": {
+      "family": "cabinet",
+      "title": "Speaker Cabinet and Mic Simulation",
+      "description": "A cabinet primitive for speaker resonance, cabinet IR/filter response, mic model/position, room/air blend, phase, and multi-mic routing.",
+      "dspIntent": "Separate cabinet and microphone response from nonlinear amp stages so profiling can distinguish static IR, resonant filter, dynamic speaker, multi-mic, and room-coupled cabinet behavior.",
+      "faustLibraries": [
+        "filters.lib",
+        "delays.lib",
+        "analyzers.lib"
+      ],
+      "maturity": {
+        "stage": "profiled",
+        "implementation": "local-au-cabinet-profile",
+        "sonicVerification": "cabinet-au-captures-2026-05-04",
+        "evidence": [
+          "uad-plugin-manuals",
+          "au-local-plugin-harvest",
+          "generated/profiling/cabinet-au-render",
+          "generated/profiling/cabinet-uadx-render"
+        ]
+      },
+      "controlRoles": [
+        {
+          "role": "cabinet-model",
+          "surface": "cabinet selector"
+        },
+        {
+          "role": "speaker-resonance",
+          "surface": "speaker response graph"
+        },
+        {
+          "role": "mic-model",
+          "surface": "mic selector"
+        },
+        {
+          "role": "mic-position",
+          "surface": "mic field"
+        },
+        {
+          "role": "room-air",
+          "surface": "room blend"
+        },
+        {
+          "role": "phase-alignment",
+          "surface": "phase trim"
+        }
+      ],
+      "surfaceRoles": [
+        "cabinet-response-graph",
+        "mic-position-field",
+        "phase-alignment-meter",
+        "cabinet-type-badges"
+      ],
+      "analysisProbes": [
+        "cabinet impulse response",
+        "log-sweep magnitude and phase",
+        "guitar DI chord coloration",
+        "speaker resonance",
+        "mic phase/null behavior"
+      ],
+      "measurementProfiles": [
+        {
+          "probe": "dirac impulse",
+          "target": "IR length, onset, polarity, and early reflections"
+        },
+        {
+          "probe": "log sweep",
+          "target": "magnitude, phase, resonant notches, and cabinet low/high rolloff"
+        },
+        {
+          "probe": "guitar DI chords",
+          "target": "program-material cabinet coloration and cone-like emphasis"
+        },
+        {
+          "probe": "phase/null sweep",
+          "target": "mic alignment, phase rotation, and multi-mic comb filtering"
+        }
+      ],
+      "uiExtractionSignals": [
+        "cabinet selector",
+        "speaker size or model",
+        "mic model or axis",
+        "mic distance/position",
+        "room/air/ambience blend",
+        "phase or polarity switch"
+      ],
+      "agentDesignNotes": [
+        "Classify cabinet behavior separately from amp drive and tone stack before fitting Faust assemblages.",
+        "Use impulse and sweep captures to decide whether an emulation should be convolutional, filterbank-based, dynamic-speaker based, or multi-mic/room coupled.",
+        "A full amp product should usually resolve both amp.cabinet-mic-chain and cabinet.speaker-mic-simulation."
       ]
     },
     "instrument.electromechanical-keyboard": {
@@ -4586,7 +4687,11 @@
     ],
     "amp": [
       "amp.cabinet-mic-chain",
+      "cabinet.speaker-mic-simulation",
       "saturation.virtual-analog-stage"
+    ],
+    "cabinet": [
+      "cabinet.speaker-mic-simulation"
     ],
     "modulation": [
       "modulation.vintage-delay-modulation"

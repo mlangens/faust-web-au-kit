@@ -78,6 +78,8 @@ Use `--exclude-plugin`, `--plugin`, `--include-manufacturer`, and `--progress` t
 
 The first local remainder harvest selected 264 distinct AU products from 381 components, captured 494/528 probe renders, and found 231 products with transformed audio. Silent or hardware-dependent products were preserved in the report but excluded from functional primitive coverage. See `docs/au-remainder-primitive-harvest.md`.
 
+Cabinet simulation has its own focused profiling path because a cabinet/speaker/mic response is narrower than a whole amp chain. See `docs/cabinet-primitive-captures.md` for the UADx and generic AU cabinet captures that introduced `cabinet.speaker-mic-simulation`.
+
 To verify that local AU DSP is actually engaging before running expensive profiling:
 
 ```sh
