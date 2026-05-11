@@ -40,13 +40,15 @@
   "ui": {
     "family": "northline-core",
     "familyVersion": 1,
-    "variant": "routable-filter",
+    "variant": "primitive-chain-builder",
     "primitiveIds": [
       "eq.parametric-band",
       "eq.dynamic-band",
       "compression.feedforward-sidechain",
       "compression.detector-ballistics",
       "saturation.memoryless-waveshaper",
+      "saturation.virtual-analog-stage",
+      "analog.preamp-console-stage",
       "spatial.channel-toolkit",
       "compression.true-peak-limiter",
       "metering.analysis-suite"
@@ -54,31 +56,32 @@
     "catalog": {
       "productId": "omniplugin",
       "prototypeRole": "realtime-primitive-builder",
+      "referenceProduct": "Realtime primitive chain builder",
       "category": "omniplugin",
+      "featureAnchors": [
+        "fixed primitive slots",
+        "macro-safe automation",
+        "surface-owned slot editing",
+        "agent-ready chain suggestions"
+      ],
       "primitiveIds": [
         "eq.parametric-band",
         "eq.dynamic-band",
         "compression.feedforward-sidechain",
         "compression.detector-ballistics",
         "saturation.memoryless-waveshaper",
+        "saturation.virtual-analog-stage",
+        "analog.preamp-console-stage",
         "spatial.channel-toolkit",
         "compression.true-peak-limiter",
         "metering.analysis-suite"
       ]
     },
-    "overrides": {
-      "surfacePresetIds": [
-        "section-grid",
-        "meter-stack",
-        "output-popover"
-      ],
-      "layoutProfile": "modules-plus-dock"
-    },
     "shell": {
       "hero": {
         "title": "Omniplugin",
         "description": "Realtime-safe primitive slots for building different sounds in a DAW without changing the plugin parameter list.",
-      "status": "Four fixed primitive slots, macro-safe automation, and an explicit path for local AI suggestions to populate the chain."
+        "status": "Four fixed primitive slots, macro-safe automation, and an explicit path for local AI suggestions to populate the chain."
       },
       "sections": {
         "controls": {
@@ -149,13 +152,16 @@
             "columns": 3,
             "items": [
               {
-                "control": "Macro Intent"
+                "control": "Macro Intent",
+                "surfaceOnly": true
               },
               {
-                "control": "Macro Motion"
+                "control": "Macro Motion",
+                "surfaceOnly": true
               },
               {
-                "control": "Macro Guard"
+                "control": "Macro Guard",
+                "surfaceOnly": true
               }
             ]
           },
@@ -166,16 +172,20 @@
             "kind": "segmented-strip",
             "items": [
               {
-                "control": "Slot 1 Type"
+                "control": "Slot 1 Type",
+                "surfaceOnly": true
               },
               {
-                "control": "Slot 2 Type"
+                "control": "Slot 2 Type",
+                "surfaceOnly": true
               },
               {
-                "control": "Slot 3 Type"
+                "control": "Slot 3 Type",
+                "surfaceOnly": true
               },
               {
-                "control": "Slot 4 Type"
+                "control": "Slot 4 Type",
+                "surfaceOnly": true
               }
             ]
           },
@@ -187,16 +197,20 @@
             "columns": 4,
             "items": [
               {
-                "control": "Slot 1 Amount"
+                "control": "Slot 1 Amount",
+                "surfaceOnly": true
               },
               {
-                "control": "Slot 2 Amount"
+                "control": "Slot 2 Amount",
+                "surfaceOnly": true
               },
               {
-                "control": "Slot 3 Amount"
+                "control": "Slot 3 Amount",
+                "surfaceOnly": true
               },
               {
-                "control": "Slot 4 Amount"
+                "control": "Slot 4 Amount",
+                "surfaceOnly": true
               }
             ]
           },
@@ -208,28 +222,36 @@
             "columns": 4,
             "items": [
               {
-                "control": "Slot 1 Tone"
+                "control": "Slot 1 Tone",
+                "surfaceOnly": true
               },
               {
-                "control": "Slot 1 Mix"
+                "control": "Slot 1 Mix",
+                "surfaceOnly": true
               },
               {
-                "control": "Slot 2 Tone"
+                "control": "Slot 2 Tone",
+                "surfaceOnly": true
               },
               {
-                "control": "Slot 2 Mix"
+                "control": "Slot 2 Mix",
+                "surfaceOnly": true
               },
               {
-                "control": "Slot 3 Tone"
+                "control": "Slot 3 Tone",
+                "surfaceOnly": true
               },
               {
-                "control": "Slot 3 Mix"
+                "control": "Slot 3 Mix",
+                "surfaceOnly": true
               },
               {
-                "control": "Slot 4 Tone"
+                "control": "Slot 4 Tone",
+                "surfaceOnly": true
               },
               {
-                "control": "Slot 4 Mix"
+                "control": "Slot 4 Mix",
+                "surfaceOnly": true
               }
             ]
           },
@@ -240,10 +262,12 @@
             "kind": "toggle-bank",
             "items": [
               {
-                "control": "Output Trim"
+                "control": "Output Trim",
+                "surfaceOnly": true
               },
               {
-                "control": "Bypass"
+                "control": "Bypass",
+                "surfaceOnly": true
               }
             ]
           }

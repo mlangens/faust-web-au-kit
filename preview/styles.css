@@ -20,6 +20,7 @@
   --control-track: rgba(30, 36, 32, 0.1);
   --shadow: 0 20px 44px rgba(25, 31, 25, 0.09);
   --hero-glow: rgba(255, 255, 255, 0.55);
+  --focus-ring: color-mix(in srgb, var(--accent) 34%, transparent);
 }
 
 * {
@@ -51,6 +52,12 @@ body::before {
     linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
   background-size: 28px 28px;
   mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.12), transparent 48%);
+}
+
+:where(a, button, input, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px var(--focus-ring);
 }
 
 body[data-ui-variant="spectral-eq"],
@@ -169,17 +176,21 @@ body[data-ui-variant="mini-filter"] {
 
 .preview-nav {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   margin-top: 18px;
+  max-width: 100%;
 }
 
 .preview-nav a {
+  flex: 0 1 auto;
   color: var(--ink);
   text-decoration: none;
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.56);
   padding: 10px 14px;
   border-radius: 999px;
+  line-height: 1.15;
   transition: border-color 180ms ease, background 180ms ease, color 180ms ease;
 }
 
@@ -300,6 +311,10 @@ body[data-layout-profile="single-panel-grid"] .surface-grid {
   padding: 20px 20px 0;
 }
 
+.surface-card__copy {
+  min-width: 0;
+}
+
 .surface-card__header h3 {
   margin: 0;
   font-size: 1rem;
@@ -349,6 +364,11 @@ body[data-layout-profile="single-panel-grid"] .surface-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.surface-badges {
+  justify-content: flex-end;
+  min-width: min(100%, 132px);
 }
 
 .surface-badge {
@@ -2132,6 +2152,8 @@ body[data-preview-error="true"] .preview-status {
 
 @media (max-width: 860px) {
   .surface-grid,
+  .surface-grid[data-layout-profile],
+  body[data-layout-profile] .surface-grid,
   .dashboard,
   .benchmark-grid {
     grid-template-columns: 1fr;
@@ -2180,5 +2202,58 @@ body[data-preview-error="true"] .preview-status {
 
   .preview-nav {
     flex-wrap: wrap;
+  }
+
+  .surface-card__header {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .surface-badges {
+    justify-content: flex-start;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .shell {
+    width: min(100vw - 20px, 1180px);
+    padding-top: 22px;
+  }
+
+  .hero h1 {
+    max-width: none;
+  }
+
+  .surface-grid,
+  .controls-grid,
+  .meter-stack,
+  .benchmark-grid {
+    padding: 16px;
+  }
+
+  .panel-heading {
+    padding: 18px 18px 0;
+  }
+
+  .surface-card,
+  .control-section,
+  .control-card,
+  .meter-card,
+  .benchmark-card {
+    border-radius: 18px;
+  }
+
+  .control-section__grid,
+  .control-section__grid[data-section-kind="fader-bank"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .routing-matrix {
+    grid-template-columns: 84px repeat(3, minmax(0, 1fr));
+  }
+
+  .keyboard-strip {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }

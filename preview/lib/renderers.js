@@ -192,6 +192,7 @@ function renderWorkspaceNav(root, workspace, activeAppKey) {
     link.textContent = app.name;
     if (app.key === activeAppKey) {
       link.classList.add("is-active");
+      link.setAttribute("aria-current", "page");
     }
     root.append(link);
   });

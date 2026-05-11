@@ -154,6 +154,23 @@ function dispatchBubbledEvent(node, eventName) {
 }
 
 /**
+ * @param {HTMLElement} target
+ * @param {GeneratedControl} control
+ * @param {ProjectUiManifest} ui
+ * @param {number} value
+ * @returns {void}
+ */
+function syncRangeAria(target, control, ui, value) {
+  const valueText = formatValue(control, value, ui);
+  target.setAttribute("role", "slider");
+  target.setAttribute("aria-label", control.label);
+  target.setAttribute("aria-valuemin", String(controlMin(control)));
+  target.setAttribute("aria-valuemax", String(controlMax(control)));
+  target.setAttribute("aria-valuenow", String(value));
+  target.setAttribute("aria-valuetext", valueText);
+}
+
+/**
  * @param {GeneratedControl} control
  * @returns {HTMLInputElement}
  */
@@ -399,6 +416,7 @@ function buildSegmentedCard(ui, control, state, display) {
     button.type = "button";
     button.className = "control-segment-chip";
     button.textContent = label;
+    button.setAttribute("aria-label", `${control.label}: ${label}`);
     button.addEventListener("click", () => {
       binding.setValue(controlMin(control) + index);
     });
@@ -411,6 +429,7 @@ function buildSegmentedCard(ui, control, state, display) {
     const activeIndex = Math.round(nextValue - controlMin(control));
     buttons.forEach((button, index) => {
       button.classList.toggle("is-active", index === activeIndex);
+      button.setAttribute("aria-pressed", String(index === activeIndex));
     });
   });
 
@@ -449,16 +468,20 @@ function buildToggleCard(ui, control, state, display) {
   offButton.type = "button";
   offButton.className = "control-segment-chip";
   offButton.textContent = offLabel;
+  offButton.setAttribute("aria-label", `${control.label}: ${offLabel}`);
 
   const onButton = document.createElement("button");
   onButton.type = "button";
   onButton.className = "control-segment-chip";
   onButton.textContent = onLabel;
+  onButton.setAttribute("aria-label", `${control.label}: ${onLabel}`);
 
   const binding = bindControl(control, ui, state, input, (nextValue) => {
     value.textContent = formatValue(control, nextValue, ui);
     offButton.classList.toggle("is-active", nextValue < 0.5);
     onButton.classList.toggle("is-active", nextValue >= 0.5);
+    offButton.setAttribute("aria-pressed", String(nextValue < 0.5));
+    onButton.setAttribute("aria-pressed", String(nextValue >= 0.5));
   });
 
   offButton.addEventListener("click", () => binding.setValue(0));
@@ -520,6 +543,7 @@ function buildDialCard(ui, control, state, display) {
     const normalized = normalizeControlValue(control, nextValue);
     const angle = -135 + normalized * 270;
     value.textContent = formatValue(control, nextValue, ui);
+    syncRangeAria(knob, control, ui, nextValue);
     knob.style.setProperty("--dial-angle", `${angle}deg`);
     knob.style.setProperty("--dial-fill", String(normalized));
   });
@@ -571,6 +595,7 @@ function buildFaderCard(ui, control, state, display) {
   const binding = bindControl(control, ui, state, input, (nextValue) => {
     const normalized = normalizeControlValue(control, nextValue);
     value.textContent = formatValue(control, nextValue, ui);
+    syncRangeAria(thumb, control, ui, nextValue);
     track.style.setProperty("--fader-fill", String(normalized));
     thumb.style.bottom = `${normalized * 100}%`;
     fill.style.height = `${normalized * 100}%`;

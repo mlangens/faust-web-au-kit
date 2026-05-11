@@ -44,8 +44,24 @@
     "familyVersion": 1,
     "variant": "mastering-limiter",
     "catalog": {
-      "productId": "headroom",
-      "prototypeRole": "current-app"
+      "productId": "limiter-lab",
+      "prototypeRole": "framework-reference",
+      "referenceProduct": "Framework limiter proof",
+      "category": "framework-reference",
+      "featureAnchors": [
+        "oversampled limiter proof",
+        "transfer and history surfaces",
+        "drive routing controls",
+        "native shell validation"
+      ],
+      "primitiveIds": [
+        "compression.feedforward-sidechain",
+        "compression.detector-ballistics",
+        "saturation.memoryless-waveshaper",
+        "compression.true-peak-limiter",
+        "compression.vintage-compressor-model",
+        "analog.preamp-console-stage"
+      ]
     },
     "overrides": {
       "surfacePresetIds": [

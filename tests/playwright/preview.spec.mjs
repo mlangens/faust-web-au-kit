@@ -98,7 +98,11 @@ async function expectPreviewRouteLoaded(page, fixture, controlPattern) {
   await expect(page.locator("#controls")).toHaveAttribute("data-control-layout", "sectioned");
   await expect(page.locator("#controls")).toHaveAttribute("data-control-count", String(fixture.schema.controls.length));
   await expect(page.locator("#controls")).toHaveAttribute("data-visible-control-count", String(controlSummary.visibleControls.length));
-  expect(await page.locator("#controls .control-section").count()).toBeGreaterThan(0);
+  if (controlSummary.visibleControls.length) {
+    expect(await page.locator("#controls .control-section").count()).toBeGreaterThan(0);
+  } else {
+    await expect(page.locator("#controls .control-surface-summary")).toBeVisible();
+  }
   await expect(page.locator("body")).toContainText(controlPattern);
   await expect(page.locator("#surfaces .surface-card")).toHaveCount(expectedSurfaceIds.length);
 
@@ -108,7 +112,35 @@ async function expectPreviewRouteLoaded(page, fixture, controlPattern) {
   expect(renderedSurfaceIds).toEqual(expectedSurfaceIds);
 }
 
+async function expectPreviewViewportFits(page) {
+  await expect(page.locator('#previewNav a.is-active')).toHaveAttribute("aria-current", "page");
+  await expect(page.locator('#previewNav a.is-active')).toBeVisible();
+
+  const overflow = await page.evaluate(() => Math.ceil(document.documentElement.scrollWidth - document.documentElement.clientWidth));
+  expect(overflow).toBeLessThanOrEqual(1);
+
+  const offscreenSurfaceIds = await page.locator("#surfaces .surface-card").evaluateAll((nodes) => nodes
+    .filter((node) => {
+      const rect = node.getBoundingClientRect();
+      return rect.left < -1 || rect.right > window.innerWidth + 1;
+    })
+    .map((node) => node.getAttribute("data-surface-id") ?? node.className));
+  expect(offscreenSurfaceIds).toEqual([]);
+}
+
 const routeSmokeCases = [
+  {
+    title: "limiter lab preview loads through the explicit app route",
+    route: "/?app=limiter-lab",
+    fixture: limiter,
+    controlPattern: /Input Gain|Ceiling|Drive Target|Output Trim/
+  },
+  {
+    title: "pulse pad preview loads the instrument scaffold route",
+    route: "/?app=pulse-pad",
+    fixture: pulsePad,
+    controlPattern: /Texture|Detune|Sub|Motion/
+  },
   {
     title: "atlas curve preview loads the flagship-eq scaffold route",
     route: "/?app=atlas-curve",
@@ -381,6 +413,15 @@ test("suite previews reserve surface-owned controls instead of duplicating them 
   await page.goto("/?app=seed-tone");
   await expect(page.locator('.control-card[data-control-id="Cutoff"]')).toHaveCount(0);
   await expect(page.locator('.control-card[data-control-id="Drive"]')).toHaveCount(0);
+
+  await page.goto("/?app=omniplugin");
+  await expect(page.locator("#controls")).toHaveAttribute("data-visible-control-count", "0");
+  await expect(page.locator("#controls")).toHaveAttribute("data-surface-only-control-count", String(omniplugin.schema.controls.length));
+  await expect(page.locator(".control-surface-summary")).toContainText("Surface-owned");
+  await expect(page.locator('.control-card[data-control-id="Slot 1 Type"]')).toHaveCount(0);
+  await expect(page.locator('.control-card[data-control-id="Macro Intent"]')).toHaveCount(0);
+  await expect(page.locator('.surface-card[data-surface-id="section-grid"]')).toContainText("Primitive chain slots");
+  await expect(page.locator('.surface-card[data-surface-id="output-popover"]')).toContainText("Output tools");
 });
 
 for (const routeCase of routeSmokeCases) {
@@ -389,6 +430,23 @@ for (const routeCase of routeSmokeCases) {
     await expectPreviewRouteLoaded(page, routeCase.fixture, routeCase.controlPattern);
   });
 }
+
+test("workspace preview routes fit shared shell bounds at desktop, tablet, and mobile widths", async ({ page }) => {
+  const viewports = [
+    { width: 1440, height: 1000 },
+    { width: 860, height: 1000 },
+    { width: 390, height: 1000 }
+  ];
+
+  for (const viewport of viewports) {
+    await page.setViewportSize(viewport);
+    for (const app of workspace.apps) {
+      await page.goto(app.previewPath);
+      await expect(page.locator("body")).toHaveAttribute("data-project-key", app.key);
+      await expectPreviewViewportFits(page);
+    }
+  }
+});
 
 test("fet 76 preview renders a hardware-style faceplate surface", async ({ page }) => {
   await page.goto("/?app=fet-76");

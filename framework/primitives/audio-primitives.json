@@ -4601,6 +4601,18 @@
       "saturation.virtual-analog-stage",
       "analog.preamp-console-stage"
     ],
+    "primitive-chain-builder": [
+      "eq.parametric-band",
+      "eq.dynamic-band",
+      "compression.feedforward-sidechain",
+      "compression.detector-ballistics",
+      "saturation.memoryless-waveshaper",
+      "saturation.virtual-analog-stage",
+      "analog.preamp-console-stage",
+      "spatial.channel-toolkit",
+      "compression.true-peak-limiter",
+      "metering.analysis-suite"
+    ],
     "dual-filter": [
       "eq.parametric-band"
     ],
@@ -4674,6 +4686,9 @@
     "metering": [
       "metering.analysis-suite"
     ],
+    "framework-reference": [
+      "metering.analysis-suite"
+    ],
     "pitch": [
       "pitch.modulated-feedback-shifter"
     ],
@@ -4704,6 +4719,14 @@
     ]
   },
   "productPrimitiveMap": {
+    "limiter-lab": [
+      "compression.feedforward-sidechain",
+      "compression.detector-ballistics",
+      "saturation.memoryless-waveshaper",
+      "compression.true-peak-limiter",
+      "compression.vintage-compressor-model",
+      "analog.preamp-console-stage"
+    ],
     "atlas-curve": [
       "eq.parametric-band",
       "eq.dynamic-band",
@@ -4775,6 +4798,18 @@
     ],
     "contour-forge": [
       "analog.preamp-console-stage"
+    ],
+    "omniplugin": [
+      "eq.parametric-band",
+      "eq.dynamic-band",
+      "compression.feedforward-sidechain",
+      "compression.detector-ballistics",
+      "saturation.memoryless-waveshaper",
+      "saturation.virtual-analog-stage",
+      "analog.preamp-console-stage",
+      "spatial.channel-toolkit",
+      "compression.true-peak-limiter",
+      "metering.analysis-suite"
     ]
   },
   "maturityModel": {

@@ -94,13 +94,7 @@ On the next machine:
 3. `npm test`
 4. `npm run preview`
 
-Useful preview routes:
-
-- `http://localhost:4173/?app=atlas-curve`
-- `http://localhost:4173/?app=press-deck`
-- `http://localhost:4173/?app=room-bloom`
-- `http://localhost:4173/?app=ember-drive`
-- `http://localhost:4173/?app=split-stack`
+Useful preview routes are generated from `generated/workspace_manifest.json`; after `npm run export:all`, the in-browser preview nav is the canonical route list. Start at `http://localhost:4173/` and use `?app=<workspace-app-key>` for any non-default app, for example `http://localhost:4173/?app=omniplugin`.
 
 ## Suggested Immediate Next Task
 

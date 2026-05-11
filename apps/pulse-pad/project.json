@@ -43,7 +43,20 @@
     "variant": "modular-synth",
     "catalog": {
       "productId": "pulse-pad",
-      "prototypeRole": "suite-polish-pass"
+      "prototypeRole": "suite-polish-pass",
+      "referenceProduct": "Framework synth proof",
+      "category": "framework-reference",
+      "featureAnchors": [
+        "oscillator stack",
+        "filter canvas",
+        "modulation dock",
+        "keyboard strip"
+      ],
+      "primitiveIds": [
+        "eq.parametric-band",
+        "saturation.memoryless-waveshaper",
+        "saturation.virtual-analog-stage"
+      ]
     },
     "shell": {
       "hero": {

@@ -299,35 +299,9 @@ That means the manuals are strong enough for architecture, interaction modeling,
 
 ## What This Means For The Current Framework
 
-The current generated schema is intentionally simple and flat:
+The generated schema has moved beyond the original flat slider-and-meter proof. Current app schemas include `ui.shell`, `ui.surfacePresetIds`, `ui.preview.controls`, `ui.catalog`, `ui.primitiveArchitecture`, family metadata, reusable surface presets, controls, and meters. The preview and native layers should treat that richer generated schema as the contract, not infer product shape from a flat control list.
 
-- [`generated/apps/limiter-lab/ui_schema.json`](/Users/mlangens/dev/faust-web-au-kit/generated/apps/limiter-lab/ui_schema.json)
-- [`generated/apps/pulse-pad/ui_schema.json`](/Users/mlangens/dev/faust-web-au-kit/generated/apps/pulse-pad/ui_schema.json)
-
-That works for slider-and-meter proof-of-concept apps, but it is not enough for this suite. To avoid turning every new product into a custom snowflake, we should evolve the schema from:
-
-```json
-{
-  "controls": [],
-  "meters": []
-}
-```
-
-toward something closer to:
-
-```json
-{
-  "shell": {},
-  "surfaces": [],
-  "panels": [],
-  "meters": [],
-  "modules": [],
-  "modulation": {},
-  "instances": {}
-}
-```
-
-The important change is not the exact field names. The important change is to let each app describe how shared primitives are assembled, instead of forcing the preview and native UI layers to infer everything from a flat control list.
+The important direction remains the same: each app should describe how shared primitives are assembled, which controls are owned by visual surfaces, and which fallback controls remain in the dock. That keeps future product clones and agent-designed plugins from becoming one-off UI snowflakes.
 
 ## Suggested Monorepo Landing Zones
 

@@ -802,6 +802,30 @@
       ],
       "layoutProfile": "canvas-plus-routing"
     },
+    "primitive-chain-builder": {
+      "group": "creative-effect",
+      "accentPaletteId": "moss-brass",
+      "surfacePresetIds": [
+        "section-grid",
+        "meter-stack",
+        "output-popover"
+      ],
+      "analyzerPresetIds": [
+        "modulation-lanes"
+      ],
+      "meterPresetIds": [
+        "peak",
+        "modulation-depth"
+      ],
+      "controlKindIds": [
+        "slot-chip",
+        "dial",
+        "vertical-slider",
+        "capsule-button",
+        "segmented-toggle"
+      ],
+      "layoutProfile": "modules-plus-dock"
+    },
     "modular-synth": {
       "group": "instrument",
       "accentPaletteId": "teal-sand",

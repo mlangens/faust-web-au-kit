@@ -698,6 +698,7 @@ function createSurfaceScaffold(model, className, bodyClass = "surface-card__body
   const header = document.createElement("header");
   header.className = "surface-card__header";
   const copy = document.createElement("div");
+  copy.className = "surface-card__copy";
   const title = document.createElement("h3");
   title.textContent = model.title;
   const description = document.createElement("p");
