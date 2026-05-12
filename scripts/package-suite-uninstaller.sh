@@ -6,7 +6,7 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 source "$ROOT_DIR/scripts/lib/bundles.zsh"
 source "$ROOT_DIR/scripts/lib/packages.zsh"
 
-SUITE_ID="northline-suite"
+SUITE_ID="framework-studio"
 WORKSPACE_ARGS=()
 
 while (( $# > 0 )); do

@@ -1,0 +1,302 @@
+{
+  "$schemaVersion": 1,
+  "id": "fwak-reference-assemblages",
+  "displayName": "FWAK Reference Assemblage Archive",
+  "description": "Archived sample-suite assemblages preserved as primitive, surface, and control-layout evidence. These entries are reference specimens only and must not drive preview routes, installers, or product identity.",
+  "assemblages": [
+    {
+      "productKey": "atlas-curve",
+      "productName": "Atlas Curve",
+      "source": {
+        "suiteId": "northline-suite",
+        "referenceProduct": "Reference Pro-Q 4",
+        "sourceFiles": [
+          "ui/catalog/northline-suite.json",
+          "apps/atlas-curve/project.json"
+        ]
+      },
+      "category": "equalizer",
+      "variant": "spectral-eq",
+      "featureAnchors": ["dynamic and spectral band workflows", "instance-aware analysis", "direct graph sketching"],
+      "primitiveIds": ["eq.parametric-band", "eq.dynamic-band", "eq.circuit-model-topology", "eq.passive-vintage-program-eq"],
+      "surfaceIds": ["eq-canvas", "instance-strip", "output-popover"],
+      "controlSections": ["Editor Modes", "Focus + Analyzer", "Foundation Curve", "Bell Sculpt", "Presence Sculpt", "Guidance + Output"],
+      "meterLabels": ["Input Peak", "Guide Drive", "Output Peak"],
+      "cloneDerivedSample": true,
+      "archiveNotes": "Graph-first EQ evidence for band handles, analyzer overlays, dynamic band controls, and output-popover staging."
+    },
+    {
+      "productKey": "press-deck",
+      "productName": "Press Deck",
+      "source": {
+        "suiteId": "northline-suite",
+        "referenceProduct": "Reference Pro-C 3",
+        "sourceFiles": [
+          "ui/catalog/northline-suite.json",
+          "apps/press-deck/project.json"
+        ]
+      },
+      "category": "dynamics",
+      "variant": "character-compressor",
+      "featureAnchors": ["multiple compression styles", "sidechain EQ editing", "auto-threshold and auto-release helpers"],
+      "primitiveIds": ["compression.feedforward-sidechain", "compression.detector-ballistics", "compression.vintage-compressor-model", "analog.preamp-console-stage"],
+      "surfaceIds": ["history-trace", "sidechain-editor", "meter-stack", "output-popover"],
+      "controlSections": ["Compression Voice", "Compression Staging", "Detector Response", "Output Utilities"],
+      "meterLabels": ["Input Peak", "Detector Drive", "Output Peak", "Gain Reduction"],
+      "cloneDerivedSample": true,
+      "archiveNotes": "Dynamics evidence for detector ballistics, sidechain EQ surface ownership, and compressor display feedback."
+    },
+    {
+      "productKey": "headroom",
+      "productName": "Headroom",
+      "source": {
+        "suiteId": "northline-suite",
+        "referenceProduct": "Reference Pro-L 2",
+        "sourceFiles": [
+          "ui/catalog/northline-suite.json",
+          "apps/headroom/project.json"
+        ]
+      },
+      "category": "mastering",
+      "variant": "mastering-limiter",
+      "featureAnchors": ["true-peak limiting", "integrated loudness views", "oversampling and dithering controls"],
+      "primitiveIds": ["compression.feedforward-sidechain", "compression.detector-ballistics", "saturation.memoryless-waveshaper", "compression.true-peak-limiter", "compression.vintage-compressor-model", "analog.preamp-console-stage"],
+      "surfaceIds": ["history-trace", "transfer-curve", "meter-stack", "output-popover"],
+      "controlSections": ["Limiter Voice", "Clamp Staging", "Response & Detail", "Output Utilities"],
+      "meterLabels": ["Input Peak", "Drive Level", "Gain Reduction", "Ceiling Activity", "Output Peak"],
+      "cloneDerivedSample": true,
+      "archiveNotes": "Limiter evidence for true-peak workflows, loudness displays, and audition-oriented output utilities."
+    },
+    {
+      "productKey": "room-bloom",
+      "productName": "Room Bloom",
+      "source": {
+        "suiteId": "northline-suite",
+        "referenceProduct": "Reference Pro-R 2",
+        "sourceFiles": [
+          "ui/catalog/northline-suite.json",
+          "apps/room-bloom/project.json"
+        ]
+      },
+      "category": "reverb",
+      "variant": "space-reverb",
+      "featureAnchors": ["macro room controls", "decay-rate EQ", "post EQ", "freeze and gating behaviors"],
+      "primitiveIds": ["space.reverb-macro-field", "eq.parametric-band", "space.mechanical-room-reverb"],
+      "surfaceIds": ["reverb-space", "meter-stack", "output-popover"],
+      "controlSections": ["Scene + Voicing", "Entry + Tail", "Field Shape", "Duck + Output", "Tail Utility"],
+      "meterLabels": ["Input Peak", "Early Energy", "Tail Energy", "Stereo Spread", "Duck Reduction", "Output Peak"],
+      "cloneDerivedSample": true,
+      "archiveNotes": "Space evidence for macro room shaping, decay control, freeze, ducking, and spatial telemetry."
+    },
+    {
+      "productKey": "split-stack",
+      "productName": "Split Stack",
+      "source": {
+        "suiteId": "northline-suite",
+        "referenceProduct": "Reference Pro-MB",
+        "sourceFiles": [
+          "ui/catalog/northline-suite.json",
+          "apps/split-stack/project.json"
+        ]
+      },
+      "category": "multiband-dynamics",
+      "variant": "multiband-dynamics",
+      "featureAnchors": ["free band placement", "snap and split crossovers", "compression and expansion modes"],
+      "primitiveIds": ["eq.filterbank-crossover", "compression.multiband-dynamics", "compression.detector-ballistics"],
+      "surfaceIds": ["multiband-editor", "band-inspector", "meter-stack", "output-popover"],
+      "controlSections": ["Multiband Routing", "Global Staging", "Timing & Links", "Low Band", "Mid Band", "High Band", "Utility Toggles"],
+      "meterLabels": ["Input Peak", "Low Energy", "Mid Energy", "High Energy", "Low Reduction", "Mid Reduction", "High Reduction", "Output Peak"],
+      "cloneDerivedSample": true,
+      "archiveNotes": "Multiband evidence for crossover editing, per-band inspectors, and linked detector timing."
+    },
+    {
+      "productKey": "silk-guard",
+      "productName": "Silk Guard",
+      "source": {
+        "suiteId": "northline-suite",
+        "referenceProduct": "Reference Pro-DS",
+        "sourceFiles": [
+          "ui/catalog/northline-suite.json",
+          "apps/silk-guard/project.json"
+        ]
+      },
+      "category": "de-esser",
+      "variant": "precision-de-esser",
+      "featureAnchors": ["detector band focus", "wide or split band processing", "lookahead and linking controls"],
+      "primitiveIds": ["eq.dynamic-band", "compression.detector-ballistics", "compression.split-band-focus"],
+      "surfaceIds": ["history-trace", "detector-filter", "meter-stack", "output-popover"],
+      "controlSections": ["Detection Routing", "Reduction Staging", "Focus Response", "Utility Toggles"],
+      "meterLabels": ["Input Peak", "Detector Drive", "Focus Energy", "Gain Reduction", "Output Peak"],
+      "cloneDerivedSample": true,
+      "archiveNotes": "Focused dynamics evidence for split-band detectors, sibilance auditioning, and detector-filter surfaces."
+    },
+    {
+      "productKey": "latch-line",
+      "productName": "Latch Line",
+      "source": {
+        "suiteId": "northline-suite",
+        "referenceProduct": "Reference Pro-G",
+        "sourceFiles": [
+          "ui/catalog/northline-suite.json",
+          "apps/latch-line/project.json"
+        ]
+      },
+      "category": "gate-expander",
+      "variant": "gate-expander",
+      "featureAnchors": ["transfer curve display", "expert sidechain filter controls", "ducking and upward workflows"],
+      "primitiveIds": ["compression.feedforward-sidechain", "compression.detector-ballistics", "compression.split-band-focus"],
+      "surfaceIds": ["transfer-curve", "sidechain-editor", "meter-stack", "output-popover"],
+      "controlSections": ["Gate Routing", "Closure Staging", "Detector Response", "Utility Toggles"],
+      "meterLabels": ["Input Peak", "Detector Drive", "Closure Depth", "Gain Reduction", "Output Peak"],
+      "cloneDerivedSample": true,
+      "archiveNotes": "Gate/expander evidence for transfer-curve editing, hysteresis, detector filtering, and range control."
+    },
+    {
+      "productKey": "ember-drive",
+      "productName": "Ember Drive",
+      "source": {
+        "suiteId": "northline-suite",
+        "referenceProduct": "Reference Saturn 2",
+        "sourceFiles": [
+          "ui/catalog/northline-suite.json",
+          "apps/ember-drive/project.json"
+        ]
+      },
+      "category": "saturation",
+      "variant": "multiband-saturation",
+      "featureAnchors": ["style-per-band distortion", "drag-and-drop modulation", "linear phase and quality modes"],
+      "primitiveIds": ["eq.filterbank-crossover", "saturation.multiband-drive", "saturation.antialiasing-strategy", "saturation.virtual-analog-stage"],
+      "surfaceIds": ["multiband-editor", "band-inspector", "modulation-dock", "output-popover"],
+      "controlSections": ["Circuit Style", "Crossovers and Glue", "Band Staging", "Tone and Bias", "Output Stage", "Utilities"],
+      "meterLabels": ["Input Peak", "Low Heat", "Mid Heat", "High Heat", "Glue Reduction", "Stereo Width", "Output Peak"],
+      "cloneDerivedSample": true,
+      "archiveNotes": "Saturation evidence for multiband drive, antialiasing choices, modulation slots, and analog-stage coloration."
+    },
+    {
+      "productKey": "relay-tape",
+      "productName": "Relay Tape",
+      "source": {
+        "suiteId": "northline-suite",
+        "referenceProduct": "Reference Timeless 3",
+        "sourceFiles": [
+          "ui/catalog/northline-suite.json",
+          "apps/relay-tape/project.json"
+        ]
+      },
+      "category": "delay",
+      "variant": "mod-delay",
+      "featureAnchors": ["tap editing", "feedback effects", "multi-filter routing", "tape and stretch timing modes"],
+      "primitiveIds": ["delay.tap-feedback-network", "eq.parametric-band", "saturation.memoryless-waveshaper", "modulation.vintage-delay-modulation", "tape.magnetic-recorder-stage"],
+      "surfaceIds": ["delay-timeline", "filter-canvas", "modulation-dock", "output-popover"],
+      "controlSections": ["Mode and Routing", "Echo Core", "Color and Bloom", "Motion", "Output Stage", "Hold Utilities"],
+      "meterLabels": ["Input Peak", "Echo Drive", "Motion", "Diffuse Tail", "Stereo Spread", "Freeze Hold", "Output Peak"],
+      "cloneDerivedSample": true,
+      "archiveNotes": "Delay evidence for tap timelines, feedback coloration, modulation depth, and tape-style time behavior."
+    },
+    {
+      "productKey": "contour-forge",
+      "productName": "Contour Forge",
+      "source": {
+        "suiteId": "northline-suite",
+        "referenceProduct": "Reference Volcano 3",
+        "sourceFiles": [
+          "ui/catalog/northline-suite.json",
+          "apps/contour-forge/project.json"
+        ]
+      },
+      "category": "filter",
+      "variant": "routable-filter",
+      "featureAnchors": ["multi-filter routing", "drive and style per filter", "drag-and-drop modulation"],
+      "primitiveIds": ["analog.preamp-console-stage"],
+      "surfaceIds": ["filter-canvas", "routing-matrix", "modulation-dock", "output-popover"],
+      "controlSections": ["Topology", "Filter Core", "Motion Grid", "Field Stage", "Utilities"],
+      "meterLabels": ["Input Peak", "Motion Depth", "Drive Heat", "Stereo Spread", "Output Peak"],
+      "cloneDerivedSample": true,
+      "archiveNotes": "Filter evidence for routing matrices, modulation target highlights, and channel-aware filter surfaces."
+    },
+    {
+      "productKey": "mirror-field",
+      "productName": "Mirror Field",
+      "source": {
+        "suiteId": "northline-suite",
+        "referenceProduct": "Reference Twin 3",
+        "sourceFiles": [
+          "ui/catalog/northline-suite.json",
+          "apps/mirror-field/project.json"
+        ]
+      },
+      "category": "synthesizer",
+      "variant": "modular-synth",
+      "featureAnchors": ["multi-oscillator voice design", "interactive filter canvas", "modulation matrix and source rail"],
+      "primitiveIds": ["instrument.oscillator-filter-voice", "eq.parametric-band", "saturation.virtual-analog-stage"],
+      "surfaceIds": ["oscillator-stack", "filter-canvas", "module-rack", "modulation-dock", "keyboard-strip"],
+      "controlSections": ["Voice Modes", "Voice Tone", "Motion and Envelope", "Stage and Field", "Performance Readout"],
+      "meterLabels": ["Voice Level", "Filter Bloom", "Stereo Spread", "Output Peak"],
+      "cloneDerivedSample": true,
+      "archiveNotes": "Synth evidence for oscillator stacks, filter canvases, module racks, modulation docks, and performance strips."
+    },
+    {
+      "productKey": "seed-tone",
+      "productName": "Seed Tone",
+      "source": {
+        "suiteId": "northline-suite",
+        "referenceProduct": "Reference One",
+        "sourceFiles": [
+          "ui/catalog/northline-suite.json",
+          "apps/seed-tone/project.json"
+        ]
+      },
+      "category": "synthesizer",
+      "variant": "simple-synth",
+      "featureAnchors": ["single oscillator", "basic low-pass filter", "tempo-synced modulation generator"],
+      "primitiveIds": ["instrument.oscillator-filter-voice", "eq.parametric-band"],
+      "surfaceIds": ["section-grid", "meter-stack"],
+      "controlSections": ["Voice Modes", "Voice Blend", "Tone + Envelope", "Field + Output", "Performance Input"],
+      "meterLabels": ["Voice Level", "Motion Level", "Output Peak"],
+      "cloneDerivedSample": true,
+      "archiveNotes": "Minimal synth evidence for compact voice controls and simple performance-ready layouts."
+    },
+    {
+      "productKey": "span-pair",
+      "productName": "Span Pair",
+      "source": {
+        "suiteId": "northline-suite",
+        "referenceProduct": "Reference Simplon",
+        "sourceFiles": [
+          "ui/catalog/northline-suite.json",
+          "apps/span-pair/project.json"
+        ]
+      },
+      "category": "filter",
+      "variant": "dual-filter",
+      "featureAnchors": ["dual filters", "serial and parallel routing", "linked handle moves"],
+      "primitiveIds": ["eq.parametric-band"],
+      "surfaceIds": ["filter-canvas", "routing-matrix", "output-popover"],
+      "controlSections": ["Routing Modes", "Filter A", "Filter B", "Span Coupling", "Mix + Output"],
+      "meterLabels": ["Input Peak", "Span Gap", "Output Peak"],
+      "cloneDerivedSample": true,
+      "archiveNotes": "Dual-filter evidence for paired handles, linked movement, and serial/parallel routing controls."
+    },
+    {
+      "productKey": "pocket-cut",
+      "productName": "Pocket Cut",
+      "source": {
+        "suiteId": "northline-suite",
+        "referenceProduct": "Reference Micro",
+        "sourceFiles": [
+          "ui/catalog/northline-suite.json",
+          "apps/pocket-cut/project.json"
+        ]
+      },
+      "category": "filter",
+      "variant": "mini-filter",
+      "featureAnchors": ["single filter node", "low-pass and high-pass modes", "envelope follower controls"],
+      "primitiveIds": ["eq.parametric-band", "compression.detector-ballistics"],
+      "surfaceIds": ["filter-canvas", "output-popover"],
+      "controlSections": ["Filter Mode", "Filter Core", "Drive + Output", "Output Utility"],
+      "meterLabels": ["Input Peak", "Envelope", "Output Peak"],
+      "cloneDerivedSample": true,
+      "archiveNotes": "Mini-filter evidence for a single focused canvas, envelope following, drive, mix, and minimal chrome."
+    }
+  ]
+}

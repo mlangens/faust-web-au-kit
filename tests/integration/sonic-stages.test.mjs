@@ -52,7 +52,7 @@ async function runSonic(args, options = {}) {
 }
 
 test("sonic stage runner renders deterministic DSP smoke and writes a report", { timeout: 180000 }, async () => {
-  const appKey = "pocket-cut";
+  const appKey = "omniplugin";
   const { scratchRoot, workspaceFile, generatedApps } = createScratchWorkspace(appKey);
 
   try {
@@ -73,7 +73,7 @@ test("sonic stage runner renders deterministic DSP smoke and writes a report", {
 });
 
 test("native sonic plan writes agent-observable host and screenshot contracts", { timeout: 120000 }, async () => {
-  const appKey = "seed-tone";
+  const appKey = "pulse-pad";
   const { scratchRoot, workspaceFile, generatedApps } = createScratchWorkspace(appKey);
 
   try {
@@ -85,7 +85,7 @@ test("native sonic plan writes agent-observable host and screenshot contracts", 
     const report = JSON.parse(fs.readFileSync(path.join(outputDir, "sonic-report.json"), "utf8"));
 
     assert.equal(request.mode, "vst3");
-    assert.match(request.artifacts.vst3, /SeedTone\.vst3$/);
+    assert.match(request.artifacts.vst3, /PulsePad\.vst3$/);
     assert.equal(session.requestFile, path.join(outputDir, "sonic-host-request.json"));
     assert.deepEqual(
       session.screenshotTargets.map((target) => target.id),

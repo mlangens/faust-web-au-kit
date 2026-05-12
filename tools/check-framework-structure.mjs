@@ -39,6 +39,18 @@ function isKebabCase(value) {
 }
 
 /**
+ * @param {CatalogManifest} catalog
+ * @returns {boolean}
+ */
+function isReferenceOnlyCatalog(catalog) {
+  const lifecycle = catalog.lifecycle;
+  return (
+    (lifecycle != null && typeof lifecycle === "object" && !Array.isArray(lifecycle) && lifecycle.mode === "reference-only") ||
+    catalog.referenceOnly === true
+  );
+}
+
+/**
  * @param {string[]} errors
  * @param {string} relativeDir
  * @param {CheckNamedFilesOptions} [options]
@@ -134,6 +146,9 @@ for (const catalogName of fs.readdirSync(path.join(root, "ui", "catalog"))) {
   const catalogId = String(catalog.id ?? catalogName.replace(/\.json$/u, ""));
   if (!isKebabCase(catalogId)) {
     errors.push(`Catalog "${normalizePath(catalogPath)}" must use a kebab-case id.`);
+  }
+  if (isReferenceOnlyCatalog(catalog)) {
+    continue;
   }
   for (const product of catalog.products ?? []) {
     const productId = String(product.id ?? "");

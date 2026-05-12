@@ -10,9 +10,9 @@ import { surfaceManualCues } from "../../preview/lib/surfaces/shared.js";
 test("normalizeSchema provides a default shared surfaces section", () => {
   const schema = normalizeSchema({
     project: {
-      key: "atlas-curve",
-      name: "Atlas Curve",
-      description: "Flagship EQ"
+      key: "primitive-workbench",
+      name: "Primitive Workbench",
+      description: "Primitive chain lab"
     },
     ui: {
       family: "northline-core",
@@ -29,7 +29,7 @@ test("normalizeSchema provides a default shared surfaces section", () => {
 test("resolveControlLayout preserves grouped widget sections for the preview control shell", () => {
   const layout = resolveControlLayout({
     project: {
-      key: "atlas-curve"
+      key: "primitive-workbench"
     },
     ui: {
       preview: {
@@ -86,7 +86,7 @@ test("resolveControlLayout preserves grouped widget sections for the preview con
 test("summarizeControlLayout separates visible shell controls from surface-owned controls", () => {
   const summary = summarizeControlLayout({
     project: {
-      key: "atlas-curve"
+      key: "primitive-workbench"
     },
     ui: {
       preview: {
@@ -121,7 +121,7 @@ test("summarizeControlLayout separates visible shell controls from surface-owned
 test("resolveSurfaceModels preserves graph and auxiliary surface metadata", () => {
   const schema = {
     project: {
-      key: "atlas-curve"
+      key: "primitive-workbench"
     },
     ui: {
       surfacePresetIds: ["eq-canvas", "instance-strip", "output-popover"],

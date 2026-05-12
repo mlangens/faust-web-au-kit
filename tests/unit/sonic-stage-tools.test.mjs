@@ -96,13 +96,13 @@ test("sonic assertions compare absolute metrics and render deltas", () => {
 });
 
 test("sonic stage resolution adds framework smoke and native host request metadata", () => {
-  const runtime = loadProjectRuntime(["--app", "headroom"]);
+  const runtime = loadProjectRuntime(["--app", "fet-76"]);
   const stages = resolveSonicStages(runtime);
   const request = createNativeHostRequest(runtime, stages, "vst3");
 
   assert.equal(stages[0].id, "framework-smoke");
-  assert.ok(stages.some((stage) => stage.id === "ceiling-clamps-peaks"));
-  assert.equal(request.appKey, "headroom");
-  assert.match(request.artifacts.vst3, /Headroom\.vst3$/);
+  assert.ok(stages.some((stage) => stage.id === "fet-input-drive-adds-compression-color"));
+  assert.equal(request.appKey, "fet-76");
+  assert.match(request.artifacts.vst3, /FET76\.vst3$/);
   assert.ok(request.stages.length >= 2);
 });

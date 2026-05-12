@@ -116,7 +116,7 @@ test("native export profile skips non-native sidecar targets while keeping schem
       schemaVersion: 1,
       name: "native-export-profile",
       version: "0.0.0",
-      defaultApp: "seed-tone",
+      defaultApp: "omniplugin",
       paths: {
         generatedRoot,
         generatedApps,
@@ -125,18 +125,18 @@ test("native export profile skips non-native sidecar targets while keeping schem
       },
       apps: [
         {
-          key: "seed-tone",
-          name: "Seed Tone",
-          manifest: "apps/seed-tone/project.json"
+          key: "omniplugin",
+          name: "Primitive Workbench",
+          manifest: "apps/omniplugin/project.json"
         }
       ]
     }, null, 2)}\n`
   );
 
   try {
-    await runExport(["--workspace", workspaceFile, "--app", "seed-tone", "--export-profile", "native"]);
+    await runExport(["--workspace", workspaceFile, "--app", "omniplugin", "--export-profile", "native"]);
 
-    const outputDir = path.join(generatedApps, "seed-tone");
+    const outputDir = path.join(generatedApps, "omniplugin");
     const targetDir = path.join(outputDir, "targets");
 
     assert.equal(fs.existsSync(path.join(targetDir, "main.c")), true);
@@ -154,7 +154,7 @@ test("native export profile skips non-native sidecar targets while keeping schem
 });
 
 test("sonic export profile emits only the C++ render target and schema outputs", { timeout: 120000 }, async () => {
-  const appKey = "pocket-cut";
+  const appKey = "fet-76";
   const { scratchRoot, workspaceFile, generatedApps } = createScratchWorkspace([appKey]);
 
   try {
@@ -177,11 +177,11 @@ test("sonic export profile emits only the C++ render target and schema outputs",
 });
 
 test("workspace export ignores forwarded app selection and refreshes every app", { timeout: 120000 }, async () => {
-  const appKeys = ["seed-tone", "mirror-field"];
+  const appKeys = ["omniplugin", "pulse-pad"];
   const { scratchRoot, workspaceFile } = createScratchWorkspace(appKeys);
 
   try {
-    await runExportWorkspace(["--workspace", workspaceFile, "--app", "seed-tone", "--export-profile", "schema"]);
+    await runExportWorkspace(["--workspace", workspaceFile, "--app", "omniplugin", "--export-profile", "schema"]);
 
     for (const appKey of appKeys) {
       const runtime = loadProjectRuntime(["--workspace", workspaceFile, "--app", appKey]);
@@ -202,15 +202,15 @@ test("workspace export ignores forwarded app selection and refreshes every app",
 });
 
 test("native ui manifests carry hero status, enum labels, and toggle display labels", { timeout: 120000 }, async () => {
-  const { scratchRoot, workspaceFile, generatedApps } = createScratchWorkspace(["pulse-pad", "mirror-field", "limiter-lab"]);
+  const { scratchRoot, workspaceFile, generatedApps } = createScratchWorkspace(["pulse-pad", "omniplugin", "limiter-lab"]);
 
   try {
-    for (const appKey of ["pulse-pad", "mirror-field", "limiter-lab"]) {
+    for (const appKey of ["pulse-pad", "omniplugin", "limiter-lab"]) {
       await runExport(["--workspace", workspaceFile, "--app", appKey, "--export-profile", "native"]);
     }
 
     const pulseHeader = fs.readFileSync(path.join(generatedApps, "pulse-pad", "ui_manifest.h"), "utf8");
-    const mirrorHeader = fs.readFileSync(path.join(generatedApps, "mirror-field", "ui_manifest.h"), "utf8");
+    const workbenchHeader = fs.readFileSync(path.join(generatedApps, "omniplugin", "ui_manifest.h"), "utf8");
     const limiterHeader = fs.readFileSync(path.join(generatedApps, "limiter-lab", "ui_manifest.h"), "utf8");
 
     assert.match(
@@ -223,10 +223,10 @@ test("native ui manifests carry hero status, enum labels, and toggle display lab
     );
     assert.equal(pulseHeader.includes("\"Idle\", \"Held\", 0, 0u"), true);
 
-    assert.equal(mirrorHeader.includes("FWAK_PARAM_ENUM_LABELS_"), true);
-    assert.equal(mirrorHeader.includes("\"Mono\""), true);
-    assert.equal(mirrorHeader.includes("\"Stack\""), true);
-    assert.equal(mirrorHeader.includes("\"Orbit\""), true);
+    assert.equal(workbenchHeader.includes("FWAK_PARAM_ENUM_LABELS_"), true);
+    assert.equal(workbenchHeader.includes("\"Tone\""), true);
+    assert.equal(workbenchHeader.includes("\"Dynamics\""), true);
+    assert.equal(workbenchHeader.includes("\"Saturation\""), true);
 
     assert.equal(limiterHeader.includes("\"Modern\", \"Vintage\", 0, 0u"), true);
   } finally {
@@ -263,7 +263,7 @@ test("export-targets times out instead of hanging when faust stalls", { timeout:
 });
 
 test("preview exports reuse cached Faust UI metadata without invoking faust", { timeout: 120000 }, async () => {
-  const appKey = "seed-tone";
+  const appKey = "pulse-pad";
   const { scratchRoot, workspaceFile, generatedApps } = createScratchWorkspace([appKey]);
   const sourceRuntime = loadGeneratedProject(appKey).runtime;
   const runtime = loadProjectRuntime(["--workspace", workspaceFile, "--app", appKey]);
@@ -299,7 +299,7 @@ test("preview exports reuse cached Faust UI metadata without invoking faust", { 
 });
 
 test("native exports reuse cached Faust targets and UI metadata", { timeout: 120000 }, async () => {
-  const appKey = "seed-tone";
+  const appKey = "pulse-pad";
   await runExport(["--app", appKey, "--export-profile", "native"]);
 
   const { scratchRoot, workspaceFile, generatedApps } = createScratchWorkspace([appKey]);
@@ -349,7 +349,7 @@ test("native exports reuse cached Faust targets and UI metadata", { timeout: 120
 });
 
 test("sonic exports reuse cached Faust UI metadata without invoking faust", { timeout: 120000 }, async () => {
-  const appKey = "seed-tone";
+  const appKey = "pulse-pad";
   const { scratchRoot, workspaceFile, generatedApps } = createScratchWorkspace([appKey]);
   const sourceRuntime = loadGeneratedProject(appKey).runtime;
   const runtime = loadProjectRuntime(["--workspace", workspaceFile, "--app", appKey]);

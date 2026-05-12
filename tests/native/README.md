@@ -18,10 +18,10 @@ Keep the default local and CI path focused on `npm test`, then opt into native v
 
 The validation path still serializes access to each app’s user AU install path so overlapping runs do not clobber `~/Library/Audio/Plug-Ins/Components` mid-copy, and native build products now land in `build/apps/<app-key>/`.
 
-For bulk host smoke work on the Northline suite, use the new suite commands outside the default test pyramid:
+For bulk host smoke work on the active framework studio suite, use the suite commands outside the default test pyramid:
 
-- `npm run install:clone-suite`
+- `npm run install:suite`
 - `npm run uninstall:local -- --app pulse-pad --scope both`
-- `npm run uninstall:clone-suite -- --scope both`
-- `npm run package:clone-suite-installer`
-- `npm run package:clone-suite-uninstaller`
+- `npm run uninstall:suite -- --scope both`
+- `npm run package:suite-installer`
+- `npm run package:suite-uninstaller`

@@ -1,157 +1,88 @@
 # Faust Web AU Kit
 
-`faust-web-au-kit` is now organized as a monorepo-native framework for building a suite of Faust-driven plugins with one shared set of export, preview, native-wrapper, validation, and packaging conventions.
+`faust-web-au-kit` is a monorepo-native framework for designing Faust-driven audio plugins with shared preview, export, native-wrapper, profiling, validation, and packaging conventions.
 
-The repo is designed around a simple rule: product identity lives in `apps/<app-key>`, while framework behavior lives in shared workspace tooling. That keeps new plugins from becoming one-off snowflakes and lets shared DSP export, UI schema generation, native runtime glue, installers, and tests scale across the suite.
+The repo has pivoted away from treating clone suites as end products. Reference plugins and sample suites are now research specimens for extracting reusable DSP primitives, UI surfaces, and sonic tests. Active product work lives in a small framework studio suite, while archived clone-derived learning lives in the reference corpus.
 
 ## Workspace Model
 
-The workspace root is described by `fwak.workspace.json`. It defines:
+The workspace root is described by `fwak.workspace.json`. It defines the default app, app registry, and output roots for generated files, builds, and installers.
 
-- the workspace name and version
-- the default app used by commands with no explicit selection
-- the canonical app registry
-- the namespaced output roots for generated files, builds, and installers
-
-Each app follows the same convention:
+Each registered app follows the same convention:
 
 - `apps/<app-key>/project.json`
   Product manifest and target metadata.
 - `apps/<app-key>/dsp/main.dsp`
-  Faust source of truth for that app.
+  Faust source of truth.
 - `generated/apps/<app-key>/`
-  Generated schema, target exports, and benchmark snapshots.
+  Generated schema, Faust exports, and benchmark snapshots.
 - `build/apps/<app-key>/`
-  Native build products for that app only.
+  Native build products.
 - `dist/apps/<app-key>/`
-  Installer artifacts for that app only.
+  App installer artifacts.
 - `dist/suites/<suite-id>/`
-  Bulk installer artifacts for a curated suite such as `northline-suite`.
+  Bulk installer artifacts for an operational catalog such as `framework-studio`.
 
-Shared framework code stays centralized:
-
-- `src/`
-  Shared native runtime core and AppKit editor layer.
-- `tools/`
-  Shared export, workspace orchestration, preview, benchmark, and validation tooling.
-- `scripts/`
-  Shared native build, install, doctor, and packaging entrypoints.
-- `vendor/cplug/`
-  Shared wrapper layer for AUv2, CLAP, VST3, and standalone targets.
-- `preview/`
-  Shared schema-driven browser preview for rapid UI iteration.
-
-## Naming Conventions
-
-The framework now treats plugin products as workspace apps with explicit, repeatable conventions:
-
-- App keys are lowercase kebab-case, for example `limiter-lab` and `pulse-pad`.
-- The default app is selected by `fwak.workspace.json`, not by a magic root `project.json`.
-- CLI app selection uses `--app <app-key>`.
-- Product manifests are always named `project.json`.
-- Faust entrypoints are always `dsp/main.dsp`.
-- Generated artifacts, native builds, and installers are always namespaced by app key.
-- Shared framework behavior belongs in root-level shared code, not duplicated inside app folders.
-
-These naming rules are now enforced by `npm run check:structure`, while framework typing coverage and the active checked set are enforced by `npm run check:type-coverage` and `npm run check:types`.
-
-That means a new plugin should be added by registering a new app, not by copying Limiter Lab into a parallel ad hoc structure.
+Shared framework code stays centralized in `src/`, `tools/`, `scripts/`, `preview/`, `types/`, and `vendor/cplug/`.
 
 ## Current Apps
 
-- `Northline Audio`
-  A 14-app clone-distance suite scaffold with flagship, dynamics, creative, and reduced lanes:
-  `atlas-curve`, `press-deck`, `headroom`, `room-bloom`, `silk-guard`, `latch-line`, `split-stack`, `ember-drive`, `relay-tape`, `contour-forge`, `mirror-field`, `seed-tone`, `span-pair`, and `pocket-cut`.
-- `Limiter Lab`
-  The framework’s original limiter proof of concept, kept aligned as an example app rather than part of the clone suite installer.
-- `Pulse Pad`
-  The framework’s original synth example, also kept aligned outside the clone suite installer.
+- `omniplugin`
+  Product name: Primitive Workbench. This is the default GUI-first primitive-chain builder for assembling reusable DSP roles into real-time plugin candidates.
+- `fet-76`
+  The profiled 1176-style FET compressor proof. This validates profiling-to-primitive-to-Faust assembly and keeps the strongest emulation path alive.
+- `pulse-pad`
+  The retained synth proof for instrument surfaces, oscillator/filter primitives, modulation UI, and performance-aware preview routes.
+- `limiter-lab`
+  The original limiter proof, kept as a legacy framework smoke target for exports, meters, and native-wrapper validation.
+
+The former Northline clone apps were removed from the active workspace. Their useful primitive/surface/control evidence is preserved in `framework/reference-corpus/reference-assemblages.json`, and `ui/catalog/northline-suite.json` is marked `reference-only`.
 
 ## Commands
 
-Default app commands target `limiter-lab` unless another app is selected.
+Default app commands now target `omniplugin` unless another app is selected.
 
 ```sh
 npm run export
 npm run export:all
-npm run export:pulse-pad
 npm run export:omniplugin
+npm run export:fet-76
+npm run export:pulse-pad
 npm run benchmark
-npm run benchmark:pulse-pad
 npm run benchmark:omniplugin
-npm run build:au
-npm run build:au -- --app pulse-pad
-npm run build:au -- --app omniplugin
 npm run build:native
+npm run build:native -- --app fet-76
 npm run install:local
-npm run install:clone-suite
+npm run install:suite
 npm run uninstall:local
-npm run uninstall:clone-suite
-npm run validate:au
-npm run doctor:au
+npm run uninstall:suite
 npm run package:installer
 npm run package:uninstaller
-npm run package:clone-suite-installer
-npm run package:clone-suite-uninstaller
+npm run package:suite-installer
+npm run package:suite-uninstaller
 npm run preview
 ```
 
-What they do:
+Useful details:
 
-- `npm run export`
-  Exports generated artifacts for the default app into `generated/apps/limiter-lab/`.
-- `npm run export:all`
-  Exports every registered app in the workspace.
-- `npm run export:pulse-pad`
-  Exports generated artifacts for `pulse-pad`.
-- `npm run export:omniplugin`
-  Exports the fixed-slot Omniplugin schema and Faust targets.
-- `npm run benchmark`
-  Rebuilds the default app’s generated targets and writes `generated/apps/limiter-lab/benchmark-results.json`.
-- `npm run benchmark:pulse-pad`
-  Rebuilds the `pulse-pad` benchmark snapshot.
-- `npm run benchmark:omniplugin`
-  Rebuilds the Omniplugin benchmark snapshot when the local C++ benchmark toolchain is available.
-- `npm run build:au`
-  Builds the default app’s AUv2 bundle into `build/apps/limiter-lab/`.
-- `npm run build:au -- --app omniplugin`
-  Builds the installable Omniplugin AUv2 prototype.
-- `npm run build:native`
-  Builds AUv2, CLAP, VST3, and standalone outputs for the selected app.
-- `npm run install:local`
-  Builds the selected app’s unsigned macOS installer package and installs it with `installer`. The default target is the current user’s `~/Library/Audio/Plug-Ins` and `~/Applications`; pass `-- --scope system` to target `/Library` and `/Applications`.
-- `npm run install:clone-suite`
-  Builds the ordered Northline clone suite installer package and installs it with `installer`. The default target is the current user scope; pass `-- --scope system` to target `/Library` and `/Applications`.
-- `npm run uninstall:local`
-  Builds the selected app’s matching unsigned macOS uninstaller package and runs it with `installer`. The default target is the current user scope; pass `-- --scope both` to remove both user and system installs.
-- `npm run uninstall:clone-suite`
-  Builds the ordered Northline clone suite uninstaller package and runs it with `installer`. The default target is the current user scope; pass `-- --scope both` to also remove system installs.
-- `npm run validate:au`
-  Rebuilds, installs, and runs `auval` for the selected app.
-- `npm run doctor:au`
-  Reports user vs system AU installs, versions, hashes, and a compact `auval` summary for the selected app.
-- `npm run package:installer`
-  Builds a namespaced unsigned macOS installer for the selected app.
-- `npm run package:uninstaller`
-  Builds a namespaced unsigned macOS uninstaller package for the selected app.
-- `npm run package:clone-suite-installer`
-  Builds one unsigned macOS installer containing the full Northline clone suite into `dist/suites/northline-suite/`.
-- `npm run package:clone-suite-uninstaller`
-  Builds one unsigned macOS uninstaller containing the full Northline clone suite removal script into `dist/suites/northline-suite/`.
-- `npm run preview`
-  Starts the shared preview server. Use `/` for the default app or `/?app=<app-key>` for any other registered app.
+- `npm run export` writes generated artifacts for Primitive Workbench into `generated/apps/omniplugin/`.
+- `npm run export:all` refreshes every active workspace app.
+- `npm run install:local` and `npm run package:installer` operate on the selected app.
+- `npm run install:suite` and `npm run package:suite-installer` use the operational `framework-studio` catalog by default.
+- `npm run preview` starts the shared web preview. Use `/` for Primitive Workbench or `/?app=<app-key>` for another active app.
+- App-scoped commands honor either `-- --app <app-key>` or `FWAK_APP=<app-key>`.
 
-The app-scoped scripts also honor `FWAK_APP=<app-key>` if you prefer selecting an app through the environment. The suite scripts accept `--suite <catalog-id>` and default the clone path to `northline-suite`.
+## Primitive Workbench
 
-## Omniplugin
+`apps/omniplugin` is the first installable primitive workbench. It keeps the DAW-facing parameter list fixed: four primitive slots expose `Type`, `Amount`, `Tone`, and `Mix`, while `Macro Intent`, `Macro Motion`, and `Macro Guard` provide stable automation targets for larger sound-building moves.
 
-`apps/omniplugin` is the first installable omniplugin prototype. It keeps the DAW-facing parameter list fixed: four primitive slots expose `Type`, `Amount`, `Tone`, and `Mix`, while `Macro Intent`, `Macro Motion`, and `Macro Guard` provide stable automation targets for larger sound-building moves. Slot types currently map to bypass, tone, dynamics, saturation, space, and guard roles. This is intentionally slot-based so future manual or local-model suggestions can populate the chain without dynamically changing AU/VST/CLAP parameters during a session.
+The goal is not to clone a product. The goal is a GUI-only composition surface where users can assemble LEGO-like DSP primitives, audition them against real sound input, and eventually export the result as a Faust/native plugin.
 
 Build it with:
 
 ```sh
 npm run export:omniplugin
-npm run build:au -- --app omniplugin
+npm run build:native -- --app omniplugin
 npm run package:installer -- --app omniplugin
 ```
 
@@ -160,93 +91,50 @@ npm run package:installer -- --app omniplugin
 The framework is validated in layers:
 
 - `npm run check:structure`
-  Enforces workspace naming, manifest placement, DSP entrypoint paths, and shared file naming conventions.
+  Enforces workspace naming, manifest placement, DSP entrypoint paths, active catalog references, and shared file naming conventions.
 - `npm run check:type-coverage`
-  Enforces which framework JS/MJS files must be in the checked set and which remaining gaps are still temporary, reasoned exemptions.
+  Enforces which JS/MJS framework files must participate in TypeScript-backed checking.
 - `npm run check:types`
-  Runs the framework’s TypeScript-backed `--noEmit` check over the currently enforced shared runtime, preview, and tooling slice.
-- `npm test`
-  Runs the workspace export prepare step, unit tests, schema contract tests, export integration tests, and Playwright preview tests.
+  Runs `tsc --noEmit` over the enforced checked set.
 - `npm run test:unit`
-  Exercises low-level framework helpers such as atomic publication and scratch cleanup.
+  Exercises low-level framework helpers and primitive/reference tooling.
 - `npm run test:contracts`
-  Validates generated UI schema against the current app manifests and Faust metadata.
+  Validates generated UI schema, active suite contracts, sonic stage declarations, and archived assemblage evidence.
 - `npm run test:integration`
-  Stress-tests export behavior, including concurrent publication into shared workspace outputs.
+  Stress-tests export behavior, sonic reports, scratch workspaces, and cache reuse.
 - `npm run test:preview`
-  Exercises the shared browser preview across workspace routes and failure states.
-- `npm run test:native`
-  Runs the AU validation path and keeps host-dependent checks at the top of the pyramid.
+  Exercises the shared browser preview across active workspace routes and failure states.
+- `npm test`
+  Runs the full default regression suite.
 
-When adding or splitting shared JS/MJS framework files, keep the typing workflow explicit:
+When adding or splitting shared JS/MJS framework files:
 
-1. Add the file to the checked set by expanding `tsconfig.check.json`, or add a temporary exemption with a concrete reason in `tools/type-coverage-policy.json`.
+1. Add the file to `tsconfig.check.json`, or add a temporary reasoned exemption in `tools/type-coverage-policy.json`.
 2. Run `npm run check:type-coverage`.
 3. Run `npm run check:types`.
 
-For app-specific native regression, pass an app key through the native scripts:
+## Native Notes
 
-```sh
-npm run build:au -- --app pulse-pad
-npm run validate:au -- --app pulse-pad
-npm run package:installer -- --app pulse-pad
-npm run package:uninstaller -- --app pulse-pad
-```
+The native runtime layer is macOS-first today. Installer and uninstaller packages are unsigned and intended for local testing until a signed/notarized distribution path exists.
 
-For suite-oriented native flows:
-
-```sh
-npm run install:clone-suite
-npm run uninstall:local -- --app pulse-pad --scope both
-npm run uninstall:clone-suite -- --scope both
-npm run package:clone-suite-installer
-npm run package:clone-suite-uninstaller
-```
-
-## Outputs
-
-For `Limiter Lab`, the shared conventions now produce:
-
-- `generated/apps/limiter-lab/`
-- `build/apps/limiter-lab/LimiterLab.component`
-- `build/apps/limiter-lab/LimiterLab.clap`
-- `build/apps/limiter-lab/LimiterLab.vst3`
-- `build/apps/limiter-lab/LimiterLab.app`
-- `dist/apps/limiter-lab/LimiterLab-0.3.0.pkg`
-- `dist/apps/limiter-lab/LimiterLab-0.3.0-uninstaller.pkg`
-
-For the bulk Northline path, the framework also produces:
-
-- `dist/suites/northline-suite/northline-suite-0.3.0.pkg`
-- `dist/suites/northline-suite/northline-suite-0.3.0-uninstaller.pkg`
-
-The preview server also publishes `generated/workspace_manifest.json`, which the web preview uses to render app navigation and route-aware schema loading.
-
-## Logic And Installer Notes
-
-Logic can be confused by duplicate AU installs in both `/Library` and `~/Library`. The framework now makes this easier to reason about because `doctor:au` reports both versions and both binary hashes for the selected app.
+Logic can be confused by duplicate AU installs in both `/Library` and `~/Library`. Use `npm run doctor:au` for the selected app to inspect user/system installs, versions, hashes, and `auval` output.
 
 Recommended local flow:
 
 1. Build or validate the selected app.
-2. Install with `npm run install:local` so the generated `.pkg` is applied through macOS `installer`.
+2. Install with `npm run install:local`.
 3. Run `npm run doctor:au`.
-4. If the user and system copies differ, either remove the stale copy with `npm run uninstall:local -- --scope both` or reinstall with `npm run install:local -- --scope system` so `/Library` matches the current build.
+4. If user and system copies differ, clean both with `npm run uninstall:local -- --scope both`.
 
-Recommended suite flow:
+Recommended active-suite flow:
 
-1. Install the clone suite with `npm run install:clone-suite` for the current user, or pass `-- --scope system` for `/Library` and `/Applications`.
-2. Generate `npm run package:clone-suite-installer` or `npm run package:clone-suite-uninstaller` when you want standalone package artifacts for manual testing outside the npm wrappers.
-3. Clean out stale copies with `npm run uninstall:clone-suite -- --scope both` before re-testing host scans if needed.
+1. Install the active framework studio suite with `npm run install:suite`.
+2. Generate standalone artifacts with `npm run package:suite-installer` or `npm run package:suite-uninstaller`.
+3. Clean stale suite copies with `npm run uninstall:suite -- --scope both`.
 
-## Practical Caveats
+## Research Notes
 
-- The native runtime layer is still macOS-first today.
-- The generated preview is development tooling only; shipped plugin bundles do not embed a web runtime.
-- The installer and uninstaller packages are unsigned and intended for local testing until a signed/notarized distribution path is added.
-- AU validation passes, but the thin AUv2 wrapper still emits non-fatal warnings about CFString parameter naming and layout reporting.
-
-## Research Note
-
-A short feasibility summary with source links lives in `docs/feasibility.md`.
-A first-pass Northline suite catalog and shared-component plan lives in `docs/northline-suite-research.md`.
+- `docs/reference-corpus-methodology.md` explains the specimen-to-primitive extraction loop.
+- `framework/reference-corpus/plugin-references.json` tracks outside plugin evidence.
+- `framework/reference-corpus/reference-assemblages.json` preserves the retired Northline clone-suite assemblages as framework evidence.
+- `framework/profiling/probe-signals.json` defines deterministic sonic inputs for staged plugin profiling.

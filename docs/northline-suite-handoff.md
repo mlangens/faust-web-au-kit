@@ -1,5 +1,7 @@
 # Northline Suite Handoff
 
+Archive note: this handoff is historical. The Northline clone apps were removed from the active workspace after their primitive, surface, and control-layout lessons were captured in `framework/reference-corpus/reference-assemblages.json`. Do not use this document as an active build plan; use `ui/catalog/framework-studio.json` and the Primitive Workbench direction instead.
+
 ## Snapshot
 
 This repo now contains a full "Northline" suite scaffold built as a shared-family exercise inside the monorepo.

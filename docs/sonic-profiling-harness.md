@@ -105,7 +105,7 @@ Each rendered plugin gets a `parameters.json` snapshot when the built-in AU host
 Use:
 
 ```sh
-npm run profile:faust -- --app relay-tape --signal-limit 8
+npm run profile:faust -- --app omniplugin --signal-limit 8
 ```
 
 This exports the app, renders the generated WASM against the primitive-derived probe set, and writes output WAVs plus per-signal analysis reports.
@@ -113,7 +113,7 @@ This exports the app, renders the generated WASM against the primitive-derived p
 Control states can be applied to Faust renders for fitting work:
 
 ```sh
-npm run profile:faust -- --app press-deck --signal stepped-sine-level-sweep,tone-burst-train --control "Ratio=4,Attack=12,Release=90,Threshold=-30"
+npm run profile:faust -- --app fet-76 --signal stepped-sine-level-sweep,tone-burst-train --control "Ratio=1,Attack=6.8,Release=6.2,Input=8.2"
 ```
 
 ## Emulation Pilots
@@ -132,7 +132,7 @@ This runs the first end-to-end emulation loop:
 - Compare UAD and Faust WAVs with time-domain error, correlation, spectral fingerprints, harmonic fingerprints, and loudness deltas.
 - Write per-target `assembly-spec.json` files that name the current best candidate state and the largest residuals to fix next.
 
-The two default pilots are intentionally different: `uad-1176-rev-a` exercises vintage compression/nonlinear dynamics through `fet-76`, while `uad-pultec-eqp-1a` exercises passive EQ/analog coloration through `atlas-curve`. Together they prove that the harness is not hard-coded to the 1176 case.
+The two default pilots are intentionally different: `uad-1176-rev-a` exercises vintage compression/nonlinear dynamics through `fet-76`, while `uad-pultec-eqp-1a` exercises passive EQ/analog coloration through the active Primitive Workbench slot graph. Together they prove that the harness is not hard-coded to the 1176 case or to retired clone apps.
 
 Every UAD render is also compared against its dry probe input. If the reference output is effectively pass-through, the pilot keeps the artifact and parameter snapshot but excludes those comparisons from candidate scoring. This prevents an unengaged host, authorization issue, or bypassed plugin from producing false emulation wins.
 

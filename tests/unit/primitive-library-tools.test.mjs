@@ -35,25 +35,24 @@ test("audio primitive library keeps every mapped primitive resolvable", () => {
   }
 });
 
-test("suite products resolve EQ, compression, and saturation primitive assemblages", () => {
+test("active products resolve workbench, compression, synth, and limiter primitive assemblages", () => {
   const library = loadPrimitiveLibrary();
-  const atlasIds = resolveProjectPrimitiveIds(loadProjectRuntime(["--app", "atlas-curve"]), library);
-  const pressIds = resolveProjectPrimitiveIds(loadProjectRuntime(["--app", "press-deck"]), library);
+  const workbenchIds = resolveProjectPrimitiveIds(loadProjectRuntime(["--app", "omniplugin"]), library);
   const fet76Ids = resolveProjectPrimitiveIds(loadProjectRuntime(["--app", "fet-76"]), library);
-  const emberIds = resolveProjectPrimitiveIds(loadProjectRuntime(["--app", "ember-drive"]), library);
+  const pulseIds = resolveProjectPrimitiveIds(loadProjectRuntime(["--app", "pulse-pad"]), library);
   const limiterIds = resolveProjectPrimitiveIds(loadProjectRuntime(["--app", "limiter-lab"]), library);
 
-  assert.deepEqual(atlasIds, [
+  assert.deepEqual(workbenchIds, [
     "eq.parametric-band",
     "eq.dynamic-band",
-    "eq.circuit-model-topology",
-    "eq.passive-vintage-program-eq"
-  ]);
-  assert.deepEqual(pressIds, [
     "compression.feedforward-sidechain",
     "compression.detector-ballistics",
-    "compression.vintage-compressor-model",
-    "analog.preamp-console-stage"
+    "saturation.memoryless-waveshaper",
+    "saturation.virtual-analog-stage",
+    "analog.preamp-console-stage",
+    "spatial.channel-toolkit",
+    "compression.true-peak-limiter",
+    "metering.analysis-suite"
   ]);
   assert.deepEqual(fet76Ids, [
     "compression.fet-76-gain-cell",
@@ -62,12 +61,13 @@ test("suite products resolve EQ, compression, and saturation primitive assemblag
     "saturation.virtual-analog-stage"
   ]);
   assert.deepEqual(
-    emberIds,
+    pulseIds,
     [
-      "eq.filterbank-crossover",
-      "saturation.multiband-drive",
-      "saturation.antialiasing-strategy",
-      "saturation.virtual-analog-stage"
+      "eq.parametric-band",
+      "saturation.memoryless-waveshaper",
+      "saturation.virtual-analog-stage",
+      "instrument.oscillator-filter-voice",
+      "instrument.electromechanical-keyboard"
     ]
   );
   assert.ok(limiterIds.includes("compression.feedforward-sidechain"));
@@ -75,13 +75,13 @@ test("suite products resolve EQ, compression, and saturation primitive assemblag
 });
 
 test("resolved primitive sets expose agentic design notes and analysis probes", () => {
-  const primitiveSet = resolveProjectPrimitiveSet(loadProjectRuntime(["--app", "split-stack"]));
+  const primitiveSet = resolveProjectPrimitiveSet(loadProjectRuntime(["--app", "fet-76"]));
 
   assert.equal(primitiveSet.library.id, "fwak-audio-primitives");
   assert.ok(primitiveSet.library.researchSources.length >= 3);
-  assert.ok(primitiveSet.primitiveIds.includes("compression.multiband-dynamics"));
-  assert.ok(primitiveSet.primitives["compression.multiband-dynamics"]?.analysisProbes?.includes("per-band gain trace"));
-  assert.ok(primitiveSet.primitives["eq.filterbank-crossover"]?.agentDesignNotes?.length);
+  assert.ok(primitiveSet.primitiveIds.includes("compression.fet-76-gain-cell"));
+  assert.ok(primitiveSet.primitives["compression.fet-76-gain-cell"]?.analysisProbes?.includes("tone-burst recovery"));
+  assert.ok(primitiveSet.primitives["compression.vintage-compressor-model"]?.agentDesignNotes?.length);
 });
 
 test("reference corpus treats outside plugins as primitive evidence and Northline as a sample suite", () => {

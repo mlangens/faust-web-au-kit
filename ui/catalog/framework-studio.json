@@ -1,0 +1,81 @@
+{
+  "$schemaVersion": 1,
+  "id": "framework-studio",
+  "displayName": "FWAK Studio Lab",
+  "family": "northline-core",
+  "description": "Active framework validation suite for primitive-chain design, profiled emulation, synth construction, and limiter smoke coverage.",
+  "products": [
+    {
+      "id": "omniplugin",
+      "displayName": "Primitive Workbench",
+      "referenceProduct": "Framework primitive chain builder",
+      "variant": "primitive-chain-builder",
+      "category": "meta-workbench",
+      "status": "active",
+      "implementationOrder": 1,
+      "tagline": "Graphical primitive-chain workbench for building new real-time plugin ideas from reusable DSP blocks.",
+      "accentPaletteId": "moss-brass",
+      "featureAnchors": [
+        "fixed realtime-safe primitive slots",
+        "surface-owned chain editing",
+        "macro-safe automation",
+        "agent-ready primitive suggestions",
+        "sonic feedback from staged input"
+      ]
+    },
+    {
+      "id": "fet-76",
+      "displayName": "FET-76",
+      "referenceProduct": "Profiled 1176-style FET compressor",
+      "variant": "fet-76-profiled-compressor",
+      "category": "dynamics",
+      "status": "active",
+      "implementationOrder": 2,
+      "tagline": "Profile-derived FET compression proof that validates profiling-to-primitive-to-Faust assembly.",
+      "accentPaletteId": "amber-slate",
+      "featureAnchors": [
+        "profiled FET gain cell",
+        "ratio button interaction",
+        "input/output drive staging",
+        "bias and sidechain shaping",
+        "harmonic coloration evidence"
+      ]
+    },
+    {
+      "id": "pulse-pad",
+      "displayName": "Pulse Pad",
+      "referenceProduct": "Framework modular synth proof",
+      "variant": "modular-synth",
+      "category": "synthesizer",
+      "status": "active",
+      "implementationOrder": 3,
+      "tagline": "Compact synth proof for instrument surfaces, oscillator/filter primitives, and performance-aware preview routes.",
+      "accentPaletteId": "teal-sand",
+      "featureAnchors": [
+        "oscillator stack",
+        "interactive filter canvas",
+        "module rack",
+        "modulation dock",
+        "keyboard strip"
+      ]
+    },
+    {
+      "id": "limiter-lab",
+      "displayName": "Limiter Lab",
+      "referenceProduct": "Framework limiter smoke harness",
+      "variant": "mastering-limiter",
+      "category": "mastering",
+      "status": "legacy-reference",
+      "implementationOrder": 4,
+      "tagline": "Original limiter proof kept as a stable smoke target for exports, meters, and native wrapper validation.",
+      "accentPaletteId": "amber-slate",
+      "featureAnchors": [
+        "true-peak limiter path",
+        "drive routing controls",
+        "meter stack",
+        "transfer curve preview",
+        "native validation smoke"
+      ]
+    }
+  ]
+}

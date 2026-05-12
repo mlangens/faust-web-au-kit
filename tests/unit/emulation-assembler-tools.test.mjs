@@ -16,7 +16,7 @@ test("default emulation pilots cover the 1176 proof and a second UAD EQ proof", 
   assert.ok(targetIds.includes("uad-1176-rev-a"));
   assert.ok(targetIds.includes("uad-pultec-eqp-1a"));
   assert.equal(defaultEmulationPilotTargets.find((target) => target.id === "uad-1176-rev-a")?.candidateApp, "fet-76");
-  assert.equal(defaultEmulationPilotTargets.find((target) => target.id === "uad-pultec-eqp-1a")?.candidateApp, "atlas-curve");
+  assert.equal(defaultEmulationPilotTargets.find((target) => target.id === "uad-pultec-eqp-1a")?.candidateApp, "omniplugin");
   assert.ok(defaultEmulationPilotTargets.find((target) => target.id === "uad-1176-rev-a")?.primitiveIds.includes("compression.fet-76-gain-cell"));
 });
 

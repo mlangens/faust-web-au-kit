@@ -28,7 +28,7 @@ import { resolveProjectUi } from "./ui-family-tools.mjs";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const defaultWorkspaceFile = path.resolve(root, "fwak.workspace.json");
 const defaultCatalogsDir = path.resolve(root, "ui", "catalog");
-const defaultSuiteId = "northline-suite";
+const defaultSuiteId = "framework-studio";
 const controlKinds = new Set(["button", "checkbox", "hslider", "nentry", "vslider"]);
 /** @type {ReadonlyMap<string, string>} */
 const clapFeatureMacroByName = new Map([
@@ -154,6 +154,18 @@ function loadCatalogRuntime(catalogIdOrPath = defaultSuiteId, rootDir = root) {
     catalogFile,
     catalog
   };
+}
+
+/**
+ * @param {CatalogManifest} catalog
+ * @returns {boolean}
+ */
+function isReferenceOnlyCatalog(catalog) {
+  const lifecycle = catalog.lifecycle;
+  return (
+    (lifecycle != null && typeof lifecycle === "object" && !Array.isArray(lifecycle) && lifecycle.mode === "reference-only") ||
+    catalog.referenceOnly === true
+  );
 }
 
 /**
@@ -305,6 +317,12 @@ function resolveWorkspaceSuite(workspaceRuntime, catalogIdOrPath) {
         ? workspaceRuntime.args.suite
         : defaultSuiteId;
   const { catalogFile, catalog } = loadCatalogRuntime(suiteArg);
+  if (isReferenceOnlyCatalog(catalog)) {
+    throw new Error(
+      `Catalog "${catalog.id ?? suiteArg}" is reference-only and cannot be used as an operational suite. ` +
+        "Use ui/catalog/framework-studio.json for active suite flows or framework/reference-corpus/reference-assemblages.json for archived evidence."
+    );
+  }
   const appByKey = new Map(workspaceRuntime.appEntries.map((entry) => [entry.key, entry]));
   const suiteProducts = catalog.products ?? [];
   /** @type {ResolvedSuiteEntry[]} */

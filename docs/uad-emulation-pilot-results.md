@@ -8,19 +8,19 @@ npm run profile:emulation-pilots -- --target uad-1176-rev-a --target uad-pultec-
 
 ## Pilot Coverage
 
-The pilot now prefers native UADx Audio Units over hardware-backed `!UAD` plugins when a matching product is installed:
+The pilot prefers native UADx Audio Units over hardware-backed `!UAD` plugins when a matching product is installed. After the workspace pivot, active candidates are `fet-76` for 1176-style compression and `omniplugin`/Primitive Workbench for passive EQ primitive experiments.
 
-- `uaudio_ua_1176_rev_a` resolved to `Universal Audio (UADx): UADx 1176 Rev A Compressor` and was compared against `press-deck`.
-- `uaudio_pultec_eqp-1a` resolved to `Universal Audio (UADx): UADx Pultec EQP-1A EQ` and was compared against `atlas-curve`.
+- `uaudio_ua_1176_rev_a` resolved to `Universal Audio (UADx): UADx 1176 Rev A Compressor` and is compared against `fet-76`.
+- `uaudio_pultec_eqp-1a` resolved to `Universal Audio (UADx): UADx Pultec EQP-1A EQ` and is compared against Primitive Workbench tone-slot candidate states.
 
 Both targets rendered 4 probe signals across 3 UADx parameter states. Every UADx reference render passed the dry-input engagement check.
 
 ## Results
 
-- `uad-1176-rev-a`: 12 engaged reference renders, 0 pass-through reference renders, 36 valid comparisons. Current best candidate is `press-deck/default` with average score `1.875353`.
-- `uad-pultec-eqp-1a`: 12 engaged reference renders, 0 pass-through reference renders, 12 valid comparisons, 24 invalid candidate comparisons filtered out. Current best candidate is `atlas-curve/default` with average score `2.676867`.
+- Historical pre-pivot `uad-1176-rev-a`: 12 engaged reference renders, 0 pass-through reference renders, 36 valid comparisons. The early best candidate was `press-deck/default`; this was superseded by the dedicated `fet-76` follow-up below.
+- Historical pre-pivot `uad-pultec-eqp-1a`: 12 engaged reference renders, 0 pass-through reference renders, 12 valid comparisons, 24 invalid candidate comparisons filtered out. The early best candidate was `atlas-curve/default`; the active pilot now uses Primitive Workbench candidate states because `atlas-curve` is archived reference evidence.
 
-The Pultec invalid comparisons came from non-default `atlas-curve` candidate states producing non-finite output analysis. Those comparisons are now excluded from scoring so they cannot masquerade as primitive fit evidence.
+The Pultec invalid comparisons came from retired non-default EQ candidate states producing non-finite output analysis. Those comparisons are now excluded from scoring so they cannot masquerade as primitive fit evidence.
 
 ## Primitive Derivation
 
@@ -32,7 +32,7 @@ The Pultec pilot moves `eq.passive-vintage-program-eq` from manual-observed to a
 
 - Add a FET compressor primitive submodel for ratio-button transfer, tone-burst recovery, and level-dependent harmonic emphasis.
 - Add a passive EQ phase/group-delay primitive path so Pultec-style program EQs can be fitted as coupled topology rather than independent shelves.
-- Fix or constrain invalid `atlas-curve` non-default candidate states before using them as fit candidates.
+- Fit passive EQ candidates against the active Primitive Workbench tone-slot graph rather than reviving retired clone apps.
 
 ## FET-76 Follow-Up Pass
 

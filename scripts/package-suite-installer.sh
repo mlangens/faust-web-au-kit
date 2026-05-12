@@ -6,7 +6,7 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 source "$ROOT_DIR/scripts/lib/bundles.zsh"
 source "$ROOT_DIR/scripts/lib/lock.zsh"
 
-SUITE_ID="northline-suite"
+SUITE_ID="framework-studio"
 SKIP_BUILD=0
 WORKSPACE_ARGS=()
 

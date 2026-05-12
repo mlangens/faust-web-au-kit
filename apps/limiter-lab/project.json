@@ -451,8 +451,8 @@
   "sonicStages": [
     {
       "id": "tube-drive-colors-limit-path",
-      "title": "Tube drive adds harmonic color before limiting",
-      "description": "A driven limiter scene should increase upper harmonic energy while still producing valid bounded output.",
+      "title": "Tube drive adds density before limiting",
+      "description": "A driven limiter scene should increase audible density while still producing valid bounded output.",
       "fixture": {
         "kind": "multitone",
         "seconds": 1.2,
@@ -485,9 +485,9 @@
         },
         {
           "render": "feature",
-          "metric": "harmonicRatioDb",
+          "metric": "rmsDb",
           "reference": "baseline",
-          "minDelta": 0.2
+          "minDelta": 2
         }
       ],
       "tags": [

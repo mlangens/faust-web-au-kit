@@ -153,7 +153,7 @@ const defaultEmulationPilotTargets = [
     id: "uad-pultec-eqp-1a",
     displayName: "UAD Pultec EQP-1A passive EQ pilot",
     pluginFilters: ["UAD Pultec EQP-1A", "Pultec EQP-1A", "EQP-1A"],
-    candidateApp: "atlas-curve",
+    candidateApp: "omniplugin",
     primitiveIds: [
       "eq.passive-vintage-program-eq",
       "eq.circuit-model-topology",
@@ -199,28 +199,29 @@ const defaultEmulationPilotTargets = [
     candidateStates: [
       {
         id: "default",
-        label: "Atlas Curve default",
+        label: "Primitive Workbench default",
         controlOverrides: {}
       },
       {
         id: "low-shape",
-        label: "Passive low contour",
+        label: "Primitive tone low contour",
         controlOverrides: {
-          "Low Shelf": 3,
-          "High Shelf": 1.5,
-          Style: 1,
-          Mode: 1
+          "Slot 1 Type": 1,
+          "Slot 1 Amount": 54,
+          "Slot 1 Tone": 28,
+          "Slot 1 Mix": 82,
+          "Macro Intent": 42
         }
       },
       {
         id: "presence",
-        label: "Presence and air contour",
+        label: "Primitive tone presence contour",
         controlOverrides: {
-          "Presence Gain": 2.5,
-          "Presence Freq": 3600,
-          "Bell Gain": -1,
-          "High Shelf": 2,
-          Style: 2
+          "Slot 1 Type": 1,
+          "Slot 1 Amount": 64,
+          "Slot 1 Tone": 72,
+          "Slot 1 Mix": 86,
+          "Macro Intent": 68
         }
       }
     ]

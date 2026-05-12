@@ -4,17 +4,17 @@
   "displayName": "Studio Workbench Core",
   "description": "Shared metadata for analyzer-led, meter-rich, modulation-capable audio plug-ins built from a common shell.",
   "catalog": {
-    "suite": "northline-suite"
+    "suite": "framework-studio"
   },
   "presentation": {
     "style": "studio-neutral-industrial",
     "cloneDistance": "feature-first"
   },
   "shell": {
-    "eyebrow": "Northline Prototype"
+    "eyebrow": "FWAK Workbench"
   },
   "positioning": {
-    "intent": "Preserve the functional clarity and composable surface model of the research set while steering the future suite toward a more generic studio-industrial presentation.",
+    "intent": "Preserve the functional clarity and composable surface model of the research set while steering active products toward reusable primitive-chain workbench behavior.",
     "visualDirection": "studio-neutral-industrial",
     "designRules": [
       "Use rounded-rectangle buttons, restrained dials, and neutral panels instead of direct brand-signature control silhouettes.",

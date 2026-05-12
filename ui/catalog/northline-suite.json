@@ -3,7 +3,12 @@
   "id": "northline-suite",
   "displayName": "Northline Audio",
   "family": "northline-core",
-  "description": "Feature-inspired product catalog for a shared family manifest.",
+  "description": "Reference-only clone-distance catalog retained as primitive extraction evidence, not as an active product suite.",
+  "lifecycle": {
+    "mode": "reference-only",
+    "archive": "framework/reference-corpus/reference-assemblages.json",
+    "reason": "Northline served as a disposable proving suite. Active product scope now lives in ui/catalog/framework-studio.json."
+  },
   "namingTone": [
     "Prefer short, self-contained names that hint at the workflow instead of the original product letter-number cadence.",
     "Keep the names plausible enough to ship on their own, with a light nod to the inspiration only for people who know what they are looking at.",

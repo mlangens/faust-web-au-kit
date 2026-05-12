@@ -4,10 +4,10 @@
   "owner": "mlangens",
   "companyName": "Max Langensiepen",
   "companyTag": "Mlng",
-  "productName": "Omniplugin",
+  "productName": "Primitive Workbench",
   "artifactStem": "Omniplugin",
   "bundleId": "io.github.mlangens.faust-web-au-kit.omniplugin",
-  "description": "Slot-based omniplugin prototype for realtime DAW sound-building from fixed primitive roles.",
+  "description": "Graphical primitive-chain workbench for real-time DAW sound-building from reusable DSP roles.",
   "license": "MIT",
   "plugin": {
     "kind": "effect",
@@ -56,8 +56,8 @@
     "catalog": {
       "productId": "omniplugin",
       "prototypeRole": "realtime-primitive-builder",
-      "referenceProduct": "Realtime primitive chain builder",
-      "category": "omniplugin",
+      "referenceProduct": "Framework primitive chain builder",
+      "category": "meta-workbench",
       "featureAnchors": [
         "fixed primitive slots",
         "macro-safe automation",
@@ -79,14 +79,14 @@
     },
     "shell": {
       "hero": {
-        "title": "Omniplugin",
-        "description": "Realtime-safe primitive slots for building different sounds in a DAW without changing the plugin parameter list.",
-        "status": "Four fixed primitive slots, macro-safe automation, and an explicit path for local AI suggestions to populate the chain."
+        "title": "Primitive Workbench",
+        "description": "A GUI-first lab for assembling reusable DSP primitives into real-time plugin candidates without changing the DAW parameter list.",
+        "status": "Four fixed primitive slots, macro-safe automation, and an explicit path for local agents to suggest and audition chains."
       },
       "sections": {
         "controls": {
           "title": "Primitive Slots",
-          "description": "Each slot exposes type, amount, tone, and mix so DAW automation remains stable while the chain changes character."
+          "description": "Each slot exposes type, amount, tone, and mix so DAW automation remains stable while the primitive chain changes character."
         },
         "meters": {
           "title": "Assembly Meters",
@@ -94,7 +94,7 @@
         },
         "surfaces": {
           "title": "Chain Builder",
-          "description": "The first installable pass uses fixed slots as the native bridge for future manual and Qwen-suggested assemblies."
+          "description": "The first installable pass uses fixed slots as the native bridge for manual and agent-suggested assemblies."
         }
       }
     },
@@ -272,8 +272,8 @@
             ]
           }
         ],
-        "supplementalTitle": "Future Suggestion Bindings",
-        "supplementalDescription": "Qwen can populate the same fixed slot controls later; the realtime plugin never needs dynamic parameter creation."
+        "supplementalTitle": "Suggestion Bindings",
+        "supplementalDescription": "Agents can populate the same fixed slot controls later; the realtime plugin never needs dynamic parameter creation."
       },
       "surfaces": {
         "section-grid": {
@@ -425,7 +425,7 @@
         "source": "Output Peak"
       }
     ],
-    "statusText": "Realtime-safe primitive-slot omniplugin prototype."
+    "statusText": "Realtime-safe primitive-slot workbench prototype."
   },
   "benchmark": {
     "sampleRate": 48000,
@@ -465,7 +465,7 @@
   },
   "clap": {
     "id": "io.github.mlangens.faust-web-au-kit.omniplugin",
-    "description": "Slot-based primitive omniplugin prototype for realtime DAW sound-building.",
+    "description": "Slot-based primitive workbench prototype for realtime DAW sound-building.",
     "features": [
       "audio-effect",
       "stereo",
@@ -529,8 +529,13 @@
       "assertions": [
         {
           "render": "built",
-          "metric": "spectralCentroidHz",
-          "minDelta": 5,
+          "metric": "nanSamples",
+          "lte": 0
+        },
+        {
+          "render": "built",
+          "metric": "rmsDb",
+          "minDelta": 3,
           "reference": "neutral"
         }
       ],
