@@ -131,10 +131,48 @@ export interface PreviewSurfaceControlRef extends JsonObject {
   tone?: string;
 }
 
+export interface PreviewPrimitivePaletteItem extends JsonObject {
+  id?: string;
+  label?: string;
+  role?: string;
+  slotType?: number;
+  amount?: number;
+  tone?: number | string;
+  mix?: number;
+  toneId?: string;
+  description?: string;
+}
+
+export interface PreviewPrimitiveRecipeSlot extends JsonObject {
+  slot?: number;
+  primitiveId?: string;
+  slotType?: number;
+  amount?: number;
+  tone?: number;
+  mix?: number;
+}
+
+export interface PreviewPrimitiveRecipe extends JsonObject {
+  id?: string;
+  label?: string;
+  targetAppKey?: string;
+  productName?: string;
+  artifactStem?: string;
+  bundleId?: string;
+  auSubtype?: string;
+  description?: string;
+  installerCommand?: string;
+  expectedPackagePath?: string;
+  slots?: PreviewPrimitiveRecipeSlot[];
+  macros?: Record<string, number>;
+}
+
 export interface PreviewSurfaceConfig extends JsonObject {
   title?: string;
   description?: string;
+  workflow?: string;
   selection?: string | null;
+  defaultRecipe?: string;
   gridLabels?: string[];
   focusBadges?: PreviewSurfaceBadge[];
   bands?: JsonObject[];
@@ -158,6 +196,8 @@ export interface PreviewSurfaceConfig extends JsonObject {
   sections?: JsonObject[];
   series?: PreviewSurfaceControlRef[];
   slots?: JsonObject[];
+  primitivePalette?: PreviewPrimitivePaletteItem[];
+  recipes?: PreviewPrimitiveRecipe[];
   sources?: PreviewSurfaceControlRef[];
   taps?: JsonObject[];
   timingItems?: PreviewSurfaceControlRef[];

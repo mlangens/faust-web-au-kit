@@ -18,6 +18,13 @@ const appSchemaCases = [
     assertions(schema) {
       assert.equal(schema.ui.catalog?.category, "meta-workbench");
       assert.equal(schema.ui.preview?.surfaces?.["section-grid"]?.sections?.length, 4);
+      assert.equal(schema.ui.preview?.surfaces?.["section-grid"]?.workflow, "primitive-assembler");
+      assert.equal(schema.ui.preview?.surfaces?.["section-grid"]?.primitivePalette?.length >= 6, true);
+      assert.equal(
+        schema.ui.preview?.surfaces?.["section-grid"]?.recipes?.some((recipe) => recipe.id === "fet-76-rebuild"),
+        true
+      );
+      assert.equal(schema.ui.preview?.surfaces?.["section-grid"]?.recipes?.[0]?.expectedPackagePath?.endsWith("FET76Workbench-0.1.0.pkg"), true);
       assert.deepEqual(
         schema.ui.preview?.surfaces?.["section-grid"]?.sections?.map((section) => section.id),
         ["slot-1", "slot-2", "slot-3", "slot-4"]

@@ -44,6 +44,8 @@
     "primitiveIds": [
       "eq.parametric-band",
       "eq.dynamic-band",
+      "compression.fet-76-gain-cell",
+      "compression.vintage-compressor-model",
       "compression.feedforward-sidechain",
       "compression.detector-ballistics",
       "saturation.memoryless-waveshaper",
@@ -67,6 +69,8 @@
       "primitiveIds": [
         "eq.parametric-band",
         "eq.dynamic-band",
+        "compression.fet-76-gain-cell",
+        "compression.vintage-compressor-model",
         "compression.feedforward-sidechain",
         "compression.detector-ballistics",
         "saturation.memoryless-waveshaper",
@@ -279,6 +283,125 @@
         "section-grid": {
           "title": "Primitive chain slots",
           "description": "A fixed four-slot chain gives the DAW a stable automation contract while still allowing different primitive assemblies.",
+          "workflow": "primitive-assembler",
+          "primitivePalette": [
+            {
+              "id": "analog.preamp-console-stage",
+              "label": "Input Preamp",
+              "role": "Tone",
+              "slotType": 1,
+              "amount": 58,
+              "tone": 62,
+              "mix": 100,
+              "toneId": "warning",
+              "description": "Input transformer/preamp coloration before compression."
+            },
+            {
+              "id": "compression.fet-76-gain-cell",
+              "label": "FET Gain Cell",
+              "role": "Dynamics",
+              "slotType": 2,
+              "amount": 82,
+              "tone": 66,
+              "mix": 100,
+              "toneId": "info",
+              "description": "Fast fixed-threshold FET gain cell with ratio-button behavior."
+            },
+            {
+              "id": "compression.vintage-compressor-model",
+              "label": "Vintage Timing",
+              "role": "Dynamics",
+              "slotType": 2,
+              "amount": 64,
+              "tone": 54,
+              "mix": 92,
+              "toneId": "positive",
+              "description": "Program-dependent detector and release behavior."
+            },
+            {
+              "id": "saturation.virtual-analog-stage",
+              "label": "Output Color",
+              "role": "Saturation",
+              "slotType": 3,
+              "amount": 46,
+              "tone": 58,
+              "mix": 88,
+              "toneId": "warning",
+              "description": "Level-dependent harmonic color at the output stage."
+            },
+            {
+              "id": "eq.parametric-band",
+              "label": "Sidechain HP",
+              "role": "Tone",
+              "slotType": 1,
+              "amount": 32,
+              "tone": 38,
+              "mix": 72,
+              "toneId": "muted",
+              "description": "Tone-shaping primitive for detector or sidechain focus."
+            },
+            {
+              "id": "metering.analysis-suite",
+              "label": "Meter Guard",
+              "role": "Guard",
+              "slotType": 5,
+              "amount": 52,
+              "tone": 50,
+              "mix": 100,
+              "toneId": "accent",
+              "description": "Safety and metering primitive for export confidence."
+            }
+          ],
+          "recipes": [
+            {
+              "id": "fet-76-rebuild",
+              "label": "Rebuild FET-76",
+              "targetAppKey": "fet-76-workbench",
+              "productName": "FET-76 Workbench Rebuild",
+              "artifactStem": "FET76Workbench",
+              "bundleId": "io.github.mlangens.faust-web-au-kit.workbench.fet-76",
+              "auSubtype": "F7WB",
+              "description": "Workbench-built FET compressor assembled from preamp, FET gain, vintage timing, and output color primitives.",
+              "installerCommand": "npm run workbench:build-installer -- --recipe fet-76-rebuild",
+              "expectedPackagePath": "dist/workbench-assemblies/fet-76-rebuild/fet-76-workbench/FET76Workbench-0.1.0.pkg",
+              "slots": [
+                {
+                  "slot": 1,
+                  "primitiveId": "analog.preamp-console-stage",
+                  "amount": 54,
+                  "tone": 64,
+                  "mix": 100
+                },
+                {
+                  "slot": 2,
+                  "primitiveId": "compression.fet-76-gain-cell",
+                  "amount": 86,
+                  "tone": 66,
+                  "mix": 100
+                },
+                {
+                  "slot": 3,
+                  "primitiveId": "compression.vintage-compressor-model",
+                  "amount": 68,
+                  "tone": 56,
+                  "mix": 96
+                },
+                {
+                  "slot": 4,
+                  "primitiveId": "saturation.virtual-analog-stage",
+                  "amount": 42,
+                  "tone": 58,
+                  "mix": 88
+                }
+              ],
+              "macros": {
+                "Macro Intent": 78,
+                "Macro Motion": 58,
+                "Macro Guard": 70,
+                "Output Trim": -1.2
+              }
+            }
+          ],
           "sections": [
             {
               "id": "slot-1",

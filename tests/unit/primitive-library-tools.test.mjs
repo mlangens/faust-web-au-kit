@@ -45,6 +45,8 @@ test("active products resolve workbench, compression, synth, and limiter primiti
   assert.deepEqual(workbenchIds, [
     "eq.parametric-band",
     "eq.dynamic-band",
+    "compression.fet-76-gain-cell",
+    "compression.vintage-compressor-model",
     "compression.feedforward-sidechain",
     "compression.detector-ballistics",
     "saturation.memoryless-waveshaper",

@@ -16,6 +16,7 @@
     "tools/check-type-coverage.mjs",
     "tools/check-framework-structure.mjs",
     "tools/check-au-dsp-engagement.mjs",
+    "tools/build-workbench-installer.mjs",
     "tools/export-workspace.mjs",
     "tools/generate-probe-signals.mjs",
     "tools/profile-au-plugins.mjs",

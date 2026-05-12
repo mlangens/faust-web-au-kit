@@ -125,6 +125,15 @@ function setSurfaceControlValue(sourceNode, schema, state, key, value) {
 
   const nextValue = coerceControlValue(control, value);
   const doc = sourceNode?.ownerDocument ?? null;
+  const notify = () => {
+    doc?.dispatchEvent(new CustomEvent("fwak:surface-control-change", {
+      detail: {
+        controlId: control.id || control.label,
+        label: control.label,
+        value: nextValue
+      }
+    }));
+  };
   const input = doc
     ? Array.from(doc.querySelectorAll("input[data-control-id]")).find(
       (node) => node.getAttribute("data-control-id") === (control.id || control.label)
@@ -135,16 +144,19 @@ function setSurfaceControlValue(sourceNode, schema, state, key, value) {
     if (input.type === "checkbox") {
       input.checked = Number(nextValue) >= 0.5;
       input.dispatchEvent(new Event("change", { bubbles: true }));
+      notify();
       return nextValue;
     }
 
     input.value = String(nextValue);
     input.dispatchEvent(new Event("input", { bubbles: true }));
+    notify();
     return nextValue;
   }
 
   rememberControlValue(state, control, nextValue);
   state.refreshSurfaceViews?.();
+  notify();
   return nextValue;
 }
 
@@ -269,6 +281,32 @@ function enhanceSurfaceReadoutRow(row, sourceNode, schema, state, entry) {
     event.stopPropagation();
   };
   const readCurrentValue = () => Number(readControlValue(schema, state, controlKey, control.init ?? control.min ?? 0));
+  const syncAria = () => {
+    const current = readCurrentValue();
+    row.setAttribute("aria-label", control.label || controlKey);
+    if (control.isToggle || control.type === "checkbox" || control.type === "button") {
+      row.setAttribute("role", "switch");
+      row.setAttribute("aria-checked", current >= 0.5 ? "true" : "false");
+      row.removeAttribute("aria-valuemin");
+      row.removeAttribute("aria-valuemax");
+      row.removeAttribute("aria-valuenow");
+      row.removeAttribute("aria-valuetext");
+      return;
+    }
+
+    row.setAttribute("role", "slider");
+    row.setAttribute("aria-valuemin", String(controlMinValue(control)));
+    row.setAttribute("aria-valuemax", String(controlMaxValue(control, display)));
+    row.setAttribute("aria-valuenow", String(current));
+    row.setAttribute("aria-valuetext", formatValue(control, current, schema.ui));
+    row.removeAttribute("aria-checked");
+  };
+  row.ownerDocument?.addEventListener("fwak:surface-control-change", (event) => {
+    const detail = event.detail || {};
+    if (detail.controlId === (control.id || control.label) || detail.label === control.label) {
+      syncAria();
+    }
+  });
   const discreteRange = () => ({
     min: controlMinValue(control),
     max: controlMaxValue(control, display),
@@ -277,12 +315,15 @@ function enhanceSurfaceReadoutRow(row, sourceNode, schema, state, entry) {
   const adjustByWheel = (direction) => {
     if (discrete) {
       stepSurfaceControlValue(sourceNode, schema, state, controlKey, direction);
+      syncAria();
       return;
     }
 
     const nextNormalized = normalizeControlValue(control, readCurrentValue()) + Math.sign(direction || 1) * 0.035;
     setSurfaceControlNormalizedValue(sourceNode, schema, state, controlKey, nextNormalized);
+    syncAria();
   };
+  syncAria();
 
   const startDrag = (event) => {
     interactions.startDrag(event, {
@@ -310,6 +351,7 @@ function enhanceSurfaceReadoutRow(row, sourceNode, schema, state, entry) {
           }
           const nextValue = clamp(dragState.value + stepDelta * step, min, max);
           setSurfaceControlValue(sourceNode, schema, state, controlKey, nextValue);
+          syncAria();
           suppressClick = true;
           dragState.changed = true;
           return;
@@ -320,6 +362,7 @@ function enhanceSurfaceReadoutRow(row, sourceNode, schema, state, entry) {
           return;
         }
         setSurfaceControlNormalizedValue(sourceNode, schema, state, controlKey, nextNormalized);
+        syncAria();
         suppressClick = true;
         dragState.changed = true;
       },
@@ -347,6 +390,7 @@ function enhanceSurfaceReadoutRow(row, sourceNode, schema, state, entry) {
     }
     stopInteraction(event);
     stepSurfaceControlValue(sourceNode, schema, state, controlKey, event.shiftKey ? -1 : 1);
+    syncAria();
   });
   row.addEventListener("wheel", (event) => {
     stopInteraction(event);
@@ -372,6 +416,7 @@ function enhanceSurfaceReadoutRow(row, sourceNode, schema, state, entry) {
         } else {
           setSurfaceControlNormalizedValue(sourceNode, schema, state, controlKey, 0);
         }
+        syncAria();
         break;
       case "End":
         stopInteraction(event);
@@ -380,6 +425,7 @@ function enhanceSurfaceReadoutRow(row, sourceNode, schema, state, entry) {
         } else {
           setSurfaceControlNormalizedValue(sourceNode, schema, state, controlKey, 1);
         }
+        syncAria();
         break;
       case " ":
       case "Enter":
@@ -388,6 +434,7 @@ function enhanceSurfaceReadoutRow(row, sourceNode, schema, state, entry) {
         }
         stopInteraction(event);
         stepSurfaceControlValue(sourceNode, schema, state, controlKey, event.shiftKey ? -1 : 1);
+        syncAria();
         break;
       default:
         break;

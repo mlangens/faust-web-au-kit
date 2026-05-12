@@ -40,6 +40,7 @@
     "uninstall:suite": "./scripts/uninstall-suite-local.sh",
     "package:installer": "./scripts/package-installer.sh",
     "package:fet-76-installer": "./scripts/package-installer.sh --app fet-76",
+    "workbench:build-installer": "node ./tools/build-workbench-installer.mjs",
     "package:uninstaller": "./scripts/package-uninstaller.sh",
     "package:fet-76-uninstaller": "./scripts/package-uninstaller.sh --app fet-76",
     "package:suite-installer": "./scripts/package-suite-installer.sh",

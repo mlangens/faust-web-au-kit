@@ -238,6 +238,7 @@ body[data-ui-variant="mini-filter"] {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
+  align-items: start;
   padding: 24px;
 }
 
@@ -259,6 +260,24 @@ body[data-layout-profile="editor-plus-dock"] .surface-grid {
 body[data-layout-profile="compact-surface"] .surface-grid,
 body[data-layout-profile="single-panel-grid"] .surface-grid {
   grid-template-columns: minmax(0, 1fr);
+}
+
+body[data-layout-profile="workbench-assembly"] .surface-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+body[data-layout-profile="workbench-assembly"] .surface-card--section-grid {
+  grid-column: auto;
+}
+
+body[data-layout-profile="workbench-assembly"] .surface-card[data-surface-id="output-popover"] {
+  grid-column: auto;
+}
+
+body[data-layout-profile="modules-plus-dock"] .surface-card,
+body[data-layout-profile="timeline-plus-dock"] .surface-card,
+body[data-layout-profile="editor-plus-dock"] .surface-card {
+  align-self: start;
 }
 
 .surface-card {
@@ -300,6 +319,13 @@ body[data-layout-profile="single-panel-grid"] .surface-grid {
   background:
     radial-gradient(circle at 85% 18%, color-mix(in srgb, var(--accent-soft) 20%, transparent), transparent 32%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 24%),
+    var(--card);
+}
+
+.surface-card[data-surface-workflow="primitive-assembler"] {
+  background:
+    radial-gradient(circle at 26% 26%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 24%),
     var(--card);
 }
 
@@ -617,8 +643,8 @@ body[data-layout-profile="single-panel-grid"] .surface-grid {
   gap: 4px;
   padding: 12px;
   border-radius: 18px;
-  border: 1px solid rgba(20, 26, 20, 0.08);
-  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--card) 78%, var(--panel-strong) 22%);
   text-align: left;
   cursor: pointer;
 }
@@ -1178,8 +1204,8 @@ body[data-layout-profile="single-panel-grid"] .surface-grid {
 .surface-section-card {
   padding: 14px;
   border-radius: 18px;
-  border: 1px solid rgba(20, 26, 20, 0.08);
-  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--card) 78%, var(--panel-strong) 22%);
 }
 
 .surface-section-card h4 {
@@ -1198,9 +1224,9 @@ body[data-layout-profile="single-panel-grid"] .surface-grid {
   display: grid;
   gap: 12px;
   padding: 14px;
-  border: 1px solid rgba(20, 26, 20, 0.08);
+  border: 1px solid var(--line);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.5);
+  background: color-mix(in srgb, var(--card) 78%, var(--panel-strong) 22%);
   cursor: pointer;
   text-align: left;
 }
@@ -1304,14 +1330,196 @@ body[data-layout-profile="single-panel-grid"] .surface-grid {
   gap: 12px;
 }
 
+.surface-card[data-surface-workflow="primitive-assembler"] .surface-card__body--section-grid {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.85fr) minmax(360px, 1.45fr) minmax(220px, 0.85fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.surface-card[data-surface-workflow="primitive-assembler"] .surface-metric-row {
+  grid-column: 1 / -1;
+}
+
+.surface-card[data-surface-workflow="primitive-assembler"] .primitive-workbench {
+  display: contents;
+}
+
+.surface-card[data-surface-workflow="primitive-assembler"] .primitive-palette {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.surface-card[data-surface-workflow="primitive-assembler"] .section-grid {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.surface-card[data-surface-workflow="primitive-assembler"] .primitive-recipe-panel {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.primitive-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(220px, 0.75fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.primitive-palette,
+.primitive-recipe-panel {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--panel-strong) 82%, transparent), color-mix(in srgb, var(--card) 68%, transparent)),
+    color-mix(in srgb, var(--accent) 10%, var(--panel));
+}
+
+.primitive-workbench__header {
+  display: grid;
+  gap: 4px;
+}
+
+.primitive-workbench__header h4 {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.primitive-workbench__header p,
+.recipe-installer-command p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.recipe-installer-command__path {
+  overflow-wrap: anywhere;
+}
+
+.recipe-installer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.recipe-action-button {
+  flex: 1 1 112px;
+  min-height: 34px;
+  padding: 8px 10px;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 78%, var(--panel-strong) 22%);
+  cursor: pointer;
+}
+
+.recipe-action-button--primary {
+  border-color: var(--accent-line);
+  background: var(--accent-tint);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.recipe-action-button:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+.primitive-palette__grid,
+.primitive-recipe-list {
+  display: grid;
+  gap: 8px;
+}
+
+.primitive-palette__grid {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.primitive-chip,
+.recipe-button {
+  width: 100%;
+  min-width: 0;
+  padding: 11px 12px;
+  color: var(--ink);
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--primitive-color, var(--accent)) 20%, transparent), transparent 72%),
+    color-mix(in srgb, var(--card) 78%, var(--panel-strong) 22%);
+  cursor: grab;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.primitive-chip:hover,
+.recipe-button:hover,
+.recipe-button.is-active {
+  border-color: var(--accent-line);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--primitive-color, var(--accent)) 28%, transparent), transparent 72%),
+    color-mix(in srgb, var(--panel-strong) 78%, var(--accent-tint) 22%);
+  transform: translateY(-1px);
+}
+
+.primitive-chip:active {
+  cursor: grabbing;
+}
+
+.primitive-chip strong,
+.recipe-button strong {
+  display: block;
+  font-size: 0.82rem;
+}
+
+.primitive-chip__role,
+.primitive-chip__id,
+.recipe-button span {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1.35;
+}
+
+.primitive-chip__id {
+  opacity: 0.72;
+}
+
+.recipe-button {
+  cursor: pointer;
+}
+
+.recipe-installer-command {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px dashed var(--accent-line);
+  background: color-mix(in srgb, var(--card) 76%, var(--accent-tint) 24%);
+}
+
+.recipe-installer-command code {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: var(--accent);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
 .mod-slot-card,
 .module-card {
   padding: 14px;
   border-radius: 18px;
-  border: 1px solid rgba(20, 26, 20, 0.08);
+  border: 1px solid var(--line);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.56), rgba(255, 255, 255, 0.18)),
-    color-mix(in srgb, var(--slot-color, var(--module-color, var(--accent))) 10%, white);
+    linear-gradient(180deg, color-mix(in srgb, var(--panel-strong) 72%, transparent), color-mix(in srgb, var(--card) 68%, transparent)),
+    color-mix(in srgb, var(--slot-color, var(--module-color, var(--accent))) 12%, var(--panel));
 }
 
 .mod-slot-card.is-active,
@@ -1323,12 +1531,29 @@ body[data-layout-profile="single-panel-grid"] .surface-grid {
   display: grid;
   gap: 12px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.56), rgba(255, 255, 255, 0.18)),
-    color-mix(in srgb, var(--section-color, var(--accent)) 10%, white);
+    linear-gradient(180deg, color-mix(in srgb, var(--panel-strong) 72%, transparent), color-mix(in srgb, var(--card) 68%, transparent)),
+    color-mix(in srgb, var(--section-color, var(--accent)) 12%, var(--panel));
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
 .section-grid-card.is-active {
   border-color: var(--accent-line);
+}
+
+.section-grid-card.is-selected,
+.section-grid-card.is-drop-target {
+  border-color: color-mix(in srgb, var(--section-color, var(--accent)) 64%, var(--accent));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--section-color, var(--accent)) 18%, transparent);
+}
+
+.section-grid-card.is-drop-target {
+  transform: translateY(-2px);
+}
+
+.section-grid-card.has-primitive {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--panel-strong) 78%, transparent), color-mix(in srgb, var(--card) 72%, transparent)),
+    color-mix(in srgb, var(--section-color, var(--accent)) 18%, var(--panel));
 }
 
 .mod-slot-card__header,
@@ -1360,6 +1585,27 @@ body[data-layout-profile="single-panel-grid"] .surface-grid {
   color: var(--muted);
   font-size: 0.76rem;
   line-height: 1.4;
+}
+
+.section-grid-card__assignment {
+  width: fit-content;
+  max-width: 100%;
+  padding: 6px 9px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 72%, var(--panel-strong) 28%);
+  font-size: 0.7rem;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.section-grid-card.has-primitive .section-grid-card__assignment {
+  color: var(--accent);
+  border-color: var(--accent-line);
+  background: var(--accent-tint);
 }
 
 .section-grid-card__activity {
@@ -2154,9 +2400,22 @@ body[data-preview-error="true"] .preview-status {
   .surface-grid,
   .surface-grid[data-layout-profile],
   body[data-layout-profile] .surface-grid,
+  .primitive-workbench,
+  .surface-card[data-surface-workflow="primitive-assembler"] .surface-card__body--section-grid,
   .dashboard,
   .benchmark-grid {
     grid-template-columns: 1fr;
+  }
+
+  .surface-card[data-surface-workflow="primitive-assembler"],
+  body[data-layout-profile="workbench-assembly"] .surface-card--section-grid,
+  body[data-layout-profile="workbench-assembly"] .surface-card[data-surface-id="output-popover"],
+  .surface-card[data-surface-workflow="primitive-assembler"] .surface-metric-row,
+  .surface-card[data-surface-workflow="primitive-assembler"] .primitive-palette,
+  .surface-card[data-surface-workflow="primitive-assembler"] .section-grid,
+  .surface-card[data-surface-workflow="primitive-assembler"] .primitive-recipe-panel {
+    grid-column: auto;
+    grid-row: auto;
   }
 
   .surface-card--graph,
@@ -2227,6 +2486,7 @@ body[data-preview-error="true"] .preview-status {
 
   .surface-grid,
   .controls-grid,
+  .primitive-workbench,
   .meter-stack,
   .benchmark-grid {
     padding: 16px;

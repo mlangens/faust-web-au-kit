@@ -200,6 +200,39 @@ test("primitive workbench keeps every primitive slot surface-owned and directly 
   await expect(intentRow.locator("strong")).not.toHaveText(initialIntent ?? "");
 });
 
+test("primitive workbench supports drag-drop recipes and installer handoff", async ({ page }) => {
+  await page.goto("/");
+
+  const slotSurface = page.locator('.surface-card[data-surface-id="section-grid"]');
+  const palette = slotSurface.locator(".primitive-palette");
+  const recipePanel = slotSurface.locator(".primitive-recipe-panel");
+  const fetGainChip = palette.locator('.primitive-chip[data-primitive-id="compression.fet-76-gain-cell"]');
+  const slotTwo = slotSurface.locator('.section-grid-card[data-section-id="slot-2"]');
+  const slotTwoAmount = slotTwo.locator(".surface-value-row").filter({ hasText: "Amount" }).locator("strong");
+
+  await expect(palette).toContainText("Primitive Palette");
+  await expect(fetGainChip).toContainText("FET Gain Cell");
+  await expect(recipePanel).toContainText("Recipe + Installer");
+
+  await fetGainChip.dragTo(slotTwo);
+  await expect(slotTwo.locator(".section-grid-card__assignment")).toContainText("FET Gain Cell");
+  await expect(slotTwo.locator(".surface-value-row").filter({ hasText: "Type" }).locator("strong")).toContainText("Dynamics");
+  await expect(slotTwoAmount).toContainText("82");
+
+  const recipeButton = recipePanel.locator('.recipe-button[data-recipe-id="fet-76-rebuild"]');
+  await recipeButton.click();
+
+  await expect(recipeButton).toHaveClass(/is-active/);
+  await expect(slotSurface.locator('.section-grid-card[data-section-id="slot-1"] .section-grid-card__assignment')).toContainText("Input Preamp");
+  await expect(slotSurface.locator('.section-grid-card[data-section-id="slot-4"] .section-grid-card__assignment')).toContainText("Output Color");
+  await expect(slotTwoAmount).toContainText("86");
+  await expect(recipePanel.locator(".recipe-installer-command")).toContainText("npm run workbench:build-installer -- --recipe fet-76-rebuild");
+  await expect(recipePanel.locator(".recipe-installer-command")).toContainText("FET76Workbench-0.1.0.pkg");
+  await expect(recipePanel.getByRole("button", { name: "Build Installer" })).toBeVisible();
+  await expect(slotTwo.locator(".surface-value-row").filter({ hasText: "Amount" })).toHaveAttribute("role", "slider");
+  await expect(slotTwo.locator(".surface-value-row").filter({ hasText: "Amount" })).toHaveAttribute("aria-valuetext", /86/);
+});
+
 test("fet 76 preview preserves the profiled faceplate interaction path", async ({ page }) => {
   await page.goto("/?app=fet-76");
 

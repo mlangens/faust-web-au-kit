@@ -82,6 +82,8 @@ test("default app schema now targets the primitive workbench", () => {
   assert.equal(schema.project.kind, "effect");
   assert.deepEqual(schema.controls.map((control) => control.label), expectedLabels);
   assert.equal(schema.ui.catalog?.category, "meta-workbench");
+  assert.equal(schema.ui.preview?.surfaces?.["section-grid"]?.workflow, "primitive-assembler");
+  assert.equal(schema.ui.preview?.surfaces?.["section-grid"]?.recipes?.[0]?.installerCommand, "npm run workbench:build-installer -- --recipe fet-76-rebuild");
   assert.equal(schema.benchmarkPath, "/generated/apps/omniplugin/benchmark-results.json");
 });
 

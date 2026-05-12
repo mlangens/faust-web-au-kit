@@ -524,6 +524,18 @@ function buildSectionGridSurface(model, schema, state) {
   if (!sections.length) {
     return buildSummarySurface(model);
   }
+  const primitivePalette = Array.isArray(model.config.primitivePalette) ? model.config.primitivePalette : [];
+  const recipes = Array.isArray(model.config.recipes) ? model.config.recipes : [];
+  const primitiveById = new Map(primitivePalette.map((primitive) => [String(primitive.id), primitive]));
+  const slotAssignments = new Map();
+  const installerCommandText = document.createElement("code");
+  const installerStatus = document.createElement("p");
+  const installerPackagePath = document.createElement("p");
+  const buildRecipeButton = document.createElement("button");
+  const recipeViews = [];
+  let activeRecipeId = "";
+  let activeRecipe = recipes[0] || null;
+  let selectedSectionId = String(sections[0]?.id || "");
 
   const { card, badges, body } = createSurfaceScaffold(
     model,
@@ -537,9 +549,101 @@ function buildSectionGridSurface(model, schema, state) {
   const grid = document.createElement("div");
   grid.className = "section-grid";
 
+  function sectionSlotNumber(section, index = 0) {
+    const match = String(section?.id || "").match(/slot-(\d+)/u);
+    return match ? Number(match[1]) : index + 1;
+  }
+
+  function slotControlLabel(section, suffix, index = 0) {
+    return `Slot ${sectionSlotNumber(section, index)} ${suffix}`;
+  }
+
+  function selectSection(sectionId) {
+    selectedSectionId = String(sectionId || selectedSectionId);
+    sectionViews.forEach(({ section, panel }) => {
+      panel.classList.toggle("is-selected", String(section.id || "") === selectedSectionId);
+    });
+  }
+
+  function primitiveTone(primitive) {
+    return resolveToneColor(primitive.toneId || primitive.tone || primitive.accent || primitive.role || primitive.id);
+  }
+
+  function findSectionViewBySlot(slotNumber) {
+    return sectionViews.find(({ section }, index) => sectionSlotNumber(section, index) === Number(slotNumber));
+  }
+
+  function assignmentForPrimitive(primitive, sourceLabel = "") {
+    return {
+      primitiveId: String(primitive.id || ""),
+      label: primitive.label || humanizeId(primitive.id),
+      role: primitive.role || "",
+      description: primitive.description || "",
+      sourceLabel
+    };
+  }
+
+  function setSlotPrimitive(section, primitive, overrides = {}, sourceLabel = "") {
+    if (!section || !primitive) {
+      return;
+    }
+
+    const sectionId = String(section.id || "");
+    const slotNumber = sectionSlotNumber(section, sections.indexOf(section));
+    const slotType = overrides.slotType ?? primitive.slotType;
+    slotAssignments.set(sectionId, assignmentForPrimitive(primitive, sourceLabel));
+
+    if (Number.isFinite(Number(slotType))) {
+      setSurfaceControlValue(card, schema, state, slotControlLabel(section, "Type"), Number(slotType));
+    }
+    for (const [suffix, key] of [["Amount", "amount"], ["Tone", "tone"], ["Mix", "mix"]]) {
+      const nextValue = overrides[key] ?? primitive[key];
+      if (Number.isFinite(Number(nextValue))) {
+        setSurfaceControlValue(card, schema, state, slotControlLabel(section, suffix), Number(nextValue));
+      }
+    }
+    update();
+  }
+
+  function setSlotPrimitiveById(section, primitiveId, overrides = {}, sourceLabel = "") {
+    const primitive = primitiveById.get(String(primitiveId));
+    setSlotPrimitive(section, primitive, overrides, sourceLabel);
+  }
+
+  function applyRecipe(recipe) {
+    if (!recipe || typeof recipe !== "object") {
+      return;
+    }
+
+    activeRecipeId = String(recipe.id || "");
+    activeRecipe = recipe;
+    for (const slot of Array.isArray(recipe.slots) ? recipe.slots : []) {
+      const view = findSectionViewBySlot(slot.slot);
+      if (view) {
+        setSlotPrimitiveById(view.section, slot.primitiveId, slot, recipe.label || recipe.id || "");
+      }
+    }
+
+    const macros = recipe.macros && typeof recipe.macros === "object" && !Array.isArray(recipe.macros) ? recipe.macros : {};
+    Object.entries(macros).forEach(([label, value]) => {
+      if (Number.isFinite(Number(value))) {
+        setSurfaceControlValue(card, schema, state, label, Number(value));
+      }
+    });
+    installerCommandText.textContent = recipe.installerCommand || `npm run workbench:build-installer -- --recipe ${recipe.id}`;
+    installerStatus.textContent = recipe.description || "Recipe applied to the fixed primitive slot contract.";
+    installerPackagePath.textContent = recipe.expectedPackagePath
+      ? `Expected package: ${recipe.expectedPackagePath}`
+      : "Expected package path appears after the workbench installer build completes.";
+    update();
+  }
+
   const sectionViews = sections.map((section) => {
     const panel = document.createElement("section");
     panel.className = "surface-section-card section-grid-card";
+    panel.tabIndex = 0;
+    panel.dataset.sectionId = String(section.id || "");
+    panel.setAttribute("aria-label", `${section.label || humanizeId(section.id)} primitive slot`);
     panel.style.setProperty("--section-color", resolveToneColor(section.tone || section.accent));
 
     const header = document.createElement("div");
@@ -572,6 +676,10 @@ function buildSectionGridSurface(model, schema, state) {
     activityWrap.append(meter, activityValue);
     header.append(copy, activityWrap);
 
+    const assignment = document.createElement("div");
+    assignment.className = "section-grid-card__assignment";
+    assignment.textContent = "Drop a primitive here";
+
     const list = document.createElement("div");
     list.className = "surface-value-list";
     const rowViews = createReadoutRows(section.items, section.control).map((item) => {
@@ -586,19 +694,237 @@ function buildSectionGridSurface(model, schema, state) {
       return { item, value };
     });
 
-    panel.append(header, list);
+    panel.addEventListener("click", () => {
+      selectSection(String(section.id || ""));
+    });
+    panel.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        selectSection(String(section.id || ""));
+      }
+    });
+    panel.addEventListener("dragover", (event) => {
+      event.preventDefault();
+      panel.classList.add("is-drop-target");
+    });
+    panel.addEventListener("dragleave", () => {
+      panel.classList.remove("is-drop-target");
+    });
+    panel.addEventListener("drop", (event) => {
+      event.preventDefault();
+      panel.classList.remove("is-drop-target");
+      const primitiveId = event.dataTransfer?.getData("text/plain") || event.dataTransfer?.getData("application/x-fwak-primitive");
+      if (primitiveId) {
+        activeRecipeId = "";
+        setSlotPrimitiveById(section, primitiveId);
+        selectSection(String(section.id || ""));
+      }
+    });
+
+    panel.append(header, assignment, list);
     grid.append(panel);
-    return { section, panel, meterFill, activityValue, rowViews };
+    return { section, panel, assignment, meterFill, activityValue, rowViews };
   });
 
-  body.append(badgeRow, grid);
+  if (primitivePalette.length || recipes.length) {
+    const workbench = document.createElement("div");
+    workbench.className = "primitive-workbench";
+
+    if (primitivePalette.length) {
+      const palette = document.createElement("section");
+      palette.className = "primitive-palette";
+      const paletteHeader = document.createElement("div");
+      paletteHeader.className = "primitive-workbench__header";
+      const paletteTitle = document.createElement("h4");
+      paletteTitle.textContent = "Primitive Palette";
+      const paletteCopy = document.createElement("p");
+      paletteCopy.textContent = "Drag a building block into a slot, or click to place it in the selected slot.";
+      paletteHeader.append(paletteTitle, paletteCopy);
+
+      const paletteGrid = document.createElement("div");
+      paletteGrid.className = "primitive-palette__grid";
+      primitivePalette.forEach((primitive) => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "primitive-chip";
+        chip.draggable = true;
+        chip.dataset.primitiveId = String(primitive.id || "");
+        chip.style.setProperty("--primitive-color", primitiveTone(primitive));
+        let pointerDrag = null;
+        let suppressClick = false;
+        chip.addEventListener("dragstart", (event) => {
+          event.dataTransfer?.setData("text/plain", String(primitive.id || ""));
+          event.dataTransfer?.setData("application/x-fwak-primitive", String(primitive.id || ""));
+          event.dataTransfer?.setDragImage(chip, chip.offsetWidth / 2, chip.offsetHeight / 2);
+        });
+        chip.addEventListener("pointerdown", (event) => {
+          if (event.button != null && event.button !== 0) {
+            return;
+          }
+          pointerDrag = {
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            startY: event.clientY,
+            moved: false
+          };
+          chip.setPointerCapture?.(event.pointerId);
+        });
+        chip.addEventListener("pointermove", (event) => {
+          if (!pointerDrag || pointerDrag.pointerId !== event.pointerId) {
+            return;
+          }
+          const distance = Math.hypot(event.clientX - pointerDrag.startX, event.clientY - pointerDrag.startY);
+          pointerDrag.moved = pointerDrag.moved || distance > 8;
+        });
+        chip.addEventListener("pointerup", (event) => {
+          if (!pointerDrag || pointerDrag.pointerId !== event.pointerId) {
+            return;
+          }
+          const wasMoved = pointerDrag.moved;
+          pointerDrag = null;
+          chip.releasePointerCapture?.(event.pointerId);
+          if (!wasMoved) {
+            return;
+          }
+          const dropTarget = chip.ownerDocument
+            .elementFromPoint(event.clientX, event.clientY)
+            ?.closest(".section-grid-card[data-section-id]");
+          const targetView = sectionViews.find(({ panel }) => panel === dropTarget);
+          if (!targetView) {
+            return;
+          }
+          suppressClick = true;
+          activeRecipeId = "";
+          setSlotPrimitive(targetView.section, primitive);
+          selectSection(String(targetView.section.id || ""));
+          update();
+        });
+        chip.addEventListener("click", () => {
+          if (suppressClick) {
+            suppressClick = false;
+            return;
+          }
+          activeRecipeId = "";
+          const selectedView = sectionViews.find(({ section }) => String(section.id || "") === selectedSectionId) || sectionViews[0];
+          if (selectedView) {
+            setSlotPrimitive(selectedView.section, primitive);
+            selectSection(String(selectedView.section.id || ""));
+          }
+        });
+
+        const label = document.createElement("strong");
+        label.textContent = primitive.label || humanizeId(primitive.id);
+        const role = document.createElement("span");
+        role.className = "primitive-chip__role";
+        role.textContent = primitive.role || "Primitive";
+        const primitiveId = document.createElement("span");
+        primitiveId.className = "primitive-chip__id";
+        primitiveId.textContent = primitive.id || "";
+        chip.append(label, role, primitiveId);
+        paletteGrid.append(chip);
+      });
+      palette.append(paletteHeader, paletteGrid);
+      workbench.append(palette);
+    }
+
+    if (recipes.length) {
+      const recipePanel = document.createElement("section");
+      recipePanel.className = "primitive-recipe-panel";
+      const recipeHeader = document.createElement("div");
+      recipeHeader.className = "primitive-workbench__header";
+      const recipeTitle = document.createElement("h4");
+      recipeTitle.textContent = "Recipe + Installer";
+      const recipeCopy = document.createElement("p");
+      recipeCopy.textContent = "Apply a known assemblage, then export the scratch app through the native installer pipeline.";
+      recipeHeader.append(recipeTitle, recipeCopy);
+
+      const recipeList = document.createElement("div");
+      recipeList.className = "primitive-recipe-list";
+      recipes.forEach((recipe) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "recipe-button";
+        button.dataset.recipeId = String(recipe.id || "");
+        const label = document.createElement("strong");
+        label.textContent = recipe.label || humanizeId(recipe.id);
+        const summary = document.createElement("span");
+        summary.textContent = recipe.description || "Apply primitive recipe";
+        button.append(label, summary);
+        button.addEventListener("click", () => {
+          applyRecipe(recipe);
+        });
+        recipeViews.push({ recipe, button });
+        recipeList.append(button);
+      });
+
+      const command = document.createElement("div");
+      command.className = "recipe-installer-command";
+      installerCommandText.textContent = recipes[0]?.installerCommand || "npm run workbench:build-installer";
+      installerPackagePath.className = "recipe-installer-command__path";
+      installerPackagePath.textContent = recipes[0]?.expectedPackagePath
+        ? `Expected package: ${recipes[0].expectedPackagePath}`
+        : "Expected package path appears after the workbench installer build completes.";
+      installerStatus.textContent = "Choose a recipe to stage an installable scratch plugin.";
+      const actionRow = document.createElement("div");
+      actionRow.className = "recipe-installer-actions";
+      const copyButton = document.createElement("button");
+      copyButton.type = "button";
+      copyButton.className = "recipe-action-button";
+      copyButton.textContent = "Copy Command";
+      copyButton.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard?.writeText(installerCommandText.textContent || "");
+          installerStatus.textContent = "Build command copied. Run it from the repo root, or use Build Installer in this local preview.";
+        } catch {
+          installerStatus.textContent = "Clipboard access is unavailable here; select the command text manually.";
+        }
+      });
+      buildRecipeButton.type = "button";
+      buildRecipeButton.className = "recipe-action-button recipe-action-button--primary";
+      buildRecipeButton.textContent = "Build Installer";
+      buildRecipeButton.addEventListener("click", async () => {
+        if (!activeRecipe?.id) {
+          installerStatus.textContent = "Choose a recipe before building an installer.";
+          return;
+        }
+        buildRecipeButton.disabled = true;
+        installerStatus.textContent = `Building ${activeRecipe.label || activeRecipe.id} through the local preview server...`;
+        try {
+          const response = await fetch("/api/workbench/build-installer", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ recipe: activeRecipe.id })
+          });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok || result.ok === false) {
+            throw new Error(result.error || `HTTP ${response.status}`);
+          }
+          installerStatus.textContent = result.installerPath
+            ? `Built installer: ${result.installerPath}`
+            : "Installer build completed.";
+        } catch (error) {
+          installerStatus.textContent = `Build endpoint unavailable or failed. Run the command manually. ${error?.message || ""}`.trim();
+        } finally {
+          buildRecipeButton.disabled = false;
+        }
+      });
+      actionRow.append(copyButton, buildRecipeButton);
+      command.append(installerCommandText, actionRow, installerPackagePath, installerStatus);
+      recipePanel.append(recipeHeader, recipeList, command);
+      workbench.append(recipePanel);
+    }
+
+    body.append(badgeRow, workbench, grid);
+  } else {
+    body.append(badgeRow, grid);
+  }
   const metrics = Array.isArray(model.config.focusBadges) ? model.config.focusBadges : [];
 
   const update = () => {
     populateStandardBadges(badges, model);
     populateFocusBadges(badgeRow, schema, state, metrics);
 
-    sectionViews.forEach(({ section, panel, meterFill, activityValue, rowViews }) => {
+    sectionViews.forEach(({ section, panel, assignment, meterFill, activityValue, rowViews }) => {
       const amount = resolveActivity(schema, state, {
         meterId: section.meterId,
         control: section.control,
@@ -606,7 +932,18 @@ function buildSectionGridSurface(model, schema, state) {
       }, 0.4);
       panel.style.opacity = String(0.68 + amount * 0.32);
       panel.classList.toggle("is-active", amount > 0.56);
+      panel.classList.toggle("is-selected", String(section.id || "") === selectedSectionId);
       meterFill.style.width = `${amount * 100}%`;
+
+      const slotAssignment = slotAssignments.get(String(section.id || ""));
+      panel.classList.toggle("has-primitive", Boolean(slotAssignment));
+      if (slotAssignment) {
+        assignment.textContent = `${slotAssignment.label} · ${slotAssignment.role || "Primitive"}`;
+        assignment.title = slotAssignment.description || slotAssignment.primitiveId;
+      } else {
+        assignment.textContent = "Drop a primitive here";
+        assignment.removeAttribute("title");
+      }
 
       if (section.meterId) {
         const measured = measureMeterValue(schema, state, section.meterId, 0);
@@ -625,6 +962,10 @@ function buildSectionGridSurface(model, schema, state) {
         }
         value.textContent = readoutValueText(schema, state, item);
       });
+    });
+
+    recipeViews.forEach(({ recipe, button }) => {
+      button.classList.toggle("is-active", String(recipe.id || "") === activeRecipeId);
     });
   };
 

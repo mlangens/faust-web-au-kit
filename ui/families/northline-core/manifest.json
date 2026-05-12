@@ -824,7 +824,7 @@
         "capsule-button",
         "segmented-toggle"
       ],
-      "layoutProfile": "modules-plus-dock"
+      "layoutProfile": "workbench-assembly"
     },
     "modular-synth": {
       "group": "instrument",
