@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { Buffer } from "node:buffer";
 
 import { summarizeControlLayout } from "../../preview/lib/control-panels.js";
 import { normalizeSchema } from "../../preview/lib/schema-ui.js";
@@ -60,6 +61,32 @@ async function dragLocatorToCanvasRatio(page, locator, canvas, xRatio, yRatio) {
     canvasBox.x + canvasBox.width * xRatio,
     canvasBox.y + canvasBox.height * yRatio
   );
+}
+
+function createSineWavBuffer({ seconds = 0.2, sampleRate = 8000, frequency = 220 } = {}) {
+  const frames = Math.max(1, Math.floor(seconds * sampleRate));
+  const bytesPerSample = 2;
+  const channels = 1;
+  const dataBytes = frames * channels * bytesPerSample;
+  const buffer = Buffer.alloc(44 + dataBytes);
+  buffer.write("RIFF", 0);
+  buffer.writeUInt32LE(36 + dataBytes, 4);
+  buffer.write("WAVE", 8);
+  buffer.write("fmt ", 12);
+  buffer.writeUInt32LE(16, 16);
+  buffer.writeUInt16LE(1, 20);
+  buffer.writeUInt16LE(channels, 22);
+  buffer.writeUInt32LE(sampleRate, 24);
+  buffer.writeUInt32LE(sampleRate * channels * bytesPerSample, 28);
+  buffer.writeUInt16LE(channels * bytesPerSample, 32);
+  buffer.writeUInt16LE(16, 34);
+  buffer.write("data", 36);
+  buffer.writeUInt32LE(dataBytes, 40);
+  for (let frame = 0; frame < frames; frame += 1) {
+    const sample = Math.round(Math.sin((frame / sampleRate) * frequency * Math.PI * 2) * 0x3fff);
+    buffer.writeInt16LE(sample, 44 + frame * bytesPerSample);
+  }
+  return buffer;
 }
 
 async function expectPreviewRouteLoaded(page, fixture, controlPattern) {
@@ -200,37 +227,140 @@ test("primitive workbench keeps every primitive slot surface-owned and directly 
   await expect(intentRow.locator("strong")).not.toHaveText(initialIntent ?? "");
 });
 
-test("primitive workbench supports drag-drop recipes and installer handoff", async ({ page }) => {
+test("primitive workbench supports guided drag-drop scratch assembly and installer handoff", async ({ page }) => {
   await page.goto("/");
 
   const slotSurface = page.locator('.surface-card[data-surface-id="section-grid"]');
   const palette = slotSurface.locator(".primitive-palette");
   const recipePanel = slotSurface.locator(".primitive-recipe-panel");
+  const inputPreampChip = palette.locator('.primitive-chip[data-primitive-id="analog.preamp-console-stage"]');
   const fetGainChip = palette.locator('.primitive-chip[data-primitive-id="compression.fet-76-gain-cell"]');
+  const vintageTimingChip = palette.locator('.primitive-chip[data-primitive-id="compression.vintage-compressor-model"]');
+  const outputColorChip = palette.locator('.primitive-chip[data-primitive-id="saturation.virtual-analog-stage"]');
+  const slotOne = slotSurface.locator('.section-grid-card[data-section-id="slot-1"]');
   const slotTwo = slotSurface.locator('.section-grid-card[data-section-id="slot-2"]');
+  const slotThree = slotSurface.locator('.section-grid-card[data-section-id="slot-3"]');
+  const slotFour = slotSurface.locator('.section-grid-card[data-section-id="slot-4"]');
   const slotTwoAmount = slotTwo.locator(".surface-value-row").filter({ hasText: "Amount" }).locator("strong");
+  let buildPayload;
 
   await expect(palette).toContainText("Primitive Palette");
   await expect(fetGainChip).toContainText("FET Gain Cell");
   await expect(recipePanel).toContainText("Recipe + Installer");
-
-  await fetGainChip.dragTo(slotTwo);
-  await expect(slotTwo.locator(".section-grid-card__assignment")).toContainText("FET Gain Cell");
-  await expect(slotTwo.locator(".surface-value-row").filter({ hasText: "Type" }).locator("strong")).toContainText("Dynamics");
-  await expect(slotTwoAmount).toContainText("82");
+  await expect(recipePanel.locator(".target-guide")).toContainText("0/4 matched");
+  await expect(recipePanel.getByRole("button", { name: "Build Installer" })).toBeDisabled();
 
   const recipeButton = recipePanel.locator('.recipe-button[data-recipe-id="fet-76-rebuild"]');
   await recipeButton.click();
-
+  await expect(recipeButton).toHaveText(/Start guided FET-76 scratch build/);
   await expect(recipeButton).toHaveClass(/is-active/);
-  await expect(slotSurface.locator('.section-grid-card[data-section-id="slot-1"] .section-grid-card__assignment')).toContainText("Input Preamp");
-  await expect(slotSurface.locator('.section-grid-card[data-section-id="slot-4"] .section-grid-card__assignment')).toContainText("Output Color");
+  await expect(slotOne.locator(".section-grid-card__assignment")).toContainText("Drop a primitive here");
+
+  await inputPreampChip.dragTo(slotOne);
+  await fetGainChip.dragTo(slotTwo);
+  await vintageTimingChip.dragTo(slotThree);
+  await outputColorChip.dragTo(slotFour);
+
+  await expect(slotOne.locator(".section-grid-card__assignment")).toContainText("Input Preamp");
+  await expect(slotTwo.locator(".section-grid-card__assignment")).toContainText("FET Gain Cell");
+  await expect(slotThree.locator(".section-grid-card__assignment")).toContainText("Vintage Timing");
+  await expect(slotFour.locator(".section-grid-card__assignment")).toContainText("Output Color");
+  await expect(slotTwo.locator(".surface-value-row").filter({ hasText: "Type" }).locator("strong")).toContainText("Dynamics");
   await expect(slotTwoAmount).toContainText("86");
+  await expect(recipePanel.locator(".target-guide")).toContainText("4/4 matched");
+  await expect(recipePanel.locator(".target-guide")).toContainText("Build Installer is unlocked");
   await expect(recipePanel.locator(".recipe-installer-command")).toContainText("npm run workbench:build-installer -- --recipe fet-76-rebuild");
   await expect(recipePanel.locator(".recipe-installer-command")).toContainText("FET76Workbench-0.1.0.pkg");
-  await expect(recipePanel.getByRole("button", { name: "Build Installer" })).toBeVisible();
+
+  await page.route("**/api/workbench/build-installer", async (route) => {
+    buildPayload = route.request().postDataJSON();
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ok: true,
+        recipe: buildPayload.recipe,
+        sourceMode: "scratch-assembly",
+        assemblyFile: "generated/workbench-requests/test/scratch-assembly.json",
+        installerPath: "/tmp/FET76Workbench-0.1.0.pkg"
+      })
+    });
+  });
+
+  await recipePanel.getByRole("button", { name: "Build Installer" }).click();
+  expect(buildPayload).toMatchObject({
+    mode: "scratch-assembly",
+    source: "primitive-workbench",
+    recipe: "fet-76-rebuild",
+    validation: {
+      matchedSlots: 4,
+      requiredSlots: 4,
+      targetMatched: true
+    }
+  });
+  expect(buildPayload.slots.map((slot) => slot.primitiveId)).toEqual([
+    "analog.preamp-console-stage",
+    "compression.fet-76-gain-cell",
+    "compression.vintage-compressor-model",
+    "saturation.virtual-analog-stage"
+  ]);
+  expect(buildPayload.slots[1]).toMatchObject({ slot: 2, amount: 86, tone: 66, mix: 100 });
+  await expect(recipePanel.locator(".recipe-installer-command")).toContainText("Built installer: /tmp/FET76Workbench-0.1.0.pkg");
   await expect(slotTwo.locator(".surface-value-row").filter({ hasText: "Amount" })).toHaveAttribute("role", "slider");
   await expect(slotTwo.locator(".surface-value-row").filter({ hasText: "Amount" })).toHaveAttribute("aria-valuetext", /86/);
+});
+
+test("primitive workbench auditions a local source file through the current primitive chain", async ({ page }) => {
+  await page.goto("/");
+
+  const slotSurface = page.locator('.surface-card[data-surface-id="section-grid"]');
+  const palette = slotSurface.locator(".primitive-palette");
+  const recipePanel = slotSurface.locator(".primitive-recipe-panel");
+  const auditionPanel = slotSurface.locator(".audio-source-panel");
+  const fileInput = auditionPanel.locator("input[data-audio-source-input]");
+  const startButton = auditionPanel.getByRole("button", { name: "Start Source" });
+  const stopButton = auditionPanel.getByRole("button", { name: "Stop Source" });
+  const status = auditionPanel.locator(".audio-source-status");
+  const chain = auditionPanel.locator(".audio-source-chain");
+
+  await expect(auditionPanel).toContainText("Source Audition");
+  await expect(startButton).toBeDisabled();
+  await expect(stopButton).toBeDisabled();
+
+  await fileInput.setInputFiles({
+    name: "primitive-test.wav",
+    mimeType: "audio/wav",
+    buffer: createSineWavBuffer()
+  });
+
+  await expect(status).toContainText("Loaded primitive-test.wav");
+  await expect(startButton).toBeEnabled();
+
+  await recipePanel.locator('.recipe-button[data-recipe-id="fet-76-rebuild"]').click();
+  await palette.locator('.primitive-chip[data-primitive-id="analog.preamp-console-stage"]').dragTo(
+    slotSurface.locator('.section-grid-card[data-section-id="slot-1"]')
+  );
+  await palette.locator('.primitive-chip[data-primitive-id="compression.fet-76-gain-cell"]').dragTo(
+    slotSurface.locator('.section-grid-card[data-section-id="slot-2"]')
+  );
+  await palette.locator('.primitive-chip[data-primitive-id="compression.vintage-compressor-model"]').dragTo(
+    slotSurface.locator('.section-grid-card[data-section-id="slot-3"]')
+  );
+  await palette.locator('.primitive-chip[data-primitive-id="saturation.virtual-analog-stage"]').dragTo(
+    slotSurface.locator('.section-grid-card[data-section-id="slot-4"]')
+  );
+
+  await expect(chain).toContainText("Input Preamp -> FET Gain Cell -> Vintage Timing -> Output Color");
+
+  await startButton.click();
+  await expect(status).toContainText("Playing primitive-test.wav through 4 primitives");
+  await expect(startButton).toBeDisabled();
+  await expect(stopButton).toBeEnabled();
+
+  await stopButton.click();
+  await expect(status).toContainText("Stopped primitive-test.wav");
+  await expect(startButton).toBeEnabled();
+  await expect(stopButton).toBeDisabled();
 });
 
 test("fet 76 preview preserves the profiled faceplate interaction path", async ({ page }) => {

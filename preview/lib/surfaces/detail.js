@@ -532,10 +532,30 @@ function buildSectionGridSurface(model, schema, state) {
   const installerStatus = document.createElement("p");
   const installerPackagePath = document.createElement("p");
   const buildRecipeButton = document.createElement("button");
+  const targetGuide = document.createElement("div");
+  const targetProgressText = document.createElement("strong");
+  const targetNextStep = document.createElement("p");
+  const targetStepList = document.createElement("div");
+  const auditionStatus = document.createElement("p");
+  const auditionChain = document.createElement("p");
+  const auditionStartButton = document.createElement("button");
+  const auditionStopButton = document.createElement("button");
+  const auditionMeterFill = document.createElement("span");
   const recipeViews = [];
+  const auditionState = {
+    audioContext: null,
+    buffer: null,
+    fileName: "",
+    source: null,
+    nodes: null,
+    meterFrame: 0,
+    isPlaying: false
+  };
   let activeRecipeId = "";
   let activeRecipe = recipes[0] || null;
   let selectedSectionId = String(sections[0]?.id || "");
+  let installerStatusPinned = false;
+  let pendingPrimitiveDragId = "";
 
   const { card, badges, body } = createSurfaceScaffold(
     model,
@@ -569,9 +589,380 @@ function buildSectionGridSurface(model, schema, state) {
     return resolveToneColor(primitive.toneId || primitive.tone || primitive.accent || primitive.role || primitive.id);
   }
 
+  function setInstallerStatus(text, { pinned = false } = {}) {
+    installerStatus.textContent = text;
+    installerStatusPinned = pinned;
+  }
+
   function findSectionViewBySlot(slotNumber) {
     return sectionViews.find(({ section }, index) => sectionSlotNumber(section, index) === Number(slotNumber));
   }
+
+  function recipeSlots(recipe) {
+    return recipe && typeof recipe === "object" && Array.isArray(recipe.slots) ? recipe.slots : [];
+  }
+
+  function recipeSlotForSection(recipe, section, index = 0) {
+    const slotNumber = sectionSlotNumber(section, index);
+    return recipeSlots(recipe).find((slot) => Number(slot.slot) === slotNumber) || null;
+  }
+
+  function primitiveLabel(primitiveId) {
+    const primitive = primitiveById.get(String(primitiveId));
+    return primitive?.label || humanizeId(primitiveId);
+  }
+
+  function assignmentMatchesRecipeSlot(section, index = 0, recipe = activeRecipe) {
+    const targetSlot = recipeSlotForSection(recipe, section, index);
+    const assignment = slotAssignments.get(String(section.id || ""));
+    return Boolean(targetSlot?.primitiveId && assignment?.primitiveId === targetSlot.primitiveId);
+  }
+
+  function recipeCompletion(recipe = activeRecipe) {
+    const slots = recipeSlots(recipe);
+    const complete = slots.filter((slot) => {
+      const view = findSectionViewBySlot(slot.slot);
+      return view ? assignmentMatchesRecipeSlot(view.section, sections.indexOf(view.section), recipe) : false;
+    }).length;
+    return {
+      complete,
+      total: slots.length,
+      ready: slots.length > 0 && complete === slots.length
+    };
+  }
+
+  function readSlotControl(section, suffix, fallback, index = 0) {
+    const control = resolveControl(schema, slotControlLabel(section, suffix, index));
+    return readControlValue(schema, state, slotControlLabel(section, suffix, index), fallback ?? control?.init ?? 0);
+  }
+
+  function currentScratchAssembly(recipe = activeRecipe) {
+    const recipeId = String(recipe?.id || "scratch-assembly");
+    const slots = sections.map((section, index) => {
+      const assignment = slotAssignments.get(String(section.id || ""));
+      if (!assignment) {
+        return null;
+      }
+
+      const targetSlot = recipeSlotForSection(recipe, section, index);
+      return {
+        slot: sectionSlotNumber(section, index),
+        sectionId: String(section.id || ""),
+        primitiveId: assignment.primitiveId,
+        label: assignment.label,
+        role: assignment.role,
+        source: assignment.sourceLabel || "manual-drag",
+        slotType: readSlotControl(section, "Type", targetSlot?.slotType, index),
+        amount: readSlotControl(section, "Amount", targetSlot?.amount, index),
+        tone: readSlotControl(section, "Tone", targetSlot?.tone, index),
+        mix: readSlotControl(section, "Mix", targetSlot?.mix, index)
+      };
+    }).filter(Boolean);
+    const recipeMacros = recipe?.macros && typeof recipe.macros === "object" && !Array.isArray(recipe.macros)
+      ? recipe.macros
+      : {};
+    const macros = Object.fromEntries(Object.entries(recipeMacros).map(([label, fallback]) => {
+      const control = resolveControl(schema, label);
+      return [label, readControlValue(schema, state, label, fallback ?? control?.init ?? 0)];
+    }));
+    const completion = recipeCompletion(recipe);
+
+    return {
+      schemaVersion: 1,
+      mode: "scratch-assembly",
+      source: "primitive-workbench",
+      recipe: recipeId,
+      targetRecipeId: recipeId,
+      targetLabel: recipe?.label || humanizeId(recipeId),
+      targetAppKey: recipe?.targetAppKey,
+      productName: recipe?.productName,
+      artifactStem: recipe?.artifactStem,
+      bundleId: recipe?.bundleId,
+      auSubtype: recipe?.auSubtype,
+      description: recipe?.description,
+      slots,
+      macros,
+      validation: {
+        matchedSlots: completion.complete,
+        requiredSlots: completion.total,
+        targetMatched: completion.ready
+      },
+      provenance: {
+        createdBy: "preview-drag-drop",
+        targetRecipeId: recipeId,
+        sourceSurface: model.id || "section-grid"
+      }
+    };
+  }
+
+  function slotRuntime(section, index = 0) {
+    const assignment = slotAssignments.get(String(section.id || ""));
+    const primitive = assignment ? primitiveById.get(assignment.primitiveId) : null;
+    return {
+      section,
+      assignment,
+      primitive,
+      amount: Number(readSlotControl(section, "Amount", primitive?.amount ?? 0, index)),
+      tone: Number(readSlotControl(section, "Tone", primitive?.tone ?? 50, index)),
+      mix: Number(readSlotControl(section, "Mix", primitive?.mix ?? 100, index))
+    };
+  }
+
+  function assignedPrimitiveChain() {
+    return sections
+      .map((section, index) => slotRuntime(section, index))
+      .filter((entry) => entry.assignment);
+  }
+
+  function auditionChainText() {
+    const labels = assignedPrimitiveChain().map((entry) => entry.assignment?.label).filter(Boolean);
+    return labels.length ? labels.join(" -> ") : "No primitives assigned yet";
+  }
+
+  function activeAudioContext() {
+    const win = card.ownerDocument.defaultView || window;
+    const AudioContextCtor = win.AudioContext || win.webkitAudioContext;
+    if (!AudioContextCtor) {
+      return null;
+    }
+    if (!auditionState.audioContext) {
+      auditionState.audioContext = new AudioContextCtor();
+    }
+    return auditionState.audioContext;
+  }
+
+  function saturationCurve(drive = 1) {
+    const samples = 512;
+    const curve = new Float32Array(samples);
+    const safeDrive = Math.max(0.1, Number(drive) || 1);
+    const normalizer = Math.tanh(safeDrive);
+    for (let index = 0; index < samples; index += 1) {
+      const x = (index / (samples - 1)) * 2 - 1;
+      curve[index] = Math.tanh(x * safeDrive) / normalizer;
+    }
+    return curve;
+  }
+
+  function setAudioParam(param, value, context) {
+    if (!param) {
+      return;
+    }
+    const time = context?.currentTime ?? 0;
+    if (typeof param.setTargetAtTime === "function") {
+      param.setTargetAtTime(Number(value), time, 0.025);
+      return;
+    }
+    param.value = Number(value);
+  }
+
+  function createAuditionNodes(context) {
+    const inputGain = context.createGain();
+    const preampShaper = context.createWaveShaper();
+    const fetCompressor = context.createDynamicsCompressor();
+    const timingCompressor = context.createDynamicsCompressor();
+    const toneFilter = context.createBiquadFilter();
+    const colorShaper = context.createWaveShaper();
+    const outputGain = context.createGain();
+    const analyser = context.createAnalyser();
+
+    preampShaper.oversample = "2x";
+    colorShaper.oversample = "2x";
+    toneFilter.type = "peaking";
+    toneFilter.Q.value = 0.8;
+    analyser.fftSize = 256;
+
+    inputGain
+      .connect(preampShaper)
+      .connect(fetCompressor)
+      .connect(timingCompressor)
+      .connect(toneFilter)
+      .connect(colorShaper)
+      .connect(outputGain)
+      .connect(analyser)
+      .connect(context.destination);
+
+    return {
+      inputGain,
+      preampShaper,
+      fetCompressor,
+      timingCompressor,
+      toneFilter,
+      colorShaper,
+      outputGain,
+      analyser
+    };
+  }
+
+  function disconnectAuditionNodes() {
+    if (!auditionState.nodes) {
+      return;
+    }
+    Object.values(auditionState.nodes).forEach((node) => {
+      try {
+        node.disconnect();
+      } catch {
+        // Nodes can already be disconnected when the source ends naturally.
+      }
+    });
+    auditionState.nodes = null;
+  }
+
+  function syncAuditionAudio() {
+    auditionChain.textContent = auditionChainText();
+    const context = auditionState.audioContext;
+    const nodes = auditionState.nodes;
+    if (!context || !nodes) {
+      return;
+    }
+
+    const chain = assignedPrimitiveChain();
+    const amountFor = (fragment) => chain
+      .filter((entry) => entry.assignment?.primitiveId.includes(fragment))
+      .reduce((sum, entry) => sum + (Number.isFinite(entry.amount) ? entry.amount : 0), 0);
+    const toneAverage = chain.length
+      ? chain.reduce((sum, entry) => sum + (Number.isFinite(entry.tone) ? entry.tone : 50), 0) / chain.length
+      : 50;
+    const mixAverage = chain.length
+      ? chain.reduce((sum, entry) => sum + (Number.isFinite(entry.mix) ? entry.mix : 100), 0) / chain.length
+      : 100;
+
+    const preamp = amountFor("preamp");
+    const fet = amountFor("fet-76");
+    const vintage = amountFor("vintage-compressor");
+    const saturation = amountFor("saturation");
+    setAudioParam(nodes.inputGain.gain, 0.82 + Math.min(preamp, 100) / 250, context);
+    nodes.preampShaper.curve = saturationCurve(1 + Math.min(preamp, 120) / 42);
+    setAudioParam(nodes.fetCompressor.threshold, -8 - Math.min(fet, 120) * 0.34, context);
+    setAudioParam(nodes.fetCompressor.ratio, 2.5 + Math.min(fet, 120) / 9, context);
+    setAudioParam(nodes.fetCompressor.attack, 0.002 + Math.max(0, 100 - toneAverage) / 50000, context);
+    setAudioParam(nodes.fetCompressor.release, 0.08 + toneAverage / 600, context);
+    setAudioParam(nodes.timingCompressor.threshold, -4 - Math.min(vintage, 120) * 0.2, context);
+    setAudioParam(nodes.timingCompressor.ratio, 1.4 + Math.min(vintage, 120) / 24, context);
+    setAudioParam(nodes.timingCompressor.attack, 0.018 + Math.max(0, 100 - toneAverage) / 8000, context);
+    setAudioParam(nodes.timingCompressor.release, 0.16 + toneAverage / 300, context);
+    setAudioParam(nodes.toneFilter.frequency, 600 + toneAverage * 46, context);
+    setAudioParam(nodes.toneFilter.gain, (toneAverage - 50) / 4, context);
+    nodes.colorShaper.curve = saturationCurve(1 + Math.min(saturation, 120) / 28);
+    setAudioParam(nodes.outputGain.gain, 0.72 + Math.min(mixAverage, 100) / 360, context);
+  }
+
+  function stopAudition({ status = true } = {}) {
+    if (auditionState.meterFrame) {
+      cancelAnimationFrame(auditionState.meterFrame);
+      auditionState.meterFrame = 0;
+    }
+    const source = auditionState.source;
+    auditionState.source = null;
+    if (source) {
+      try {
+        source.stop();
+      } catch {
+        // Stopping a source twice throws in some Web Audio implementations.
+      }
+      source.disconnect();
+    }
+    disconnectAuditionNodes();
+    auditionState.isPlaying = false;
+    auditionState.audioContext?.suspend?.().catch?.(() => {});
+    auditionMeterFill.style.width = "0%";
+    if (status && auditionState.fileName) {
+      auditionStatus.textContent = `Stopped ${auditionState.fileName}.`;
+    }
+    updateAuditionControls();
+  }
+
+  function disposeAuditionAudio() {
+    stopAudition({ status: false });
+    auditionState.audioContext?.close?.().catch?.(() => {});
+    auditionState.audioContext = null;
+  }
+
+  function startAuditionMeter() {
+    const nodes = auditionState.nodes;
+    const analyser = nodes?.analyser;
+    if (!analyser) {
+      return;
+    }
+    const data = new Uint8Array(analyser.fftSize);
+    const tick = () => {
+      analyser.getByteTimeDomainData(data);
+      const sum = data.reduce((total, sample) => {
+        const centered = (sample - 128) / 128;
+        return total + centered * centered;
+      }, 0);
+      const rms = Math.sqrt(sum / data.length);
+      auditionMeterFill.style.width = `${Math.min(100, rms * 280)}%`;
+      auditionState.meterFrame = requestAnimationFrame(tick);
+    };
+    tick();
+  }
+
+  function updateAuditionControls() {
+    syncAuditionAudio();
+    auditionStartButton.disabled = !auditionState.buffer || auditionState.isPlaying;
+    auditionStopButton.disabled = !auditionState.isPlaying;
+  }
+
+  async function loadAuditionFile(file) {
+    if (!file) {
+      return;
+    }
+    stopAudition({ status: false });
+    auditionState.fileName = file.name || "local source";
+    auditionStatus.textContent = `Loading ${auditionState.fileName}...`;
+    updateAuditionControls();
+    const context = activeAudioContext();
+    if (!context) {
+      auditionStatus.textContent = "This browser does not expose Web Audio for local source audition.";
+      return;
+    }
+
+    try {
+      const sourceBuffer = await file.arrayBuffer();
+      auditionState.buffer = await context.decodeAudioData(sourceBuffer.slice(0));
+      auditionStatus.textContent = `Loaded ${auditionState.fileName}. Start Source to audition the current primitive chain.`;
+    } catch (error) {
+      auditionState.buffer = null;
+      auditionStatus.textContent = `Could not decode ${auditionState.fileName}. Try a WAV, AIFF, MP3, or AAC file. ${error?.message || ""}`.trim();
+    }
+    updateAuditionControls();
+  }
+
+  async function startAudition() {
+    if (!auditionState.buffer) {
+      auditionStatus.textContent = "Choose a local audio file before starting the source.";
+      return;
+    }
+
+    stopAudition({ status: false });
+    const context = activeAudioContext();
+    if (!context) {
+      auditionStatus.textContent = "This browser does not expose Web Audio for local source audition.";
+      return;
+    }
+    await context.resume?.();
+    const nodes = createAuditionNodes(context);
+    const source = context.createBufferSource();
+    source.buffer = auditionState.buffer;
+    source.loop = true;
+    source.connect(nodes.inputGain);
+    source.addEventListener("ended", () => {
+      if (auditionState.source === source) {
+        stopAudition({ status: false });
+      }
+    });
+    auditionState.nodes = nodes;
+    auditionState.source = source;
+    auditionState.isPlaying = true;
+    syncAuditionAudio();
+    source.start();
+    const primitiveCount = assignedPrimitiveChain().length;
+    auditionStatus.textContent = `Playing ${auditionState.fileName} through ${primitiveCount} ${primitiveCount === 1 ? "primitive" : "primitives"}.`;
+    updateAuditionControls();
+    startAuditionMeter();
+  }
+
+  card.ownerDocument.defaultView?.addEventListener("pagehide", disposeAuditionAudio);
 
   function assignmentForPrimitive(primitive, sourceLabel = "") {
     return {
@@ -589,15 +980,18 @@ function buildSectionGridSurface(model, schema, state) {
     }
 
     const sectionId = String(section.id || "");
-    const slotNumber = sectionSlotNumber(section, sections.indexOf(section));
-    const slotType = overrides.slotType ?? primitive.slotType;
+    const targetSlot = recipeSlotForSection(activeRecipe, section, sections.indexOf(section));
+    const targetOverrides = targetSlot?.primitiveId === primitive.id ? targetSlot : {};
+    const mergedOverrides = { ...targetOverrides, ...overrides };
+    const slotType = mergedOverrides.slotType ?? primitive.slotType;
+    installerStatusPinned = false;
     slotAssignments.set(sectionId, assignmentForPrimitive(primitive, sourceLabel));
 
     if (Number.isFinite(Number(slotType))) {
       setSurfaceControlValue(card, schema, state, slotControlLabel(section, "Type"), Number(slotType));
     }
     for (const [suffix, key] of [["Amount", "amount"], ["Tone", "tone"], ["Mix", "mix"]]) {
-      const nextValue = overrides[key] ?? primitive[key];
+      const nextValue = mergedOverrides[key] ?? primitive[key];
       if (Number.isFinite(Number(nextValue))) {
         setSurfaceControlValue(card, schema, state, slotControlLabel(section, suffix), Number(nextValue));
       }
@@ -608,6 +1002,50 @@ function buildSectionGridSurface(model, schema, state) {
   function setSlotPrimitiveById(section, primitiveId, overrides = {}, sourceLabel = "") {
     const primitive = primitiveById.get(String(primitiveId));
     setSlotPrimitive(section, primitive, overrides, sourceLabel);
+  }
+
+  function handlePrimitiveDrop(section, primitiveId) {
+    if (!section || !primitiveById.has(String(primitiveId))) {
+      return;
+    }
+    setSlotPrimitiveById(section, primitiveId);
+    selectSection(String(section.id || ""));
+  }
+
+  function clearChain({ keepRecipe = false } = {}) {
+    slotAssignments.clear();
+    installerStatusPinned = false;
+    if (!keepRecipe) {
+      activeRecipeId = "";
+    }
+    sections.forEach((section) => {
+      setSurfaceControlValue(card, schema, state, slotControlLabel(section, "Type"), 0);
+      setSurfaceControlValue(card, schema, state, slotControlLabel(section, "Amount"), 0);
+      setSurfaceControlValue(card, schema, state, slotControlLabel(section, "Tone"), 50);
+      setSurfaceControlValue(card, schema, state, slotControlLabel(section, "Mix"), 100);
+    });
+    selectSection(String(sections[0]?.id || ""));
+    update();
+  }
+
+  function startScratchRecipe(recipe) {
+    if (!recipe || typeof recipe !== "object") {
+      return;
+    }
+    activeRecipe = recipe;
+    activeRecipeId = String(recipe.id || "");
+    const macros = recipe.macros && typeof recipe.macros === "object" && !Array.isArray(recipe.macros) ? recipe.macros : {};
+    Object.entries(macros).forEach(([label, value]) => {
+      if (Number.isFinite(Number(value))) {
+        setSurfaceControlValue(card, schema, state, label, Number(value));
+      }
+    });
+    installerCommandText.textContent = recipe.installerCommand || `npm run workbench:build-installer -- --recipe ${recipe.id}`;
+    installerPackagePath.textContent = recipe.expectedPackagePath
+      ? `Expected package: ${recipe.expectedPackagePath}`
+      : "Expected package path appears after the workbench installer build completes.";
+    setInstallerStatus("Guided scratch target armed. Drag or click primitives from the bank into each required slot.");
+    clearChain({ keepRecipe: true });
   }
 
   function applyRecipe(recipe) {
@@ -631,11 +1069,83 @@ function buildSectionGridSurface(model, schema, state) {
       }
     });
     installerCommandText.textContent = recipe.installerCommand || `npm run workbench:build-installer -- --recipe ${recipe.id}`;
-    installerStatus.textContent = recipe.description || "Recipe applied to the fixed primitive slot contract.";
+    setInstallerStatus(recipe.description || "Reference recipe applied to the fixed primitive slot contract.");
     installerPackagePath.textContent = recipe.expectedPackagePath
       ? `Expected package: ${recipe.expectedPackagePath}`
       : "Expected package path appears after the workbench installer build completes.";
     update();
+  }
+
+  function updateTargetGuide() {
+    const recipe = activeRecipe;
+    const slots = recipeSlots(recipe);
+    targetStepList.innerHTML = "";
+
+    if (!recipe || !slots.length) {
+      targetProgressText.textContent = "Choose a target";
+      targetNextStep.textContent = "Pick a scratch target to see which primitives to drag from the bank.";
+      buildRecipeButton.disabled = true;
+      return;
+    }
+
+    const completion = recipeCompletion(recipe);
+    targetProgressText.textContent = `${completion.complete}/${completion.total} matched`;
+    const nextSlot = slots.find((slot) => {
+      const view = findSectionViewBySlot(slot.slot);
+      return view && !assignmentMatchesRecipeSlot(view.section, sections.indexOf(view.section), recipe);
+    });
+    targetNextStep.textContent = completion.ready
+      ? "Ready: the primitive-bank assembly matches the FET-76 target. Build Installer is unlocked."
+      : `Next: drag ${primitiveLabel(nextSlot?.primitiveId)} into Slot ${nextSlot?.slot || 1}.`;
+    if (!installerStatusPinned) {
+      setInstallerStatus(completion.ready
+        ? "Scratch assembly validated. Build Installer will package the visible primitive slot state."
+        : `Assemble from the bank: ${completion.complete}/${completion.total} target slots matched.`);
+    }
+    buildRecipeButton.disabled = !completion.ready;
+    buildRecipeButton.title = completion.ready
+      ? "Build the scratch primitive assembly into an installer."
+      : "Complete the guided primitive sequence before building.";
+
+    slots.forEach((slot) => {
+      const view = findSectionViewBySlot(slot.slot);
+      const matched = view ? assignmentMatchesRecipeSlot(view.section, sections.indexOf(view.section), recipe) : false;
+      const assignment = view ? slotAssignments.get(String(view.section.id || "")) : null;
+      const step = document.createElement("button");
+      step.type = "button";
+      step.className = "target-step";
+      step.dataset.slot = String(slot.slot);
+      step.dataset.primitiveId = String(slot.primitiveId || "");
+      step.classList.toggle("is-complete", matched);
+      step.classList.toggle("is-mismatch", Boolean(assignment) && !matched);
+      if (view) {
+        step.addEventListener("click", () => selectSection(String(view.section.id || "")));
+        step.addEventListener("dragover", (event) => {
+          event.preventDefault();
+          step.classList.add("is-drop-target");
+        });
+        step.addEventListener("dragleave", () => {
+          step.classList.remove("is-drop-target");
+        });
+        step.addEventListener("drop", (event) => {
+          event.preventDefault();
+          step.classList.remove("is-drop-target");
+          const primitiveId = event.dataTransfer?.getData("text/plain") || event.dataTransfer?.getData("application/x-fwak-primitive");
+          handlePrimitiveDrop(view.section, primitiveId);
+        });
+      }
+
+      const label = document.createElement("strong");
+      label.textContent = `Slot ${slot.slot}: ${primitiveLabel(slot.primitiveId)}`;
+      const status = document.createElement("span");
+      status.textContent = matched
+        ? "Matched"
+        : assignment
+          ? `Has ${assignment.label}; replace it`
+          : "Waiting for drop";
+      step.append(label, status);
+      targetStepList.append(step);
+    });
   }
 
   const sectionViews = sections.map((section) => {
@@ -715,9 +1225,7 @@ function buildSectionGridSurface(model, schema, state) {
       panel.classList.remove("is-drop-target");
       const primitiveId = event.dataTransfer?.getData("text/plain") || event.dataTransfer?.getData("application/x-fwak-primitive");
       if (primitiveId) {
-        activeRecipeId = "";
-        setSlotPrimitiveById(section, primitiveId);
-        selectSection(String(section.id || ""));
+        handlePrimitiveDrop(section, primitiveId);
       }
     });
 
@@ -752,15 +1260,31 @@ function buildSectionGridSurface(model, schema, state) {
         chip.style.setProperty("--primitive-color", primitiveTone(primitive));
         let pointerDrag = null;
         let suppressClick = false;
+        let suppressClickTimer = 0;
+        const suppressSyntheticClick = () => {
+          const win = chip.ownerDocument.defaultView || window;
+          suppressClick = true;
+          win.clearTimeout(suppressClickTimer);
+          suppressClickTimer = win.setTimeout(() => {
+            suppressClick = false;
+          }, 420);
+        };
         chip.addEventListener("dragstart", (event) => {
-          event.dataTransfer?.setData("text/plain", String(primitive.id || ""));
-          event.dataTransfer?.setData("application/x-fwak-primitive", String(primitive.id || ""));
+          suppressSyntheticClick();
+          const primitiveId = pendingPrimitiveDragId || String(primitive.id || "");
+          event.dataTransfer?.setData("text/plain", primitiveId);
+          event.dataTransfer?.setData("application/x-fwak-primitive", primitiveId);
           event.dataTransfer?.setDragImage(chip, chip.offsetWidth / 2, chip.offsetHeight / 2);
+        });
+        chip.addEventListener("dragend", () => {
+          suppressSyntheticClick();
+          pendingPrimitiveDragId = "";
         });
         chip.addEventListener("pointerdown", (event) => {
           if (event.button != null && event.button !== 0) {
             return;
           }
+          pendingPrimitiveDragId = String(primitive.id || "");
           pointerDrag = {
             pointerId: event.pointerId,
             startX: event.clientX,
@@ -784,27 +1308,42 @@ function buildSectionGridSurface(model, schema, state) {
           pointerDrag = null;
           chip.releasePointerCapture?.(event.pointerId);
           if (!wasMoved) {
+            if (suppressClick) {
+              return;
+            }
+            suppressSyntheticClick();
+            const selectedView = sectionViews.find(({ section }) => String(section.id || "") === selectedSectionId) || sectionViews[0];
+            if (selectedView) {
+              setSlotPrimitive(selectedView.section, primitive);
+              selectSection(String(selectedView.section.id || ""));
+            }
+            pendingPrimitiveDragId = "";
             return;
           }
           const dropTarget = chip.ownerDocument
             .elementFromPoint(event.clientX, event.clientY)
             ?.closest(".section-grid-card[data-section-id]");
-          const targetView = sectionViews.find(({ panel }) => panel === dropTarget);
+          const dropStep = chip.ownerDocument
+            .elementFromPoint(event.clientX, event.clientY)
+            ?.closest(".target-step[data-slot]");
+          const targetView = sectionViews.find(({ panel }) => panel === dropTarget)
+            || findSectionViewBySlot(dropStep?.dataset.slot);
           if (!targetView) {
             return;
           }
-          suppressClick = true;
-          activeRecipeId = "";
-          setSlotPrimitive(targetView.section, primitive);
-          selectSection(String(targetView.section.id || ""));
+          suppressSyntheticClick();
+          handlePrimitiveDrop(targetView.section, String(primitive.id || ""));
+          pendingPrimitiveDragId = "";
           update();
         });
-        chip.addEventListener("click", () => {
+        chip.addEventListener("click", (event) => {
+          if (Number(event.detail || 0) > 0) {
+            return;
+          }
           if (suppressClick) {
             suppressClick = false;
             return;
           }
-          activeRecipeId = "";
           const selectedView = sectionViews.find(({ section }) => String(section.id || "") === selectedSectionId) || sectionViews[0];
           if (selectedView) {
             setSlotPrimitive(selectedView.section, primitive);
@@ -835,7 +1374,7 @@ function buildSectionGridSurface(model, schema, state) {
       const recipeTitle = document.createElement("h4");
       recipeTitle.textContent = "Recipe + Installer";
       const recipeCopy = document.createElement("p");
-      recipeCopy.textContent = "Apply a known assemblage, then export the scratch app through the native installer pipeline.";
+      recipeCopy.textContent = "Pick a target, assemble it manually from the bank, then export that visible scratch assembly.";
       recipeHeader.append(recipeTitle, recipeCopy);
 
       const recipeList = document.createElement("div");
@@ -845,17 +1384,85 @@ function buildSectionGridSurface(model, schema, state) {
         button.type = "button";
         button.className = "recipe-button";
         button.dataset.recipeId = String(recipe.id || "");
+        const targetName = String(recipe.label || humanizeId(recipe.id)).replace(/^Rebuild\s+/iu, "");
         const label = document.createElement("strong");
-        label.textContent = recipe.label || humanizeId(recipe.id);
+        label.textContent = `Start guided ${targetName} scratch build`;
         const summary = document.createElement("span");
-        summary.textContent = recipe.description || "Apply primitive recipe";
+        summary.textContent = "Clear the chain and guide this build from the primitive bank.";
         button.append(label, summary);
         button.addEventListener("click", () => {
-          applyRecipe(recipe);
+          startScratchRecipe(recipe);
         });
         recipeViews.push({ recipe, button });
         recipeList.append(button);
       });
+
+      targetGuide.className = "target-guide";
+      const guideHeader = document.createElement("div");
+      guideHeader.className = "target-guide__header";
+      const guideTitle = document.createElement("h5");
+      guideTitle.textContent = "Scratch Build Checklist";
+      const clearButton = document.createElement("button");
+      clearButton.type = "button";
+      clearButton.className = "recipe-action-button";
+      clearButton.textContent = "Clear Chain";
+      clearButton.addEventListener("click", () => {
+        activeRecipeId = activeRecipe?.id ? String(activeRecipe.id) : "";
+        setInstallerStatus("Chain cleared. Drag primitives from the bank to rebuild from scratch.");
+        clearChain({ keepRecipe: true });
+      });
+      guideHeader.append(guideTitle, targetProgressText, clearButton);
+      targetStepList.className = "target-step-list";
+      targetNextStep.className = "target-guide__next";
+      targetGuide.append(guideHeader, targetStepList, targetNextStep);
+
+      const auditionPanel = document.createElement("section");
+      auditionPanel.className = "audio-source-panel";
+      const auditionHeader = document.createElement("div");
+      auditionHeader.className = "primitive-workbench__header";
+      const auditionTitle = document.createElement("h4");
+      auditionTitle.textContent = "Source Audition";
+      const auditionCopy = document.createElement("p");
+      auditionCopy.textContent = "Point to a local sound file, then start and stop it through the current primitive chain.";
+      auditionHeader.append(auditionTitle, auditionCopy);
+
+      const sourceFile = document.createElement("label");
+      sourceFile.className = "audio-source-file";
+      const sourceFileText = document.createElement("span");
+      sourceFileText.textContent = "Local sound source";
+      const sourceFileInput = document.createElement("input");
+      sourceFileInput.type = "file";
+      sourceFileInput.accept = "audio/*,.wav,.aif,.aiff,.mp3,.m4a,.aac,.flac,.ogg";
+      sourceFileInput.dataset.audioSourceInput = "true";
+      sourceFileInput.addEventListener("change", () => {
+        loadAuditionFile(sourceFileInput.files?.[0]);
+      });
+      sourceFile.append(sourceFileText, sourceFileInput);
+
+      const auditionActions = document.createElement("div");
+      auditionActions.className = "audio-source-actions";
+      auditionStartButton.type = "button";
+      auditionStartButton.className = "recipe-action-button recipe-action-button--primary";
+      auditionStartButton.textContent = "Start Source";
+      auditionStartButton.addEventListener("click", () => {
+        startAudition();
+      });
+      auditionStopButton.type = "button";
+      auditionStopButton.className = "recipe-action-button";
+      auditionStopButton.textContent = "Stop Source";
+      auditionStopButton.addEventListener("click", () => {
+        stopAudition();
+      });
+      auditionActions.append(auditionStartButton, auditionStopButton);
+
+      const auditionMeter = document.createElement("div");
+      auditionMeter.className = "audio-source-meter";
+      auditionMeter.append(auditionMeterFill);
+      auditionStatus.className = "audio-source-status";
+      auditionStatus.textContent = "Choose a local audio file to audition primitive changes in real time.";
+      auditionChain.className = "audio-source-chain";
+      auditionPanel.append(auditionHeader, sourceFile, auditionActions, auditionMeter, auditionChain, auditionStatus);
+      updateAuditionControls();
 
       const command = document.createElement("div");
       command.className = "recipe-installer-command";
@@ -864,7 +1471,7 @@ function buildSectionGridSurface(model, schema, state) {
       installerPackagePath.textContent = recipes[0]?.expectedPackagePath
         ? `Expected package: ${recipes[0].expectedPackagePath}`
         : "Expected package path appears after the workbench installer build completes.";
-      installerStatus.textContent = "Choose a recipe to stage an installable scratch plugin.";
+      setInstallerStatus("Assemble from the bank: 0/4 target slots matched.");
       const actionRow = document.createElement("div");
       actionRow.className = "recipe-installer-actions";
       const copyButton = document.createElement("button");
@@ -874,9 +1481,9 @@ function buildSectionGridSurface(model, schema, state) {
       copyButton.addEventListener("click", async () => {
         try {
           await navigator.clipboard?.writeText(installerCommandText.textContent || "");
-          installerStatus.textContent = "Build command copied. Run it from the repo root, or use Build Installer in this local preview.";
+          setInstallerStatus("Build command copied. Run it from the repo root, or use Build Installer in this local preview.", { pinned: true });
         } catch {
-          installerStatus.textContent = "Clipboard access is unavailable here; select the command text manually.";
+          setInstallerStatus("Clipboard access is unavailable here; select the command text manually.", { pinned: true });
         }
       });
       buildRecipeButton.type = "button";
@@ -884,33 +1491,42 @@ function buildSectionGridSurface(model, schema, state) {
       buildRecipeButton.textContent = "Build Installer";
       buildRecipeButton.addEventListener("click", async () => {
         if (!activeRecipe?.id) {
-          installerStatus.textContent = "Choose a recipe before building an installer.";
+          setInstallerStatus("Choose a scratch target before building an installer.");
           return;
         }
         buildRecipeButton.disabled = true;
-        installerStatus.textContent = `Building ${activeRecipe.label || activeRecipe.id} through the local preview server...`;
+        setInstallerStatus(`Building the visible ${activeRecipe.label || activeRecipe.id} scratch assembly through the local preview server...`, { pinned: true });
         try {
+          const scratchAssembly = currentScratchAssembly(activeRecipe);
           const response = await fetch("/api/workbench/build-installer", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ recipe: activeRecipe.id })
+            body: JSON.stringify(scratchAssembly)
           });
           const result = await response.json().catch(() => ({}));
           if (!response.ok || result.ok === false) {
             throw new Error(result.error || `HTTP ${response.status}`);
           }
-          installerStatus.textContent = result.installerPath
+          setInstallerStatus(result.installerPath
             ? `Built installer: ${result.installerPath}`
-            : "Installer build completed.";
+            : "Installer build completed.", { pinned: true });
         } catch (error) {
-          installerStatus.textContent = `Build endpoint unavailable or failed. Run the command manually. ${error?.message || ""}`.trim();
+          setInstallerStatus(`Build endpoint unavailable or failed. Run the command manually. ${error?.message || ""}`.trim(), { pinned: true });
         } finally {
-          buildRecipeButton.disabled = false;
+          updateTargetGuide();
         }
       });
-      actionRow.append(copyButton, buildRecipeButton);
+      const autoFillButton = document.createElement("button");
+      autoFillButton.type = "button";
+      autoFillButton.className = "recipe-action-button";
+      autoFillButton.textContent = "Auto-Fill Reference";
+      autoFillButton.title = "Shortcut for comparison and demos; the primary path is dragging or clicking primitives from the bank.";
+      autoFillButton.addEventListener("click", () => {
+        applyRecipe(activeRecipe || recipes[0]);
+      });
+      actionRow.append(copyButton, buildRecipeButton, autoFillButton);
       command.append(installerCommandText, actionRow, installerPackagePath, installerStatus);
-      recipePanel.append(recipeHeader, recipeList, command);
+      recipePanel.append(recipeHeader, recipeList, targetGuide, auditionPanel, command);
       workbench.append(recipePanel);
     }
 
@@ -967,6 +1583,8 @@ function buildSectionGridSurface(model, schema, state) {
     recipeViews.forEach(({ recipe, button }) => {
       button.classList.toggle("is-active", String(recipe.id || "") === activeRecipeId);
     });
+    updateTargetGuide();
+    updateAuditionControls();
   };
 
   return { node: card, update };

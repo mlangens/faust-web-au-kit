@@ -133,6 +133,20 @@ function findRecipe(sourceProject, recipeId) {
 }
 
 /**
+ * @param {unknown} value
+ * @param {unknown} fallback
+ * @returns {number}
+ */
+function numericOr(value, fallback) {
+  const numeric = Number(value);
+  if (Number.isFinite(numeric)) {
+    return numeric;
+  }
+  const fallbackNumeric = Number(fallback);
+  return Number.isFinite(fallbackNumeric) ? fallbackNumeric : 0;
+}
+
+/**
  * @param {Record<string, unknown>} sourceProject
  * @returns {Map<string, Record<string, unknown>>}
  */
@@ -148,6 +162,94 @@ function primitivePaletteById(sourceProject) {
     }
   }
   return new Map(entries);
+}
+
+/**
+ * @param {Record<string, unknown>} sourceProject
+ * @param {string} assemblyFile
+ * @returns {Record<string, unknown>}
+ */
+function normalizeScratchAssembly(sourceProject, assemblyFile) {
+  const assemblyPath = path.resolve(root, assemblyFile);
+  const assembly = asObject(readJsonFileSync(assemblyPath));
+  const targetRecipeId = requiredString(assembly.targetRecipeId) || requiredString(assembly.recipe) || "fet-76-rebuild";
+  const targetRecipe = findRecipe(sourceProject, targetRecipeId);
+  const primitivesById = primitivePaletteById(sourceProject);
+  const targetSlots = Array.isArray(targetRecipe.slots) ? targetRecipe.slots.map(asObject) : [];
+  const targetSlotByNumber = new Map(targetSlots.map((slot) => [Number(slot.slot), slot]));
+  const rawSlots = Array.isArray(assembly.slots) ? assembly.slots.map(asObject) : [];
+  if (!rawSlots.length) {
+    throw new Error(`Scratch assembly "${assemblyFile}" does not contain any primitive slots.`);
+  }
+
+  const slots = rawSlots.map((rawSlot) => {
+    const slotNumber = Number(rawSlot.slot);
+    const primitiveId = requiredString(rawSlot.primitiveId);
+    const primitive = primitivesById.get(primitiveId);
+    const targetSlot = targetSlotByNumber.get(slotNumber) || {};
+    const targetPrimitiveId = requiredString(targetSlot.primitiveId);
+
+    if (!Number.isInteger(slotNumber) || slotNumber < 1 || slotNumber > 4) {
+      throw new Error(`Scratch assembly declares invalid slot "${rawSlot.slot}".`);
+    }
+    if (!primitive) {
+      throw new Error(`Scratch assembly slot ${slotNumber} references unknown primitive "${primitiveId}".`);
+    }
+    if (targetPrimitiveId && targetPrimitiveId !== primitiveId) {
+      throw new Error(`Scratch assembly slot ${slotNumber} uses "${primitiveId}" but target "${targetRecipeId}" expects "${targetPrimitiveId}".`);
+    }
+
+    return {
+      slot: slotNumber,
+      primitiveId,
+      label: requiredString(rawSlot.label) || primitive.label,
+      role: requiredString(rawSlot.role) || primitive.role,
+      slotType: numericOr(rawSlot.slotType, targetSlot.slotType ?? primitive.slotType),
+      amount: numericOr(rawSlot.amount, targetSlot.amount ?? primitive.amount),
+      tone: numericOr(rawSlot.tone, targetSlot.tone ?? primitive.tone),
+      mix: numericOr(rawSlot.mix, targetSlot.mix ?? primitive.mix)
+    };
+  }).sort((left, right) => Number(left.slot) - Number(right.slot));
+
+  for (const targetSlot of targetSlots) {
+    const slotNumber = Number(targetSlot.slot);
+    if (!slots.some((slot) => Number(slot.slot) === slotNumber)) {
+      throw new Error(`Scratch assembly is missing required target slot ${slotNumber} for "${targetRecipeId}".`);
+    }
+  }
+
+  const rawMacros = asObject(assembly.macros);
+  const targetMacros = asObject(targetRecipe.macros);
+  const macros = Object.fromEntries(Object.entries(targetMacros).map(([label, value]) => [
+    label,
+    numericOr(rawMacros[label], value)
+  ]));
+  for (const [label, value] of Object.entries(rawMacros)) {
+    if (!(label in macros) && Number.isFinite(Number(value))) {
+      macros[label] = Number(value);
+    }
+  }
+
+  return {
+    ...targetRecipe,
+    id: targetRecipeId,
+    label: requiredString(assembly.targetLabel) || requiredString(targetRecipe.label) || targetRecipeId,
+    targetAppKey: requiredString(assembly.targetAppKey) || targetRecipe.targetAppKey,
+    productName: requiredString(assembly.productName) || targetRecipe.productName,
+    artifactStem: requiredString(assembly.artifactStem) || targetRecipe.artifactStem,
+    bundleId: requiredString(assembly.bundleId) || targetRecipe.bundleId,
+    auSubtype: requiredString(assembly.auSubtype) || targetRecipe.auSubtype,
+    description: requiredString(assembly.description) || targetRecipe.description,
+    slots,
+    macros,
+    provenance: {
+      ...asObject(assembly.provenance),
+      mode: requiredString(assembly.mode) || "scratch-assembly",
+      source: requiredString(assembly.source) || "primitive-workbench",
+      targetRecipeId,
+      validation: asObject(assembly.validation)
+    }
+  };
 }
 
 /**
@@ -234,6 +336,8 @@ function materializeDsp(source, recipe, controls) {
 function materializeProject(sourceProject, recipe, primitiveIds, slotSummaries) {
   const project = cloneJson(sourceProject);
   const recipeId = requiredString(recipe.id);
+  const provenance = asObject(recipe.provenance);
+  const sourceMode = requiredString(provenance.mode) || "recipe";
   const appKey = requiredString(recipe.targetAppKey) || slugify(recipeId);
   const productName = requiredString(recipe.productName) || requiredString(recipe.label) || appKey;
   const artifactStem = requiredString(recipe.artifactStem) || productName.replace(/[^a-zA-Z0-9]+/gu, "");
@@ -260,6 +364,7 @@ function materializeProject(sourceProject, recipe, primitiveIds, slotSummaries) 
     prototypeRole: "workbench-generated-primitive-assembly",
     referenceProduct: requiredString(recipe.label) || recipeId,
     category: "meta-workbench",
+    sourceMode,
     primitiveIds,
     featureAnchors: [
       "drag-and-drop primitive assembly",
@@ -274,7 +379,7 @@ function materializeProject(sourceProject, recipe, primitiveIds, slotSummaries) 
     ...asObject(shell.hero),
     title: productName,
     description: requiredString(recipe.description) || "A scratch plugin generated from a primitive workbench recipe.",
-    status: `Generated from ${recipeId}; ${slotSummaries.length} primitive slots are baked into the initial control state.`
+    status: `Generated from ${sourceMode}; ${slotSummaries.length} primitive slots are baked into the initial control state.`
   };
 
   const sectionGrid = resolveSectionGrid(project);
@@ -338,6 +443,8 @@ function buildAssemblyFiles(sourceProject, recipe) {
   if (!recipeId) {
     throw new Error("Workbench recipe is missing an id.");
   }
+  const provenance = asObject(recipe.provenance);
+  const sourceMode = requiredString(provenance.mode) || "recipe";
 
   const primitivesById = primitivePaletteById(sourceProject);
   const { slotControls, primitiveIds, slotSummaries } = resolveRecipeControls(recipe, primitivesById);
@@ -378,6 +485,7 @@ function buildAssemblyFiles(sourceProject, recipe) {
   const plan = {
     schemaVersion: 1,
     recipeId,
+    sourceMode,
     generatedAt: new Date().toISOString(),
     appKey,
     productName: project.productName,
@@ -386,6 +494,7 @@ function buildAssemblyFiles(sourceProject, recipe) {
     primitiveIds,
     slots: slotSummaries,
     controls: slotControls,
+    provenance,
     workspace: path.relative(root, workspacePath),
     project: path.relative(root, projectPath),
     expectedInstaller: path.relative(root, expectedInstallerPath)
@@ -404,15 +513,20 @@ function buildAssemblyFiles(sourceProject, recipe) {
  */
 function main() {
   const args = parseCliArgs(process.argv.slice(2));
-  const recipeId = requiredString(args.recipe) || "fet-76-rebuild";
+  const assemblyFile = requiredString(args["assembly-file"]);
+  const requestedRecipeId = requiredString(args.recipe) || "fet-76-rebuild";
   const dryRun = args["dry-run"] === true;
   const skipBuild = args["skip-build"] === true;
   const sourceProject = /** @type {Record<string, unknown>} */ (readJsonFileSync(sourceProjectPath));
-  const recipe = findRecipe(sourceProject, recipeId);
+  const recipe = assemblyFile
+    ? normalizeScratchAssembly(sourceProject, assemblyFile)
+    : findRecipe(sourceProject, requestedRecipeId);
+  const recipeId = requiredString(recipe.id);
   const assembly = buildAssemblyFiles(sourceProject, recipe);
 
   const summary = {
     recipe: recipeId,
+    sourceMode: requiredString(asObject(recipe.provenance).mode) || "recipe",
     appKey: assembly.appKey,
     workspace: path.relative(root, assembly.workspacePath),
     project: path.relative(root, assembly.projectPath),

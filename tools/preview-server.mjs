@@ -11,6 +11,19 @@ const port = Number(process.env.PORT || 4173);
 const host = "127.0.0.1";
 const maxRequestBytes = 64 * 1024;
 
+/**
+ * @param {Record<string, unknown>} payload
+ * @returns {string}
+ */
+function writeScratchAssemblyRequest(payload) {
+  const requestRoot = path.join(root, "generated", "workbench-requests");
+  fs.mkdirSync(requestRoot, { recursive: true });
+  const requestDirectory = fs.mkdtempSync(path.join(requestRoot, "assembly-"));
+  const requestPath = path.join(requestDirectory, "scratch-assembly.json");
+  fs.writeFileSync(requestPath, `${JSON.stringify(payload, null, 2)}\n`);
+  return path.relative(root, requestPath);
+}
+
 /** @type {ReadonlyMap<string, string>} */
 const mimeTypes = new Map([
   [".css", "text/css; charset=utf-8"],
@@ -68,9 +81,31 @@ function handleWorkbenchBuild(request, response) {
       return;
     }
 
+    const buildArgs = [path.join(root, "tools", "build-workbench-installer.mjs")];
+    const scratchSlots = Array.isArray(payload.slots) ? payload.slots : [];
+    let assemblyFile = "";
+    if (scratchSlots.length) {
+      try {
+        assemblyFile = writeScratchAssemblyRequest({
+          ...payload,
+          recipe,
+          targetRecipeId: typeof payload.targetRecipeId === "string" ? payload.targetRecipeId : recipe
+        });
+      } catch (error) {
+        sendJson(response, 500, {
+          ok: false,
+          error: error instanceof Error ? error.message : "Could not persist scratch assembly request."
+        });
+        return;
+      }
+      buildArgs.push("--assembly-file", assemblyFile);
+    } else {
+      buildArgs.push("--recipe", recipe);
+    }
+
     execFile(
       process.execPath,
-      [path.join(root, "tools", "build-workbench-installer.mjs"), "--recipe", recipe],
+      buildArgs,
       {
         cwd: root,
         timeout: Number(process.env.FWAK_NATIVE_BUILD_TIMEOUT_MS || 30 * 60 * 1000),
@@ -91,6 +126,8 @@ function handleWorkbenchBuild(request, response) {
         sendJson(response, 200, {
           ok: true,
           recipe,
+          sourceMode: assemblyFile ? "scratch-assembly" : "recipe",
+          assemblyFile,
           installerPath,
           stdout,
           stderr

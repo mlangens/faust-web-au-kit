@@ -1426,7 +1426,7 @@ body[data-layout-profile="editor-plus-dock"] .surface-card {
 }
 
 .recipe-action-button:disabled {
-  cursor: wait;
+  cursor: not-allowed;
   opacity: 0.62;
 }
 
@@ -1492,6 +1492,156 @@ body[data-layout-profile="editor-plus-dock"] .surface-card {
 
 .recipe-button {
   cursor: pointer;
+}
+
+.target-guide {
+  display: grid;
+  gap: 9px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent-line) 70%, var(--line) 30%);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--accent) 14%, transparent), transparent 45%),
+    color-mix(in srgb, var(--card) 80%, var(--panel-strong) 20%);
+}
+
+.target-guide__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.target-guide__header h5 {
+  margin: 0;
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.target-guide__header strong {
+  justify-self: end;
+  padding: 4px 8px;
+  color: var(--accent);
+  font-size: 0.7rem;
+  border-radius: 999px;
+  background: var(--accent-tint);
+}
+
+.target-guide__header .recipe-action-button {
+  grid-column: 1 / -1;
+}
+
+.target-step-list {
+  display: grid;
+  gap: 7px;
+}
+
+.target-step {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: 9px 10px;
+  color: var(--ink);
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--panel-strong) 72%, var(--card) 28%);
+  cursor: pointer;
+}
+
+.target-step.is-complete {
+  border-color: color-mix(in srgb, var(--meter-out) 52%, var(--accent-line) 48%);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--meter-out) 20%, transparent), transparent 72%),
+    color-mix(in srgb, var(--panel-strong) 74%, var(--card) 26%);
+}
+
+.target-step.is-mismatch {
+  border-color: color-mix(in srgb, var(--meter-gr) 58%, var(--line) 42%);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--meter-gr) 18%, transparent), transparent 72%),
+    color-mix(in srgb, var(--panel-strong) 74%, var(--card) 26%);
+}
+
+.target-step.is-drop-target {
+  border-color: var(--accent-line);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.target-step strong {
+  font-size: 0.78rem;
+}
+
+.target-step span,
+.target-guide__next {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.audio-source-panel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background:
+    linear-gradient(140deg, color-mix(in srgb, var(--meter-out) 11%, transparent), transparent 62%),
+    color-mix(in srgb, var(--card) 78%, var(--panel-strong) 22%);
+}
+
+.audio-source-file {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.audio-source-file input {
+  min-width: 0;
+  width: 100%;
+  color: var(--ink);
+  font-size: 0.72rem;
+}
+
+.audio-source-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.audio-source-meter {
+  position: relative;
+  overflow: hidden;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+.audio-source-meter span {
+  display: block;
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--meter-out), var(--accent));
+  transition: width 80ms linear;
+}
+
+.audio-source-chain {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+
+.audio-source-status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.4;
 }
 
 .recipe-installer-command {
